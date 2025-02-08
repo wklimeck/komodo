@@ -236,7 +236,7 @@ export const Login = () => {
               No login methods have been configured. See the
               <Button variant="link" className="text-sm py-0 px-1">
                 <a
-                  href="https://github.com/mbecker20/komodo/blob/main/config/core.config.toml"
+                  href="https://github.com/moghtech/komodo/blob/main/config/core.config.toml"
                   target="_blank"
                   className="flex text-sm"
                 >
