@@ -42,12 +42,12 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           editUrl:
-            "https://github.com/mbecker20/komodo/tree/main/docsite",
+            "https://github.com/moghtech/komodo/tree/main/docsite",
         },
         blog: {
           showReadingTime: true,
           editUrl:
-            "https://github.com/mbecker20/komodo/tree/main/docsite",
+            "https://github.com/moghtech/komodo/tree/main/docsite",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -83,7 +83,7 @@ const config: Config = {
           position: "right",
         },
         {
-          href: "https://github.com/mbecker20/komodo",
+          href: "https://github.com/moghtech/komodo",
           label: "Github",
           position: "right",
         },

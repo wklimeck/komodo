@@ -48,7 +48,7 @@ RUN mkdir /action-cache && \
 EXPOSE 9120
 
 # Label for Ghcr
-LABEL org.opencontainers.image.source=https://github.com/mbecker20/komodo
+LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Core"
 LABEL org.opencontainers.image.licenses=GPL-3.0
 
