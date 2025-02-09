@@ -133,7 +133,7 @@ export const Login = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="container flex justify-between items-center h-16">
-        <img src="/monitor-circle.png" className="w-[28px] dark:invert" />
+        <img src="/komodo-logo.svg" className="w-[32px]" />
         <ThemeToggle />
       </div>
       <div
