@@ -67,7 +67,7 @@ const config: Config = {
       title: "Komodo",
       logo: {
         alt: "monitor lizard",
-        src: "img/logo512.png",
+        src: "img/komodo-512x512.png",
         width: "34px",
       },
       items: [
