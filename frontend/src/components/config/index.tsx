@@ -61,24 +61,25 @@ export const ConfigLayout = <
           )}
           {selector}
           {changesMade && (
-            <Button
-              variant="outline"
-              onClick={onReset}
-              disabled={disabled || !changesMade}
-              className="flex items-center gap-2"
-            >
-              <History className="w-4 h-4" />
-              Reset
-            </Button>
-          )}
-          {changesMade && (
-            <ConfirmUpdate
-              previous={original}
-              content={update}
-              onConfirm={async () => onConfirm()}
-              disabled={disabled}
-              file_contents_language={file_contents_language}
-            />
+            <>
+              <Button
+                variant="outline"
+                onClick={onReset}
+                disabled={disabled || !changesMade}
+                className="flex items-center gap-2"
+              >
+                <History className="w-4 h-4" />
+                Reset
+              </Button>
+              <ConfirmUpdate
+                previous={original}
+                content={update}
+                onConfirm={async () => onConfirm()}
+                disabled={disabled}
+                file_contents_language={file_contents_language}
+                key_listener
+              />
+            </>
           )}
         </div>
       }
@@ -308,6 +309,30 @@ export const Config = <T,>({
                   </div>
                 </div>
               )
+          )}
+          {changesMade && (
+            <div className="flex gap-2 justify-end">
+              <div className="text-muted-foreground flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" /> Unsaved changes
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <Button
+                variant="outline"
+                onClick={onReset}
+                disabled={disabled}
+                className="flex items-center gap-2"
+              >
+                <History className="w-4 h-4" />
+                Reset
+              </Button>
+              <ConfirmUpdate
+                previous={original}
+                content={update}
+                onConfirm={onConfirm}
+                disabled={disabled}
+                file_contents_language={file_contents_language}
+              />
+            </div>
           )}
         </div>
       </div>
