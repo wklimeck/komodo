@@ -125,7 +125,7 @@ const ProcedureConfigInner = ({
           </div>
         }
         disabled={disabled}
-        config={config}
+        update={config}
         onConfirm={async () => {
           await mutateAsync({ id: procedure._id!.$oid, config });
           setConfig({});
