@@ -821,7 +821,7 @@ export const StackConfig = ({
     <Config
       titleOther={titleOther}
       disabled={disabled}
-      config={config}
+      original={config}
       update={update}
       set={set}
       onSave={async () => {

@@ -625,7 +625,7 @@ export function ConfirmUpdate<T>({
         <Button
           onClick={() => set(true)}
           disabled={disabled}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-100"
         >
           <Save className="w-4 h-4" />
           Save
