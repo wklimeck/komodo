@@ -177,6 +177,7 @@ impl Resolve<ExecuteArgs> for DeployStack {
       file_contents,
       missing_files,
       remote_errors,
+      compose_config,
       commit_hash,
       commit_message,
     } = periphery_client(&server)?
@@ -206,12 +207,14 @@ impl Resolve<ExecuteArgs> for DeployStack {
       let (
         deployed_services,
         deployed_contents,
+        deployed_config,
         deployed_hash,
         deployed_message,
       ) = if deployed {
         (
           Some(latest_services.clone()),
           Some(file_contents.clone()),
+          compose_config,
           commit_hash.clone(),
           commit_message.clone(),
         )
@@ -219,6 +222,7 @@ impl Resolve<ExecuteArgs> for DeployStack {
         (
           stack.info.deployed_services,
           stack.info.deployed_contents,
+          stack.info.deployed_config,
           stack.info.deployed_hash,
           stack.info.deployed_message,
         )
@@ -229,6 +233,7 @@ impl Resolve<ExecuteArgs> for DeployStack {
         deployed_project_name: project_name.into(),
         deployed_services,
         deployed_contents,
+        deployed_config,
         deployed_hash,
         deployed_message,
         latest_services,
@@ -381,9 +386,9 @@ pub async fn pull_stack_inner(
   mut stack: Stack,
   service: Option<String>,
   server: &Server,
-  update: Option<&mut Update>,
+  mut update: Option<&mut Update>,
 ) -> anyhow::Result<ComposePullResponse> {
-  if let (Some(service), Some(update)) = (&service, update) {
+  if let (Some(service), Some(update)) = (&service, update.as_mut()) {
     update.logs.push(Log::simple(
       &format!("Service: {service}"),
       format!("Execution requested for Stack service {service}"),
@@ -404,6 +409,36 @@ pub async fn pull_stack_inner(
     ).await.with_context(
       || format!("Failed to get registry token in call to db. Stopping run. | {} | {}", stack.config.registry_provider, stack.config.registry_account),
     )?;
+
+  // interpolate variables / secrets
+  if !stack.config.skip_secret_interp {
+    let vars_and_secrets = get_variables_and_secrets().await?;
+
+    let mut global_replacers = HashSet::new();
+    let mut secret_replacers = HashSet::new();
+
+    interpolate_variables_secrets_into_string(
+      &vars_and_secrets,
+      &mut stack.config.file_contents,
+      &mut global_replacers,
+      &mut secret_replacers,
+    )?;
+
+    interpolate_variables_secrets_into_string(
+      &vars_and_secrets,
+      &mut stack.config.environment,
+      &mut global_replacers,
+      &mut secret_replacers,
+    )?;
+
+    if let Some(update) = update {
+      add_interp_update_log(
+        update,
+        &global_replacers,
+        &secret_replacers,
+      );
+    }
+  };
 
   let res = periphery_client(server)?
     .request(ComposePull {

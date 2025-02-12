@@ -186,6 +186,8 @@ pub struct ComposeUpResponse {
   pub file_contents: Vec<FileContents>,
   /// The error in getting remote file contents at the path, or null
   pub remote_errors: Vec<FileContents>,
+  /// The output of `docker compose config` at deploy time
+  pub compose_config: Option<String>,
   /// If its a repo based stack, will include the latest commit hash
   pub commit_hash: Option<String>,
   /// If its a repo based stack, will include the latest commit message
