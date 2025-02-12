@@ -38,8 +38,8 @@ impl Resolve<super::Args> for ListComposeProjects {
       return Err(
         anyhow!("{}", res.combined())
           .context(format!(
-        "failed to list compose projects using {docker_compose} ls"
-      ))
+            "failed to list compose projects using {docker_compose} ls"
+          ))
           .into(),
       );
     }
@@ -295,7 +295,7 @@ impl Resolve<super::Args> for ComposePull {
       registry_token,
     } = self;
     let mut res = ComposePullResponse::default();
-    let (run_directory, env_file_path) =
+    let (run_directory, env_file_path, _replacers) =
       write_stack(&stack, git_token, &mut res).await?;
 
     // Canonicalize the path to ensure it exists, and is the cleanest path to the run directory.
@@ -369,7 +369,7 @@ impl Resolve<super::Args> for ComposePull {
     let project_name = stack.project_name(false);
 
     let log = run_komodo_command(
-      "compose pull",
+      "Compose Pull",
       run_directory.as_ref(),
       format!(
         "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} pull{service_arg}",
@@ -418,7 +418,7 @@ impl Resolve<super::Args> for ComposeUp {
     .await
     {
       res.logs.push(Log::error(
-        "compose up failed",
+        "Compose Up - Failed",
         format_serror(&e.into()),
       ));
     };
@@ -434,7 +434,7 @@ impl Resolve<super::Args> for ComposeExecution {
     let ComposeExecution { project, command } = self;
     let docker_compose = docker_compose();
     let log = run_komodo_command(
-      "compose command",
+      "Compose Command",
       None,
       format!("{docker_compose} -p {project} {command}"),
       false,

@@ -371,6 +371,7 @@ impl Resolve<WriteArgs> for RefreshStackCache {
       deployed_services: stack.info.deployed_services.clone(),
       deployed_project_name: stack.info.deployed_project_name.clone(),
       deployed_contents: stack.info.deployed_contents.clone(),
+      deployed_config: stack.info.deployed_config.clone(),
       deployed_hash: stack.info.deployed_hash.clone(),
       deployed_message: stack.info.deployed_message.clone(),
       latest_services,
