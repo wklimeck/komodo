@@ -75,7 +75,7 @@ export function KomodoClient(url, options) {
     const write = async (type, params) => await request("/write", { type, params });
     const execute = async (type, params) => await request("/execute", { type, params });
     const core_version = () => read("GetVersion", {}).then((res) => res.version);
-    const subscribe_to_update_websocket = async ({ on_update, on_login, on_close, retry_timeout_ms = 3000, cancel = new CancelToken(), on_cancel, }) => {
+    const subscribe_to_update_websocket = async ({ on_update, on_login, on_close, retry_timeout_ms = 5_000, cancel = new CancelToken(), on_cancel, }) => {
         while (true) {
             if (cancel.cancelled) {
                 on_cancel?.();

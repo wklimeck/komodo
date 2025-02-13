@@ -124,8 +124,8 @@ export type ReadResponses = {
   GetStack: Types.GetStackResponse;
   GetStackActionState: Types.GetStackActionStateResponse;
   GetStackWebhooksEnabled: Types.GetStackWebhooksEnabledResponse;
-  GetStackServiceLog: Types.GetStackServiceLogResponse;
-  SearchStackServiceLog: Types.SearchStackServiceLogResponse;
+  GetStackLog: Types.GetStackLogResponse;
+  SearchStackLog: Types.SearchStackLogResponse;
   ListStacks: Types.ListStacksResponse;
   ListFullStacks: Types.ListFullStacksResponse;
   ListStackServices: Types.ListStackServicesResponse;

@@ -1,28 +1,28 @@
 import { useRead } from "@lib/hooks";
 import { Types } from "komodo_client";
 import { ReactNode } from "react";
-import { useDeployment } from ".";
+import { useStack } from ".";
 import { Log, LogSection } from "@components/log";
 
-export const DeploymentLogs = ({
+export const StackLogs = ({
   id,
   titleOther,
 }: {
   id: string;
   titleOther: ReactNode;
 }) => {
-  const state = useDeployment(id)?.info.state;
+  const state = useStack(id)?.info.state;
   if (
     state === undefined ||
-    state === Types.DeploymentState.Unknown ||
-    state === Types.DeploymentState.NotDeployed
+    state === Types.StackState.Unknown ||
+    state === Types.StackState.Down
   ) {
     return null;
   }
-  return <DeploymentLogsInner id={id} titleOther={titleOther} />;
+  return <StackLogsInner id={id} titleOther={titleOther} />;
 };
 
-const DeploymentLogsInner = ({
+const StackLogsInner = ({
   id,
   titleOther,
 }: {
@@ -48,8 +48,9 @@ const NoSearchLogs = (
   timestamps: boolean,
   stream: string
 ) => {
-  const { data: log, refetch } = useRead("GetDeploymentLog", {
-    deployment: id,
+  const { data: log, refetch } = useRead("GetStackLog", {
+    stack: id,
+    services: [],
     tail,
     timestamps,
   });
@@ -70,8 +71,9 @@ const SearchLogs = (
   invert: boolean,
   timestamps: boolean
 ) => {
-  const { data: log, refetch } = useRead("SearchDeploymentLog", {
-    deployment: id,
+  const { data: log, refetch } = useRead("SearchStackLog", {
+    stack: id,
+    services: [],
     terms,
     combinator: Types.SearchCombinator.And,
     invert,

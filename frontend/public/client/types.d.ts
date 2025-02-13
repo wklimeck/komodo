@@ -104,7 +104,7 @@ export interface ResourceQuery<T> {
 export interface ActionQuerySpecifics {
 }
 export type ActionQuery = ResourceQuery<ActionQuerySpecifics>;
-export type AlerterEndpoint =
+export type AlerterEndpoint = 
 /** Send alert serialized to JSON to an http endpoint. */
 {
     type: "Custom";
@@ -390,7 +390,7 @@ export interface BuildQuerySpecifics {
     built_since?: I64;
 }
 export type BuildQuery = ResourceQuery<BuildQuerySpecifics>;
-export type BuilderConfig =
+export type BuilderConfig = 
 /** Use a Periphery address as a Builder. */
 {
     type: "Url";
@@ -421,7 +421,7 @@ export interface BuilderQuerySpecifics {
 }
 export type BuilderQuery = ResourceQuery<BuilderQuerySpecifics>;
 /** A wrapper for all Komodo exections. */
-export type Execution =
+export type Execution = 
 /** The "null" execution. Does nothing. */
 {
     type: "None";
@@ -725,7 +725,7 @@ export interface JwtResponse {
 export type CreateLocalUserResponse = JwtResponse;
 export type CreateProcedureResponse = Procedure;
 export type CreateRepoWebhookResponse = NoData;
-export type UserConfig =
+export type UserConfig = 
 /** User that logs in with username / password */
 {
     type: "Local";
@@ -833,7 +833,7 @@ export type DeleteStackWebhookResponse = NoData;
 export type DeleteSyncWebhookResponse = NoData;
 export type DeleteUserResponse = User;
 export type DeleteVariableResponse = Variable;
-export type DeploymentImage =
+export type DeploymentImage = 
 /** Deploy any external image. */
 {
     type: "Image";
@@ -1010,7 +1010,7 @@ export declare enum SeverityLevel {
     Critical = "CRITICAL"
 }
 /** The variants of data related to the alert. */
-export type AlertData =
+export type AlertData = 
 /** A null alert */
 {
     type: "None";
@@ -1456,6 +1456,11 @@ export interface ResourceSyncConfig {
      */
     resource_path?: string[];
     /**
+     * Excluse Komodo Resources (Servers / Stacks / Builds)
+     * from the sync. Will be variable / user group only sync.
+     */
+    exclude_resources?: boolean;
+    /**
      * Enable "pushes" to the file,
      * which exports resources matching tags to single file.
      * - If using `files_on_host`, it is stored in the file_contents, which must point to a .toml file path (it will be created if it doesn't exist).
@@ -1476,7 +1481,7 @@ export interface ResourceSyncConfig {
     /** Manage the file contents in the UI. */
     file_contents?: string;
 }
-export type DiffData =
+export type DiffData = 
 /** Resource will be created */
 {
     type: "Create";
@@ -1641,7 +1646,7 @@ export interface ServerConfig {
 }
 export type Server = Resource<ServerConfig, undefined>;
 export type GetServerResponse = Server;
-export type ServerTemplateConfig =
+export type ServerTemplateConfig = 
 /** Template to launch an AWS EC2 instance */
 {
     type: "Aws";
@@ -1665,6 +1670,7 @@ export interface StackActionState {
     destroying: boolean;
 }
 export type GetStackActionStateResponse = StackActionState;
+export type GetStackLogResponse = Log;
 /** The compose file configuration. */
 export interface StackConfig {
     /** The server to deploy the stack on. */
@@ -1775,7 +1781,7 @@ export interface StackConfig {
     registry_account?: string;
     /** The optional command to run before the Stack is deployed. */
     pre_deploy?: SystemCommand;
-    /** The optional command to run before the Stack is deployed. */
+    /** The optional command to run after the Stack is deployed. */
     post_deploy?: SystemCommand;
     /**
      * The extra arguments to pass after `docker compose up -d`.
@@ -1857,13 +1863,21 @@ export interface StackInfo {
     deployed_hash?: string;
     /** Deployed commit message, or null. Only for repo based stacks */
     deployed_message?: string;
-    /** The deployed compose file contents. This is updated whenever Komodo successfully deploys the stack. */
+    /**
+     * The deployed compose file contents.
+     * This is updated whenever Komodo successfully deploys the stack.
+     */
     deployed_contents?: FileContents[];
     /**
      * The deployed service names.
      * This is updated whenever it is empty, or deployed contents is updated.
      */
     deployed_services?: StackServiceNames[];
+    /**
+     * The output of `docker compose config`.
+     * This is updated whenever Komodo successfully deploys the stack.
+     */
+    deployed_config?: string;
     /**
      * The latest service names.
      * This is updated whenever the stack cache refreshes, using the latest file contents (either db defined or remote).
@@ -1884,7 +1898,6 @@ export interface StackInfo {
 }
 export type Stack = Resource<StackConfig, StackInfo>;
 export type GetStackResponse = Stack;
-export type GetStackServiceLogResponse = Log;
 /** System information of a server */
 export interface SystemInformation {
     /** The system name */
@@ -3081,7 +3094,7 @@ export interface GitProvider {
     accounts: ProviderAccount[];
 }
 export type ListGitProvidersFromConfigResponse = GitProvider[];
-export type UserTarget =
+export type UserTarget = 
 /** User Id */
 {
     type: "User";
@@ -3368,7 +3381,7 @@ export interface ResourceSyncQuerySpecifics {
 export type ResourceSyncQuery = ResourceQuery<ResourceSyncQuerySpecifics>;
 export type SearchContainerLogResponse = Log;
 export type SearchDeploymentLogResponse = Log;
-export type SearchStackServiceLogResponse = Log;
+export type SearchStackLogResponse = Log;
 export interface ServerQuerySpecifics {
 }
 /** Server-specific query */
@@ -5085,12 +5098,19 @@ export interface GetStackActionState {
     /** Id or name */
     stack: string;
 }
-/** Get a stack service's log. Response: [GetStackServiceLogResponse]. */
-export interface GetStackServiceLog {
+/**
+ * Get a stack's logs. Filter down included services. Response: [GetStackLogResponse].
+ *
+ * Note. This call will hit the underlying server directly for most up to date log.
+ */
+export interface GetStackLog {
     /** Id or name */
     stack: string;
-    /** The service to get the log for. */
-    service: string;
+    /**
+     * Filter the logs to only ones from specific services.
+     * If empty, will include logs from all services.
+     */
+    services: string[];
     /**
      * The number of lines of the log tail to include.
      * Default: 100.
@@ -5729,7 +5749,7 @@ export interface ListStackServices {
 }
 /** List stacks matching optional query. Response: [ListStacksResponse]. */
 export interface ListStacks {
-    /** optional structured query to filter syncs. */
+    /** optional structured query to filter stacks. */
     query?: StackQuery;
 }
 /**
@@ -6342,16 +6362,19 @@ export interface SearchDeploymentLog {
     timestamps?: boolean;
 }
 /**
- * Search the deployment log's tail using `grep`. All lines go to stdout.
- * Response: [Log].
+ * Search the stack log's tail using `grep`. All lines go to stdout.
+ * Response: [SearchStackLogResponse].
  *
  * Note. This call will hit the underlying server directly for most up to date log.
  */
-export interface SearchStackServiceLog {
+export interface SearchStackLog {
     /** Id or name */
     stack: string;
-    /** The service to get the log for. */
-    service: string;
+    /**
+     * Filter the logs to only ones from specific services.
+     * If empty, will include logs from all services.
+     */
+    services: string[];
     /** The terms to search for. */
     terms: string[];
     /**
@@ -7093,7 +7116,7 @@ export type ExecuteRequest = {
     params: RunSync;
 };
 /** Configuration for the registry to push the built image to. */
-export type ImageRegistryLegacy1_14 =
+export type ImageRegistryLegacy1_14 = 
 /** Don't push the image to any registry */
 {
     type: "None";
@@ -7363,11 +7386,11 @@ export type ReadRequest = {
     type: "GetStackWebhooksEnabled";
     params: GetStackWebhooksEnabled;
 } | {
-    type: "GetStackServiceLog";
-    params: GetStackServiceLog;
+    type: "GetStackLog";
+    params: GetStackLog;
 } | {
-    type: "SearchStackServiceLog";
-    params: SearchStackServiceLog;
+    type: "SearchStackLog";
+    params: SearchStackLog;
 } | {
     type: "ListStacks";
     params: ListStacks;

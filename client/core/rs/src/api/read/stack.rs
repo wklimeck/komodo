@@ -53,20 +53,23 @@ pub type ListStackServicesResponse = Vec<StackService>;
 
 //
 
-/// Get a stack service's log. Response: [GetStackServiceLogResponse].
+/// Get a stack's logs. Filter down included services. Response: [GetStackLogResponse].
+///
+/// Note. This call will hit the underlying server directly for most up to date log.
 #[typeshare]
 #[derive(
   Serialize, Deserialize, Debug, Clone, Resolve, EmptyTraits,
 )]
 #[empty_traits(KomodoReadRequest)]
-#[response(GetStackServiceLogResponse)]
+#[response(GetStackLogResponse)]
 #[error(serror::Error)]
-pub struct GetStackServiceLog {
+pub struct GetStackLog {
   /// Id or name
   #[serde(alias = "id", alias = "name")]
   pub stack: String,
-  /// The service to get the log for.
-  pub service: String,
+  /// Filter the logs to only ones from specific services.
+  /// If empty, will include logs from all services.
+  pub services: Vec<String>,
   /// The number of lines of the log tail to include.
   /// Default: 100.
   /// Max: 5000.
@@ -82,12 +85,12 @@ fn default_tail() -> u64 {
 }
 
 #[typeshare]
-pub type GetStackServiceLogResponse = Log;
+pub type GetStackLogResponse = Log;
 
 //
 
-/// Search the deployment log's tail using `grep`. All lines go to stdout.
-/// Response: [Log].
+/// Search the stack log's tail using `grep`. All lines go to stdout.
+/// Response: [SearchStackLogResponse].
 ///
 /// Note. This call will hit the underlying server directly for most up to date log.
 #[typeshare]
@@ -95,14 +98,15 @@ pub type GetStackServiceLogResponse = Log;
   Serialize, Deserialize, Debug, Clone, Resolve, EmptyTraits,
 )]
 #[empty_traits(KomodoReadRequest)]
-#[response(SearchStackServiceLogResponse)]
+#[response(SearchStackLogResponse)]
 #[error(serror::Error)]
-pub struct SearchStackServiceLog {
+pub struct SearchStackLog {
   /// Id or name
   #[serde(alias = "id", alias = "name")]
   pub stack: String,
-  /// The service to get the log for.
-  pub service: String,
+  /// Filter the logs to only ones from specific services.
+  /// If empty, will include logs from all services.
+  pub services: Vec<String>,
   /// The terms to search for.
   pub terms: Vec<String>,
   /// When searching for multiple terms, can use `AND` or `OR` combinator.
@@ -120,7 +124,7 @@ pub struct SearchStackServiceLog {
 }
 
 #[typeshare]
-pub type SearchStackServiceLogResponse = Log;
+pub type SearchStackLogResponse = Log;
 
 //
 
