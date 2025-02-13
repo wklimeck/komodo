@@ -82,12 +82,12 @@ pub struct DockerComposeLsItem {
 
 //
 
-impl Resolve<super::Args> for GetComposeServiceLog {
-  #[instrument(name = "GetComposeServiceLog", level = "debug")]
+impl Resolve<super::Args> for GetComposeLog {
+  #[instrument(name = "GetComposeLog", level = "debug")]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
-    let GetComposeServiceLog {
+    let GetComposeLog {
       project,
-      service,
+      services,
       tail,
       timestamps,
     } = self;
@@ -95,7 +95,8 @@ impl Resolve<super::Args> for GetComposeServiceLog {
     let timestamps =
       timestamps.then_some(" --timestamps").unwrap_or_default();
     let command = format!(
-      "{docker_compose} -p {project} logs {service} --tail {tail}{timestamps}"
+      "{docker_compose} -p {project} logs --tail {tail}{timestamps} {}",
+      services.join(" ")
     );
     Ok(
       run_komodo_command("get stack log", None, command, false).await,
@@ -103,12 +104,12 @@ impl Resolve<super::Args> for GetComposeServiceLog {
   }
 }
 
-impl Resolve<super::Args> for GetComposeServiceLogSearch {
-  #[instrument(name = "GetComposeServiceLogSearch", level = "debug")]
+impl Resolve<super::Args> for GetComposeLogSearch {
+  #[instrument(name = "GetComposeLogSearch", level = "debug")]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
-    let GetComposeServiceLogSearch {
+    let GetComposeLogSearch {
       project,
-      service,
+      services,
       terms,
       combinator,
       invert,
@@ -118,7 +119,10 @@ impl Resolve<super::Args> for GetComposeServiceLogSearch {
     let grep = log_grep(&terms, combinator, invert);
     let timestamps =
       timestamps.then_some(" --timestamps").unwrap_or_default();
-    let command = format!("{docker_compose} -p {project} logs {service} --tail 5000{timestamps} 2>&1 | {grep}");
+    let command = format!(
+      "{docker_compose} -p {project} logs --tail 5000{timestamps} {} 2>&1 | {grep}",
+      services.join(" ")
+    );
     Ok(
       run_komodo_command("get stack log grep", None, command, false)
         .await,

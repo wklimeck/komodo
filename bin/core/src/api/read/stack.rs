@@ -10,7 +10,7 @@ use komodo_client::{
   },
 };
 use periphery_client::api::compose::{
-  GetComposeServiceLog, GetComposeServiceLogSearch,
+  GetComposeLog, GetComposeLogSearch,
 };
 use resolver_api::Resolve;
 
@@ -64,14 +64,14 @@ impl Resolve<ReadArgs> for ListStackServices {
   }
 }
 
-impl Resolve<ReadArgs> for GetStackServiceLog {
+impl Resolve<ReadArgs> for GetStackLog {
   async fn resolve(
     self,
     ReadArgs { user }: &ReadArgs,
-  ) -> serror::Result<GetStackServiceLogResponse> {
-    let GetStackServiceLog {
+  ) -> serror::Result<GetStackLogResponse> {
+    let GetStackLog {
       stack,
-      service,
+      services,
       tail,
       timestamps,
     } = self;
@@ -79,26 +79,26 @@ impl Resolve<ReadArgs> for GetStackServiceLog {
       get_stack_and_server(&stack, user, PermissionLevel::Read, true)
         .await?;
     let res = periphery_client(&server)?
-      .request(GetComposeServiceLog {
+      .request(GetComposeLog {
         project: stack.project_name(false),
-        service,
+        services,
         tail,
         timestamps,
       })
       .await
-      .context("failed to get stack service log from periphery")?;
+      .context("Failed to get stack log from periphery")?;
     Ok(res)
   }
 }
 
-impl Resolve<ReadArgs> for SearchStackServiceLog {
+impl Resolve<ReadArgs> for SearchStackLog {
   async fn resolve(
     self,
     ReadArgs { user }: &ReadArgs,
-  ) -> serror::Result<SearchStackServiceLogResponse> {
-    let SearchStackServiceLog {
+  ) -> serror::Result<SearchStackLogResponse> {
+    let SearchStackLog {
       stack,
-      service,
+      services,
       terms,
       combinator,
       invert,
@@ -108,16 +108,16 @@ impl Resolve<ReadArgs> for SearchStackServiceLog {
       get_stack_and_server(&stack, user, PermissionLevel::Read, true)
         .await?;
     let res = periphery_client(&server)?
-      .request(GetComposeServiceLogSearch {
+      .request(GetComposeLogSearch {
         project: stack.project_name(false),
-        service,
+        services,
         terms,
         combinator,
         invert,
         timestamps,
       })
       .await
-      .context("failed to get stack service log from periphery")?;
+      .context("Failed to search stack log from periphery")?;
     Ok(res)
   }
 }

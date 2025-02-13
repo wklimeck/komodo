@@ -40,6 +40,7 @@ import { ResourcePageHeader, StatusBadge } from "@components/util";
 import { StackConfig } from "./config";
 import { RenameResource } from "@components/config/util";
 import { GroupActions } from "@components/group-actions";
+import { StackLogs } from "./log";
 
 export const useStack = (id?: string) =>
   useRead("ListStacks", {}, { refetchInterval: 10_000 }).data?.find(
@@ -55,22 +56,24 @@ const StackIcon = ({ id, size }: { id?: string; size: number }) => {
   return <Layers className={cn(`w-${size} h-${size}`, state && color)} />;
 };
 
-const ConfigInfoServices = ({ id }: { id: string }) => {
-  const [_view, setView] = useLocalStorage<"Config" | "Info" | "Services">(
-    "stack-tabs-v1",
-    "Config"
-  );
+const ConfigInfoServicesLog = ({ id }: { id: string }) => {
+  const [_view, setView] = useLocalStorage<
+    "Config" | "Info" | "Services" | "Log"
+  >("stack-tabs-v1", "Config");
   const info = useStack(id)?.info;
 
   const state = info?.state;
   const hideInfo = !info?.files_on_host && !info?.repo;
+  // Hides both services and logs
   const hideServices =
     state === undefined ||
     state === Types.StackState.Unknown ||
     state === Types.StackState.Down;
 
   const view =
-    (_view === "Info" && hideInfo) || (_view === "Services" && hideServices)
+    (_view === "Info" && hideInfo) ||
+    (_view === "Services" && hideServices) ||
+    (_view === "Log" && hideServices)
       ? "Config"
       : _view;
 
@@ -93,6 +96,9 @@ const ConfigInfoServices = ({ id }: { id: string }) => {
       >
         Services
       </TabsTrigger>
+      <TabsTrigger value="Log" className="w-[110px]" disabled={hideServices}>
+        Log
+      </TabsTrigger>
     </TabsList>
   );
   return (
@@ -105,6 +111,9 @@ const ConfigInfoServices = ({ id }: { id: string }) => {
       </TabsContent>
       <TabsContent value="Services">
         <StackServices id={id} titleOther={title} />
+      </TabsContent>
+      <TabsContent value="Log">
+        <StackLogs id={id} titleOther={title} />
       </TabsContent>
     </Tabs>
   );
@@ -422,7 +431,7 @@ export const StackComponents: RequiredResourceComponents = {
 
   Page: {},
 
-  Config: ConfigInfoServices,
+  Config: ConfigInfoServicesLog,
 
   DangerZone: ({ id }) => (
     <>

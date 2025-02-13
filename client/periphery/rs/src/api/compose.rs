@@ -44,11 +44,12 @@ pub struct GetComposeContentsOnHostResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, Resolve)]
 #[response(Log)]
 #[error(serror::Error)]
-pub struct GetComposeServiceLog {
+pub struct GetComposeLog {
   /// The name of the project
   pub project: String,
-  /// The service name
-  pub service: String,
+  /// Filter the logs to only ones from specific services.
+  /// If empty, will include logs from all services.
+  pub services: Vec<String>,
   /// Pass `--tail` for only recent log contents. Max of 5000
   #[serde(default = "default_tail")]
   pub tail: u64,
@@ -67,11 +68,12 @@ fn default_tail() -> u64 {
 #[derive(Debug, Clone, Serialize, Deserialize, Resolve)]
 #[response(Log)]
 #[error(serror::Error)]
-pub struct GetComposeServiceLogSearch {
+pub struct GetComposeLogSearch {
   /// The name of the project
   pub project: String,
-  /// The service name
-  pub service: String,
+  /// Filter the logs to only ones from specific services.
+  /// If empty, will include logs from all services.
+  pub services: Vec<String>,
   /// The search terms.
   pub terms: Vec<String>,
   /// And: Only lines matching all terms
