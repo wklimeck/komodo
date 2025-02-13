@@ -468,9 +468,9 @@ export const UpdateAvailable = ({
   return (
     <HoverCard openDelay={200}>
       <HoverCardTrigger asChild>
-        <Card
+        <div
           className={cn(
-            "border-blue-400 hover:border-blue-500 transition-colors cursor-pointer flex items-center gap-2",
+            "px-2 py-1 border rounded-md border-blue-400 hover:border-blue-500 opacity-50 hover:opacity-70 transition-colors cursor-pointer flex items-center gap-2",
             small ? "px-2 py-1" : "px-3 py-2"
           )}
         >
@@ -485,7 +485,7 @@ export const UpdateAvailable = ({
               Available
             </div>
           )}
-        </Card>
+        </div>
       </HoverCardTrigger>
       <HoverCardContent align="start" className="flex flex-col gap-2 w-fit">
         {info?.services
