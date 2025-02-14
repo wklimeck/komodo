@@ -30,6 +30,7 @@ export const LogSection = ({
   regular_logs,
   search_logs,
   titleOther,
+  extraParams,
 }: {
   regular_logs: (
     timestamps: boolean,
@@ -46,6 +47,7 @@ export const LogSection = ({
     invert: boolean
   ) => { Log: ReactNode; refetch: () => void; stderr: boolean };
   titleOther?: ReactNode;
+  extraParams?: ReactNode;
 }) => {
   const { toast } = useToast();
   const [timestamps, setTimestamps] = useLocalStorage(
@@ -159,6 +161,7 @@ export const LogSection = ({
             onSelect={set}
             disabled={search.length > 0}
           />
+          {extraParams}
         </div>
       }
     >
