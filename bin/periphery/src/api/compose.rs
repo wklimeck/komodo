@@ -299,8 +299,18 @@ impl Resolve<super::Args> for ComposePull {
       registry_token,
     } = self;
     let mut res = ComposePullResponse::default();
+
     let (run_directory, env_file_path, _replacers) =
-      write_stack(&stack, git_token, &mut res).await?;
+      match write_stack(&stack, git_token, &mut res).await {
+        Ok(res) => res,
+        Err(e) => {
+          res.logs.push(Log::error(
+            "Write Stack",
+            format_serror(&e.into()),
+          ));
+          return Ok(res);
+        }
+      };
 
     // Canonicalize the path to ensure it exists, and is the cleanest path to the run directory.
     let run_directory = run_directory.canonicalize().context(
