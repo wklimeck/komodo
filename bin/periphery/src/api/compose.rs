@@ -185,7 +185,15 @@ impl Resolve<super::Args> for GetComposeContentsOnHost {
 //
 
 impl Resolve<super::Args> for WriteComposeContentsToHost {
-  #[instrument(name = "WriteComposeContentsToHost")]
+  #[instrument(
+    name = "WriteComposeContentsToHost",
+    skip_all,
+    fields(
+      stack = &self.name,
+      run_directory = &self.run_directory,
+      file_path = &self.file_path,
+    )
+  )]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let WriteComposeContentsToHost {
       name,
