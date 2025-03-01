@@ -12,13 +12,17 @@ pub mod environment;
 
 mod clone;
 mod commit;
+mod init;
 mod pull;
 mod pull_or_clone;
 
-pub use clone::clone;
-pub use commit::{commit_all, commit_file, write_commit_file};
-pub use pull::pull;
-pub use pull_or_clone::pull_or_clone;
+pub use crate::{
+  clone::clone,
+  commit::{commit_all, commit_file, write_commit_file},
+  init::init_folder_as_repo,
+  pull::pull,
+  pull_or_clone::pull_or_clone,
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct GitRes {

@@ -45,6 +45,7 @@ use crate::{
   api::read::ReadArgs,
   config::core_config,
   helpers::{
+    git_token,
     query::get_id_to_tags,
     update::{add_update, make_update, update_update},
   },
@@ -135,68 +136,116 @@ impl Resolve<WriteArgs> for RenameResourceSync {
   }
 }
 
-impl Resolve<WriteArgs> for WriteSyncFileContents {
-  async fn resolve(self, args: &WriteArgs) -> serror::Result<Update> {
-    let WriteSyncFileContents {
-      sync,
-      resource_path,
-      file_path,
-      contents,
-    } = self;
-    let WriteArgs { user } = args;
+async fn write_sync_file_contents_on_host(
+  req: WriteSyncFileContents,
+  args: &WriteArgs,
+  sync: ResourceSync,
+  mut update: Update,
+) -> serror::Result<Update> {
+  let WriteSyncFileContents {
+    sync: _,
+    resource_path,
+    file_path,
+    contents,
+  } = req;
 
-    let sync = resource::get_check_permissions::<ResourceSync>(
-      &sync,
-      user,
-      PermissionLevel::Write,
+  let root = core_config()
+    .sync_directory
+    .join(to_komodo_name(&sync.name));
+  let file_path =
+    file_path.parse::<PathBuf>().context("Invalid file path")?;
+  let resource_path = resource_path
+    .parse::<PathBuf>()
+    .context("Invalid resource path")?;
+  let full_path = root.join(&resource_path).join(&file_path);
+
+  if let Some(parent) = full_path.parent() {
+    let _ = fs::create_dir_all(parent).await;
+  }
+
+  if let Err(e) =
+    fs::write(&full_path, &contents).await.with_context(|| {
+      format!("Failed to write file contents to {full_path:?}")
+    })
+  {
+    update.push_error_log("Write File", format_serror(&e.into()));
+  } else {
+    update.push_simple_log(
+      "Write File",
+      format!("File written to {full_path:?}"),
+    );
+  };
+
+  if !all_logs_success(&update.logs) {
+    update.finalize();
+    update.id = add_update(update.clone()).await?;
+
+    return Ok(update);
+  }
+
+  if let Err(e) = (RefreshResourceSyncPending { sync: sync.name })
+    .resolve(args)
+    .await
+  {
+    update.push_error_log(
+      "Refresh failed",
+      format_serror(&e.error.into()),
+    );
+  }
+
+  update.finalize();
+  update.id = add_update(update.clone()).await?;
+
+  Ok(update)
+}
+
+async fn write_sync_file_contents_git(
+  req: WriteSyncFileContents,
+  args: &WriteArgs,
+  sync: ResourceSync,
+  mut update: Update,
+) -> serror::Result<Update> {
+  let WriteSyncFileContents {
+    sync: _,
+    resource_path,
+    file_path,
+    contents,
+  } = req;
+
+  let mut clone_args: CloneArgs = (&sync).into();
+  let root = clone_args.unique_path(&core_config().repo_directory)?;
+
+  let file_path =
+    file_path.parse::<PathBuf>().context("Invalid file path")?;
+  let resource_path = resource_path
+    .parse::<PathBuf>()
+    .context("Invalid resource path")?;
+  let full_path = root.join(&resource_path).join(&file_path);
+
+  if let Some(parent) = full_path.parent() {
+    let _ = fs::create_dir_all(parent).await;
+  }
+
+  // Ensure the folder is initialized as git repo.
+  // This allows a new file to be committed on a branch that may not exist.
+  if !root.join(".git").exists() {
+    let access_token = if let Some(account) = &clone_args.account {
+      git_token(&clone_args.provider, account, |https| clone_args.https = https)
+      .await
+      .with_context(
+        || format!("Failed to get git token in call to db. Stopping run. | {} | {account}", clone_args.provider),
+      )?
+    } else {
+      None
+    };
+
+    git::init_folder_as_repo(
+      &root,
+      &clone_args,
+      access_token.as_deref(),
+      &mut update.logs,
     )
-    .await?;
-
-    if !sync.config.files_on_host && sync.config.repo.is_empty() {
-      return Err(
-        anyhow!(
-        "This method is only for files on host, or repo based syncs."
-      )
-        .into(),
-      );
-    }
-
-    let mut update =
-      make_update(&sync, Operation::WriteSyncContents, &user);
-
-    update.push_simple_log("File contents", &contents);
-
-    let root = if sync.config.files_on_host {
-      core_config()
-        .sync_directory
-        .join(to_komodo_name(&sync.name))
-    } else {
-      let clone_args: CloneArgs = (&sync).into();
-      clone_args.unique_path(&core_config().repo_directory)?
-    };
-    let file_path =
-      file_path.parse::<PathBuf>().context("Invalid file path")?;
-    let resource_path = resource_path
-      .parse::<PathBuf>()
-      .context("Invalid resource path")?;
-    let full_path = root.join(&resource_path).join(&file_path);
-
-    if let Some(parent) = full_path.parent() {
-      let _ = fs::create_dir_all(parent).await;
-    }
-
-    if let Err(e) =
-      fs::write(&full_path, &contents).await.with_context(|| {
-        format!("Failed to write file contents to {full_path:?}")
-      })
-    {
-      update.push_error_log("Write file", format_serror(&e.into()));
-    } else {
-      update.push_simple_log(
-        "Write file",
-        format!("File written to {full_path:?}"),
-      );
-    };
+    .await;
 
     if !all_logs_success(&update.logs) {
       update.finalize();
@@ -204,48 +253,82 @@ impl Resolve<WriteArgs> for WriteSyncFileContents {
 
       return Ok(update);
     }
+  }
 
-    if sync.config.files_on_host {
-      if let Err(e) = (RefreshResourceSyncPending { sync: sync.name })
-        .resolve(args)
-        .await
-      {
-        update.push_error_log(
-          "Refresh failed",
-          format_serror(&e.error.into()),
-        );
-      }
+  if let Err(e) =
+    fs::write(&full_path, &contents).await.with_context(|| {
+      format!("Failed to write file contents to {full_path:?}")
+    })
+  {
+    update.push_error_log("Write File", format_serror(&e.into()));
+  } else {
+    update.push_simple_log(
+      "Write File",
+      format!("File written to {full_path:?}"),
+    );
+  };
 
-      update.finalize();
-      update.id = add_update(update.clone()).await?;
-
-      return Ok(update);
-    }
-
-    let commit_res = git::commit_file(
-      &format!("{}: Commit Resource File", user.username),
-      &root,
-      &resource_path.join(&file_path),
-      &sync.config.branch,
-    )
-    .await;
-
-    update.logs.extend(commit_res.logs);
-
-    if let Err(e) = (RefreshResourceSyncPending { sync: sync.name })
-      .resolve(args)
-      .await
-    {
-      update.push_error_log(
-        "Refresh failed",
-        format_serror(&e.error.into()),
-      );
-    }
-
+  if !all_logs_success(&update.logs) {
     update.finalize();
     update.id = add_update(update.clone()).await?;
 
-    Ok(update)
+    return Ok(update);
+  }
+
+  let commit_res = git::commit_file(
+    &format!("{}: Commit Resource File", args.user.username),
+    &root,
+    &resource_path.join(&file_path),
+    &sync.config.branch,
+  )
+  .await;
+
+  update.logs.extend(commit_res.logs);
+
+  if let Err(e) = (RefreshResourceSyncPending { sync: sync.name })
+    .resolve(args)
+    .await
+  {
+    update.push_error_log(
+      "Refresh failed",
+      format_serror(&e.error.into()),
+    );
+  }
+
+  update.finalize();
+  update.id = add_update(update.clone()).await?;
+
+  Ok(update)
+}
+
+impl Resolve<WriteArgs> for WriteSyncFileContents {
+  async fn resolve(self, args: &WriteArgs) -> serror::Result<Update> {
+    let sync = resource::get_check_permissions::<ResourceSync>(
+      &self.sync,
+      &args.user,
+      PermissionLevel::Write,
+    )
+    .await?;
+
+    if !sync.config.files_on_host && sync.config.repo.is_empty() {
+      return Err(
+        anyhow!(
+          "This method is only for 'files on host' or 'repo' based syncs."
+        )
+        .into(),
+      );
+    }
+
+    let mut update =
+      make_update(&sync, Operation::WriteSyncContents, &args.user);
+
+    update.push_simple_log("File contents", &self.contents);
+
+    if sync.config.files_on_host {
+      write_sync_file_contents_on_host(self, args, sync, update).await
+    } else {
+      write_sync_file_contents_git(self, args, sync, update).await
+    }
   }
 }
 

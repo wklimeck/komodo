@@ -149,7 +149,7 @@ impl Resolve<WriteArgs> for WriteStackFileContents {
         }
         Err(e) => {
           update.push_error_log(
-            "Write file contents",
+            "Write File Contents",
             format_serror(&e.into()),
           );
         }
@@ -187,7 +187,7 @@ impl Resolve<WriteArgs> for WriteStackFileContents {
         }
         Err(e) => {
           update.push_error_log(
-            "Write file contents",
+            "Write File Contents",
             format_serror(&e.into()),
           );
         }
