@@ -72,9 +72,9 @@ where
     }
     Err(e) => {
       logs.push(Log::simple(
-        "latest commit",
+        "Latest Commit",
         format_serror(
-          &e.context("failed to get latest commit").into(),
+          &e.context("Failed to get latest commit").into(),
         ),
       ));
       (None, None)
