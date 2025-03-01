@@ -137,21 +137,21 @@ export const ServerStats = ({
           }
         >
           <div className="flex flex-col gap-8">
-            <StatChart server_id={id} type="cpu" className="w-full h-[250px]" />
-            <StatChart server_id={id} type="mem" className="w-full h-[250px]" />
+            <StatChart server_id={id} type="Cpu" className="w-full h-[250px]" />
+            <StatChart server_id={id} type="Memory" className="w-full h-[250px]" />
             <StatChart
               server_id={id}
-              type="disk"
+              type="Disk"
               className="w-full h-[250px]"
             />
             <StatChart
               server_id={id}
-              type="network_ingress"
+              type="Network Ingress"
               className="w-full h-[250px]"
             />
             <StatChart
               server_id={id}
-              type="network_egress"
+              type="Network Egress"
               className="w-full h-[250px]"
             />
           </div>
