@@ -9,7 +9,7 @@ import { convertTsMsToLocalUnixTsInMs } from "@lib/utils";
 import { useTheme } from "@ui/theme";
 import { fmt_utc_date } from "@lib/formatting";
 
-type StatType = "cpu" | "mem" | "disk" | "network_ingress" | "network_egress";
+type StatType = "Cpu" | "Memory" | "Disk" | "Network Ingress" | "Network Egress";
 
 type StatDatapoint = { date: number; value: number };
 
@@ -44,6 +44,7 @@ export const StatChart = ({
 
   return (
     <div className={className}>
+      <h1 className="px-2 py-1">{type}</h1>
       {isPending ? (
         <div className="w-full max-w-full h-full flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin" />
@@ -101,7 +102,7 @@ export const InnerStatChart = ({
   const maxStatValue = Math.max(...(stats?.map((d) => d.value) ?? [0]));
 
   const { unit, maxUnitValue } = useMemo(() => {
-    if (type === "network_ingress" || type === "network_egress") {
+    if (type === "Network Ingress" || type === "Network Egress") {
       if (maxStatValue <= BYTES_PER_KB) {
         return { unit: "KB", maxUnitValue: BYTES_PER_KB };
       } else if (maxStatValue <= BYTES_PER_MB) {
@@ -125,7 +126,7 @@ export const InnerStatChart = ({
         formatters: {
           tooltip: (value?: number) => (
             <div className="text-lg font-mono">
-              {(type === "network_ingress" || type === "network_egress") && unit
+              {(type === "Network Ingress" || type === "Network Egress") && unit
                 ? `${(value ?? 0) / (maxUnitValue / 1024)} ${unit}`
                 : `${value?.toFixed(2)}%`}
             </div>
@@ -135,26 +136,6 @@ export const InnerStatChart = ({
     ],
     [type, maxUnitValue, unit]
   );
-
-  // const valueAxis = useMemo(
-  //   (): AxisOptions<StatDatapoint>[] => [
-  //     {
-  //       getValue: (datum) => datum.value,
-  //       elementType: "area",
-  //       min: 0,
-  //       max: 100,
-  //       formatters: {
-  //         tooltip: (value?: number) => (
-  //           <div className="text-lg font-mono">
-  //             {(value ?? 0) >= 10 ? value?.toFixed(2) : "0" + value?.toFixed(2)}
-  //             %
-  //           </div>
-  //         ),
-  //       },
-  //     },
-  //   ],
-  //   []
-  // );
   return (
     <Chart
       options={{
@@ -181,19 +162,19 @@ export const InnerStatChart = ({
 };
 
 const getStat = (stat: Types.SystemStatsRecord, type: StatType) => {
-  if (type === "cpu") return stat.cpu_perc || 0;
-  if (type === "mem") return (100 * stat.mem_used_gb) / stat.mem_total_gb;
-  if (type === "disk") return (100 * stat.disk_used_gb) / stat.disk_total_gb;
-  if (type === "network_ingress") return stat.network_ingress_bytes || 0;
-  if (type === "network_egress") return stat.network_egress_bytes || 0;
+  if (type === "Cpu") return stat.cpu_perc || 0;
+  if (type === "Memory") return (100 * stat.mem_used_gb) / stat.mem_total_gb;
+  if (type === "Disk") return (100 * stat.disk_used_gb) / stat.disk_total_gb;
+  if (type === "Network Ingress") return stat.network_ingress_bytes || 0;
+  if (type === "Network Egress") return stat.network_egress_bytes || 0;
   return 0;
 };
 
 const getColor = (type: StatType) => {
-  if (type === "cpu") return hex_color_by_intention("Good");
-  if (type === "mem") return hex_color_by_intention("Warning");
-  if (type === "disk") return hex_color_by_intention("Neutral");
-  if (type === "network_ingress") return hex_color_by_intention("Good");
-  if (type === "network_egress") return hex_color_by_intention("Critical");
+  if (type === "Cpu") return hex_color_by_intention("Good");
+  if (type === "Memory") return hex_color_by_intention("Warning");
+  if (type === "Disk") return hex_color_by_intention("Neutral");
+  if (type === "Network Ingress") return hex_color_by_intention("Good");
+  if (type === "Network Egress") return hex_color_by_intention("Critical");
   return hex_color_by_intention("Unknown");
 };
