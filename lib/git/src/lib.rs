@@ -69,7 +69,7 @@ pub async fn get_commit_hash_log(
       .to_string(),
   );
   let log = Log {
-    stage: "latest commit".into(),
+    stage: "Latest Commit".into(),
     command,
     stdout: format!(
       "{} {}\n{} {}",

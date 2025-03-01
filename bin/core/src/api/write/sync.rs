@@ -226,6 +226,7 @@ impl Resolve<WriteArgs> for WriteSyncFileContents {
       &format!("{}: Commit Resource File", user.username),
       &root,
       &resource_path.join(&file_path),
+      &sync.config.branch,
     )
     .await;
 
@@ -353,6 +354,7 @@ impl Resolve<WriteArgs> for CommitSync {
         &root,
         &resource_path,
         &res.toml,
+        &sync.config.branch,
       )
       .await
       {

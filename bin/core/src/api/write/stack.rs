@@ -102,6 +102,7 @@ impl Resolve<WriteArgs> for RenameStack {
 }
 
 impl Resolve<WriteArgs> for WriteStackFileContents {
+  #[instrument(name = "WriteStackFileContents", skip(user))]
   async fn resolve(
     self,
     WriteArgs { user }: &WriteArgs,

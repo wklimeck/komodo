@@ -268,7 +268,14 @@ impl Resolve<super::Args> for WriteCommitComposeContents {
       hash,
       message,
       ..
-    } = write_commit_file(&msg, &root, &file_path, &contents).await?;
+    } = write_commit_file(
+      &msg,
+      &root,
+      &file_path,
+      &contents,
+      &stack.config.branch,
+    )
+    .await?;
 
     Ok(RepoActionResponse {
       logs,

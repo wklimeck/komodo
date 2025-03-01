@@ -90,6 +90,33 @@ where
           env_file_path: None,
         });
       }
+      let repo_url = args.remote_url(access_token.as_deref())?;
+      // Set remote url
+      let mut set_remote = run_komodo_command(
+        "Set git remote",
+        folder_path.as_ref(),
+        format!("git remote add origin {repo_url}"),
+        false,
+      )
+      .await;
+      // Sanitize the output
+      if let Some(token) = &access_token {
+        set_remote.command =
+          set_remote.command.replace(token, "<TOKEN>");
+        set_remote.stdout =
+          set_remote.stdout.replace(token, "<TOKEN>");
+        set_remote.stderr =
+          set_remote.stderr.replace(token, "<TOKEN>");
+      }
+      if !set_remote.success {
+        logs.push(set_remote);
+        return Ok(GitRes {
+          logs,
+          hash: None,
+          message: None,
+          env_file_path: None,
+        });
+      }
     }
 
     let repo_url = args.remote_url(access_token.as_deref())?;
@@ -174,9 +201,9 @@ where
         }
         Err(e) => {
           logs.push(Log::simple(
-            "Latest commit",
+            "Latest Commit",
             format_serror(
-              &e.context("failed to get latest commit").into(),
+              &e.context("Failed to get latest commit").into(),
             ),
           ));
           (None, None)
