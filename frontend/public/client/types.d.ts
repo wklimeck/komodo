@@ -3050,8 +3050,8 @@ export interface ProviderAccount {
 export interface DockerRegistry {
     /** The docker provider domain. Default: `docker.io`. */
     domain: string;
-    /** The account username. Required. */
-    accounts?: ProviderAccount[];
+    /** The accounts on the registry. Required. */
+    accounts: ProviderAccount[];
     /**
      * Available organizations on the registry provider.
      * Used to push an image under an organization's repo rather than an account's repo.
@@ -3090,7 +3090,7 @@ export interface GitProvider {
     domain: string;
     /** Whether to use https. Default: true. */
     https: boolean;
-    /** The account username. Required. */
+    /** The accounts on the git provider. Required. */
     accounts: ProviderAccount[];
 }
 export type ListGitProvidersFromConfigResponse = GitProvider[];
