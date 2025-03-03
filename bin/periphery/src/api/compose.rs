@@ -27,10 +27,9 @@ impl Resolve<super::Args> for ListComposeProjects {
   ) -> serror::Result<Vec<ComposeProject>> {
     let docker_compose = docker_compose();
     let res = run_komodo_command(
-      "list projects",
+      "List Projects",
       None,
       format!("{docker_compose} ls --all --format json"),
-      false,
     )
     .await;
 
@@ -98,9 +97,7 @@ impl Resolve<super::Args> for GetComposeLog {
       "{docker_compose} -p {project} logs --tail {tail}{timestamps} {}",
       services.join(" ")
     );
-    Ok(
-      run_komodo_command("get stack log", None, command, false).await,
-    )
+    Ok(run_komodo_command("get stack log", None, command).await)
   }
 }
 
@@ -123,10 +120,7 @@ impl Resolve<super::Args> for GetComposeLogSearch {
       "{docker_compose} -p {project} logs --tail 5000{timestamps} {} 2>&1 | {grep}",
       services.join(" ")
     );
-    Ok(
-      run_komodo_command("get stack log grep", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Get stack log grep", None, command).await)
   }
 }
 
@@ -403,7 +397,6 @@ impl Resolve<super::Args> for ComposePull {
       format!(
         "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} pull{service_arg}",
       ),
-      false,
     )
     .await;
 
@@ -466,7 +459,6 @@ impl Resolve<super::Args> for ComposeExecution {
       "Compose Command",
       None,
       format!("{docker_compose} -p {project} {command}"),
-      false,
     )
     .await;
     Ok(log)

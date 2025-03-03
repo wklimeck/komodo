@@ -14,13 +14,9 @@ pub async fn init_folder_as_repo(
 ) {
   // let folder_path = args.path(repo_dir);
   // Initialize the folder as a git repo
-  let init_repo = run_komodo_command(
-    "Git Init",
-    folder_path.as_ref(),
-    "git init",
-    false,
-  )
-  .await;
+  let init_repo =
+    run_komodo_command("Git Init", folder_path.as_ref(), "git init")
+      .await;
   logs.push(init_repo);
   if !all_logs_success(&logs) {
     return;
@@ -40,7 +36,6 @@ pub async fn init_folder_as_repo(
     "Add git remote",
     folder_path.as_ref(),
     format!("git remote add origin {repo_url}"),
-    false,
   )
   .await;
   // Sanitize the output
@@ -59,7 +54,6 @@ pub async fn init_folder_as_repo(
     "Set Branch",
     folder_path.as_ref(),
     format!("git switch -c {}", args.branch),
-    false,
   )
   .await;
   if !init_repo.success {

@@ -4,9 +4,11 @@ use std::{
   sync::OnceLock,
 };
 
-use anyhow::Context;
 use cache::TimeoutCache;
-use command::run_komodo_command;
+use command::{
+  run_komodo_command, run_komodo_command_multiline,
+  run_komodo_command_with_interpolation,
+};
 use formatting::format_serror;
 use komodo_client::entities::{
   all_logs_success, komodo_timestamp, update::Log, CloneArgs,
@@ -97,7 +99,6 @@ where
       "Set git remote",
       folder_path.as_ref(),
       format!("git remote set-url origin {repo_url}"),
-      false,
     )
     .await;
     // Sanitize the output
@@ -123,7 +124,6 @@ where
       "Checkout branch",
       folder_path.as_ref(),
       format!("git checkout -f {}", args.branch),
-      false,
     )
     .await;
     logs.push(checkout);
@@ -140,7 +140,6 @@ where
       "Git pull",
       folder_path.as_ref(),
       format!("git pull --rebase --force origin {}", args.branch),
-      false,
     )
     .await;
     logs.push(pull_log);
@@ -158,7 +157,6 @@ where
         "Set commit",
         folder_path.as_ref(),
         format!("git reset --hard {commit}"),
-        false,
       )
       .await;
       logs.push(reset_log);
@@ -200,72 +198,26 @@ where
     };
 
     if let Some(command) = args.on_pull {
-      if !command.command.is_empty() {
-        let on_pull_path = folder_path.join(&command.path);
-        if let Some(secrets) = secrets {
-          let (full_command, mut replacers) =
-            match svi::interpolate_variables(
-              &command.command,
-              secrets,
-              svi::Interpolator::DoubleBrackets,
-              true,
-            )
-            .context(
-              "failed to interpolate secrets into on_pull command",
-            ) {
-              Ok(res) => res,
-              Err(e) => {
-                logs.push(Log::error(
-                  "interpolate secrets - on_pull",
-                  format_serror(&e.into()),
-                ));
-                return Ok(GitRes {
-                  logs,
-                  hash,
-                  message,
-                  env_file_path: None,
-                });
-              }
-            };
-          replacers.extend(core_replacers.to_owned());
-          let mut on_pull_log = run_komodo_command(
-            "On pull",
-            on_pull_path.as_ref(),
-            &full_command,
-            true,
-          )
-          .await;
-
-          on_pull_log.command =
-            svi::replace_in_string(&on_pull_log.command, &replacers);
-          on_pull_log.stdout =
-            svi::replace_in_string(&on_pull_log.stdout, &replacers);
-          on_pull_log.stderr =
-            svi::replace_in_string(&on_pull_log.stderr, &replacers);
-
-          tracing::debug!(
-            "run repo on_pull command | command: {} | cwd: {:?}",
-            on_pull_log.command,
-            on_pull_path
-          );
-
-          logs.push(on_pull_log);
-        } else {
-          let on_pull_log = run_komodo_command(
-            "On pull",
-            on_pull_path.as_ref(),
-            &command.command,
-            true,
-          )
-          .await;
-          tracing::debug!(
-            "run repo on_pull command | command: {} | cwd: {:?}",
-            command.command,
-            on_pull_path
-          );
-          logs.push(on_pull_log);
-        }
+      let on_pull_path = repo_dir.join(&command.path);
+      if let Some(secrets) = secrets {
+        run_komodo_command_with_interpolation(
+          "On Pull",
+          Some(on_pull_path.as_path()),
+          &command.command,
+          true,
+          secrets,
+          core_replacers,
+        )
+        .await
+      } else {
+        run_komodo_command_multiline(
+          "On Pull",
+          Some(on_pull_path.as_path()),
+          &command.command,
+        )
+        .await
       }
+      .map(|log| logs.push(log));
     }
 
     anyhow::Ok(GitRes {

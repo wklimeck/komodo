@@ -1,5 +1,7 @@
 use anyhow::{anyhow, Context};
-use command::run_komodo_command;
+use command::{
+  run_komodo_command, run_komodo_command_with_interpolation,
+};
 use formatting::format_serror;
 use komodo_client::{
   entities::{
@@ -67,7 +69,7 @@ impl Resolve<super::Args> for build::Build {
       Ok(should_push) => should_push,
       Err(e) => {
         logs.push(Log::error(
-          "docker login",
+          "Docker Login",
           format_serror(
             &e.context("failed to login to docker registry").into(),
           ),
@@ -122,40 +124,23 @@ impl Resolve<super::Args> for build::Build {
 
     if *skip_secret_interp {
       let build_log = run_komodo_command(
-        "docker build",
+        "Docker Build",
         build_dir.as_ref(),
         command,
-        false,
       )
       .await;
       logs.push(build_log);
     } else {
-      // Interpolate any missing secrets
-      let (command, mut replacers) = svi::interpolate_variables(
-        &command,
-        &periphery_config().secrets,
-        svi::Interpolator::DoubleBrackets,
-        true,
-      )
-      .context(
-        "failed to interpolate secrets into docker build command",
-      )?;
-      replacers.extend(core_replacers);
-
-      let mut build_log = run_komodo_command(
-        "docker build",
+      run_komodo_command_with_interpolation(
+        "Docker Build",
         build_dir.as_ref(),
         command,
         false,
+        &periphery_config().secrets,
+        &core_replacers,
       )
-      .await;
-      build_log.command =
-        svi::replace_in_string(&build_log.command, &replacers);
-      build_log.stdout =
-        svi::replace_in_string(&build_log.stdout, &replacers);
-      build_log.stderr =
-        svi::replace_in_string(&build_log.stderr, &replacers);
-      logs.push(build_log);
+      .await
+      .map(|log| logs.push(log));
     }
 
     cleanup_secret_env_vars(&secret_args);
@@ -250,10 +235,7 @@ impl Resolve<super::Args> for PruneBuilders {
   #[instrument(name = "PruneBuilders", skip_all)]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = String::from("docker builder prune -a -f");
-    Ok(
-      run_komodo_command("prune builders", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Prune Builders", None, command).await)
   }
 }
 
@@ -263,6 +245,6 @@ impl Resolve<super::Args> for PruneBuildx {
   #[instrument(name = "PruneBuildx", skip_all)]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = String::from("docker buildx prune -a -f");
-    Ok(run_komodo_command("prune buildx", None, command, false).await)
+    Ok(run_komodo_command("Prune Buildx", None, command).await)
   }
 }

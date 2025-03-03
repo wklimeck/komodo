@@ -1069,8 +1069,11 @@ dependencies = [
 name = "command"
 version = "1.17.0-dev-3"
 dependencies = [
+ "anyhow",
+ "formatting",
  "komodo_client",
  "run_command",
+ "svi",
 ]
 
 [[package]]

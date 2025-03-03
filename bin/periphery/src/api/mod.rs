@@ -247,7 +247,7 @@ impl Resolve<Args> for RunCommand {
       } else {
         format!("cd {path} && {command}")
       };
-      run_komodo_command("run command", None, command, false).await
+      run_komodo_command("run command", None, command).await
     })
     .await
     .context("failure in spawned task")?;
@@ -259,6 +259,6 @@ impl Resolve<Args> for PruneSystem {
   #[instrument(name = "PruneSystem", skip_all)]
   async fn resolve(self, _: &Args) -> serror::Result<Log> {
     let command = String::from("docker system prune -a -f --volumes");
-    Ok(run_komodo_command("prune system", None, command, false).await)
+    Ok(run_komodo_command("Prune System", None, command).await)
   }
 }

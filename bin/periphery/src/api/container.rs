@@ -44,10 +44,7 @@ impl Resolve<super::Args> for GetContainerLog {
       timestamps.then_some(" --timestamps").unwrap_or_default();
     let command =
       format!("docker logs {name} --tail {tail}{timestamps}");
-    Ok(
-      run_komodo_command("get container log", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Get container log", None, command).await)
   }
 }
 
@@ -70,13 +67,8 @@ impl Resolve<super::Args> for GetContainerLogSearch {
       "docker logs {name} --tail 5000{timestamps} 2>&1 | {grep}"
     );
     Ok(
-      run_komodo_command(
-        "get container log grep",
-        None,
-        command,
-        false,
-      )
-      .await,
+      run_komodo_command("Get container log grep", None, command)
+        .await,
     )
   }
 }
@@ -117,10 +109,9 @@ impl Resolve<super::Args> for StartContainer {
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     Ok(
       run_komodo_command(
-        "docker start",
+        "Docker Start",
         None,
         format!("docker start {}", self.name),
-        false,
       )
       .await,
     )
@@ -134,10 +125,9 @@ impl Resolve<super::Args> for RestartContainer {
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     Ok(
       run_komodo_command(
-        "docker restart",
+        "Docker Restart",
         None,
         format!("docker restart {}", self.name),
-        false,
       )
       .await,
     )
@@ -151,10 +141,9 @@ impl Resolve<super::Args> for PauseContainer {
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     Ok(
       run_komodo_command(
-        "docker pause",
+        "Docker Pause",
         None,
         format!("docker pause {}", self.name),
-        false,
       )
       .await,
     )
@@ -166,10 +155,9 @@ impl Resolve<super::Args> for UnpauseContainer {
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     Ok(
       run_komodo_command(
-        "docker unpause",
+        "Docker Unpause",
         None,
         format!("docker unpause {}", self.name),
-        false,
       )
       .await,
     )
@@ -183,12 +171,11 @@ impl Resolve<super::Args> for StopContainer {
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let StopContainer { name, signal, time } = self;
     let command = stop_container_command(&name, signal, time);
-    let log =
-      run_komodo_command("docker stop", None, command, false).await;
+    let log = run_komodo_command("Docker Stop", None, command).await;
     if log.stderr.contains("unknown flag: --signal") {
       let command = stop_container_command(&name, None, time);
       let mut log =
-        run_komodo_command("docker stop", None, command, false).await;
+        run_komodo_command("Docker Stop", None, command).await;
       log.stderr = format!(
         "old docker version: unable to use --signal flag{}",
         if !log.stderr.is_empty() {
@@ -213,21 +200,18 @@ impl Resolve<super::Args> for RemoveContainer {
     let stop_command = stop_container_command(&name, signal, time);
     let command =
       format!("{stop_command} && docker container rm {name}");
-    let log = run_komodo_command(
-      "docker stop and remove",
-      None,
-      command,
-      false,
-    )
-    .await;
+    let log =
+      run_komodo_command("Docker Stop and Remove", None, command)
+        .await;
     if log.stderr.contains("unknown flag: --signal") {
       let stop_command = stop_container_command(&name, None, time);
       let command =
         format!("{stop_command} && docker container rm {name}");
       let mut log =
-        run_komodo_command("docker stop", None, command, false).await;
+        run_komodo_command("Docker Stop and Remove", None, command)
+          .await;
       log.stderr = format!(
-        "old docker version: unable to use --signal flag{}",
+        "Old docker version: unable to use --signal flag{}",
         if !log.stderr.is_empty() {
           format!("\n\n{}", log.stderr)
         } else {
@@ -252,9 +236,7 @@ impl Resolve<super::Args> for RenameContainer {
     } = self;
     let new = to_komodo_name(&new_name);
     let command = format!("docker rename {curr_name} {new}");
-    Ok(
-      run_komodo_command("docker rename", None, command, false).await,
-    )
+    Ok(run_komodo_command("Docker Rename", None, command).await)
   }
 }
 
@@ -264,10 +246,7 @@ impl Resolve<super::Args> for PruneContainers {
   #[instrument(name = "PruneContainers", skip_all)]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = String::from("docker container prune -f");
-    Ok(
-      run_komodo_command("prune containers", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Prune Containers", None, command).await)
   }
 }
 
@@ -290,8 +269,7 @@ impl Resolve<super::Args> for StartAllContainers {
         }
         let command = format!("docker start {name}");
         Some(async move {
-          run_komodo_command(&command.clone(), None, command, false)
-            .await
+          run_komodo_command(&command.clone(), None, command).await
         })
       },
     );
@@ -318,8 +296,7 @@ impl Resolve<super::Args> for RestartAllContainers {
         }
         let command = format!("docker restart {name}");
         Some(async move {
-          run_komodo_command(&command.clone(), None, command, false)
-            .await
+          run_komodo_command(&command.clone(), None, command).await
         })
       },
     );
@@ -346,8 +323,7 @@ impl Resolve<super::Args> for PauseAllContainers {
         }
         let command = format!("docker pause {name}");
         Some(async move {
-          run_komodo_command(&command.clone(), None, command, false)
-            .await
+          run_komodo_command(&command.clone(), None, command).await
         })
       },
     );
@@ -374,8 +350,7 @@ impl Resolve<super::Args> for UnpauseAllContainers {
         }
         let command = format!("docker unpause {name}");
         Some(async move {
-          run_komodo_command(&command.clone(), None, command, false)
-            .await
+          run_komodo_command(&command.clone(), None, command).await
         })
       },
     );
@@ -405,7 +380,6 @@ impl Resolve<super::Args> for StopAllContainers {
             &format!("docker stop {name}"),
             None,
             stop_container_command(name, None, None),
-            false,
           )
           .await
         })

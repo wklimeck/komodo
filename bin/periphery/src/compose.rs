@@ -1,7 +1,10 @@
 use std::{fmt::Write, path::PathBuf};
 
 use anyhow::{anyhow, Context};
-use command::run_komodo_command;
+use command::{
+  run_komodo_command, run_komodo_command_multiline,
+  run_komodo_command_with_interpolation,
+};
 use formatting::format_serror;
 use git::environment;
 use komodo_client::entities::{
@@ -22,9 +25,8 @@ use resolver_api::Resolve;
 use tokio::fs;
 
 use crate::{
-  config::periphery_config,
-  docker::docker_login,
-  helpers::{interpolate_variables, parse_extra_args},
+  config::periphery_config, docker::docker_login,
+  helpers::parse_extra_args,
 };
 
 pub fn docker_compose() -> &'static str {
@@ -176,7 +178,6 @@ pub async fn compose_up(
       "Compose Config",
       run_directory.as_ref(),
       command,
-      false,
     )
     .await;
     if !config_log.success {
@@ -241,35 +242,20 @@ pub async fn compose_up(
         "Compose Build",
         run_directory.as_ref(),
         command,
-        false,
       )
       .await;
       res.logs.push(log);
     } else {
-      let (command, mut build_replacers) = svi::interpolate_variables(
-        &command,
-        &periphery_config().secrets,
-        svi::Interpolator::DoubleBrackets,
-        true,
-      ).context("failed to interpolate periphery secrets into stack build command")?;
-      build_replacers.extend(replacers.clone());
-
-      let mut log = run_komodo_command(
+      run_komodo_command_with_interpolation(
         "Compose Build",
         run_directory.as_ref(),
         command,
         false,
+        &periphery_config().secrets,
+        &replacers,
       )
-      .await;
-
-      log.command =
-        svi::replace_in_string(&log.command, &build_replacers);
-      log.stdout =
-        svi::replace_in_string(&log.stdout, &build_replacers);
-      log.stderr =
-        svi::replace_in_string(&log.stderr, &build_replacers);
-
-      res.logs.push(log);
+      .await
+      .map(|log| res.logs.push(log));
     }
 
     if !all_logs_success(&res.logs) {
@@ -289,7 +275,6 @@ pub async fn compose_up(
       format!(
         "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} pull{service_arg}",
       ),
-      false,
     )
     .await;
 
@@ -302,64 +287,32 @@ pub async fn compose_up(
     }
   }
 
-  if !stack.config.pre_deploy.command.is_empty() {
-    let pre_deploy_path =
-      run_directory.join(&stack.config.pre_deploy.path);
-    if !stack.config.skip_secret_interp {
-      let (full_command, mut pre_deploy_replacers) =
-        interpolate_variables(&stack.config.pre_deploy.command)
-          .context(
-            "failed to interpolate secrets into pre_deploy command",
-          )?;
-      pre_deploy_replacers.extend(replacers.to_owned());
-      let mut pre_deploy_log = run_komodo_command(
-        "Pre Deploy",
-        pre_deploy_path.as_ref(),
-        &full_command,
-        true,
-      )
-      .await;
-
-      pre_deploy_log.command = svi::replace_in_string(
-        &pre_deploy_log.command,
-        &pre_deploy_replacers,
-      );
-      pre_deploy_log.stdout = svi::replace_in_string(
-        &pre_deploy_log.stdout,
-        &pre_deploy_replacers,
-      );
-      pre_deploy_log.stderr = svi::replace_in_string(
-        &pre_deploy_log.stderr,
-        &pre_deploy_replacers,
-      );
-
-      tracing::debug!(
-        "run Stack pre_deploy command | command: {} | cwd: {:?}",
-        pre_deploy_log.command,
-        pre_deploy_path
-      );
-
-      res.logs.push(pre_deploy_log);
-    } else {
-      let pre_deploy_log = run_komodo_command(
-        "Pre Deploy",
-        pre_deploy_path.as_ref(),
-        &stack.config.pre_deploy.command,
-        true,
-      )
-      .await;
-      tracing::debug!(
-        "run Stack pre_deploy command | command: {} | cwd: {:?}",
-        &stack.config.pre_deploy.command,
-        pre_deploy_path
-      );
-      res.logs.push(pre_deploy_log);
-    }
-    if !all_logs_success(&res.logs) {
-      return Err(anyhow!(
-        "Failed at running pre_deploy command, stopping the run."
-      ));
-    }
+  // Pre deploy command
+  let pre_deploy_path =
+    run_directory.join(&stack.config.pre_deploy.path);
+  if stack.config.skip_secret_interp {
+    run_komodo_command_multiline(
+      "Pre Deploy",
+      pre_deploy_path.as_ref(),
+      &stack.config.pre_deploy.command,
+    )
+    .await
+  } else {
+    run_komodo_command_with_interpolation(
+      "Pre Deploy",
+      pre_deploy_path.as_ref(),
+      &stack.config.pre_deploy.command,
+      true,
+      &periphery_config().secrets,
+      &replacers,
+    )
+    .await
+  }
+  .map(|log| res.logs.push(log));
+  if !all_logs_success(&res.logs) {
+    return Err(anyhow!(
+      "Failed at running pre_deploy command, stopping the run."
+    ));
   }
 
   if stack.config.destroy_before_deploy
@@ -380,38 +333,23 @@ pub async fn compose_up(
   );
 
   let log = if stack.config.skip_secret_interp {
-    run_komodo_command(
+    run_komodo_command("Compose Up", run_directory.as_ref(), command)
+      .await
+  } else {
+    match run_komodo_command_with_interpolation(
       "Compose Up",
       run_directory.as_ref(),
       command,
       false,
+      &periphery_config().secrets,
+      &replacers,
     )
     .await
-  } else {
-    let (command, mut compose_up_replacers) = svi::interpolate_variables(
-      &command,
-      &periphery_config().secrets,
-      svi::Interpolator::DoubleBrackets,
-      true,
-    ).context("failed to interpolate periphery secrets into stack run command")?;
-    compose_up_replacers.extend(replacers.clone());
-
-    let mut log = run_komodo_command(
-      "compose up",
-      run_directory.as_ref(),
-      command,
-      false,
-    )
-    .await;
-
-    log.command =
-      svi::replace_in_string(&log.command, &compose_up_replacers);
-    log.stdout =
-      svi::replace_in_string(&log.stdout, &compose_up_replacers);
-    log.stderr =
-      svi::replace_in_string(&log.stderr, &compose_up_replacers);
-
-    log
+    {
+      Some(log) => log,
+      // The command is definitely non-empty, the result will never be None.
+      None => unreachable!(),
+    }
   };
 
   res.deployed = log.success;
@@ -419,59 +357,28 @@ pub async fn compose_up(
   // push the compose up command logs to keep the correct order
   res.logs.push(log);
 
-  if res.deployed && !stack.config.post_deploy.command.is_empty() {
+  if res.deployed {
     let post_deploy_path =
       run_directory.join(&stack.config.post_deploy.path);
-    if !stack.config.skip_secret_interp {
-      let (full_command, mut post_deploy_replacers) =
-        interpolate_variables(&stack.config.post_deploy.command)
-          .context(
-            "failed to interpolate secrets into post_deploy command",
-          )?;
-      post_deploy_replacers.extend(replacers);
-      let mut post_deploy_log = run_komodo_command(
-        "post deploy",
+    if stack.config.skip_secret_interp {
+      run_komodo_command_multiline(
+        "Post Deploy",
         post_deploy_path.as_ref(),
-        &full_command,
-        true,
+        &stack.config.post_deploy.command,
       )
-      .await;
-
-      post_deploy_log.command = svi::replace_in_string(
-        &post_deploy_log.command,
-        &post_deploy_replacers,
-      );
-      post_deploy_log.stdout = svi::replace_in_string(
-        &post_deploy_log.stdout,
-        &post_deploy_replacers,
-      );
-      post_deploy_log.stderr = svi::replace_in_string(
-        &post_deploy_log.stderr,
-        &post_deploy_replacers,
-      );
-
-      tracing::debug!(
-        "run Stack post_deploy command | command: {} | cwd: {:?}",
-        post_deploy_log.command,
-        post_deploy_path
-      );
-
-      res.logs.push(post_deploy_log);
+      .await
     } else {
-      let post_deploy_log = run_komodo_command(
-        "Post deploy",
+      run_komodo_command_with_interpolation(
+        "Post Deploy",
         post_deploy_path.as_ref(),
         &stack.config.post_deploy.command,
         true,
+        &periphery_config().secrets,
+        &replacers,
       )
-      .await;
-      tracing::debug!(
-        "run Stack post_deploy command | command: {} | cwd: {:?}",
-        &stack.config.post_deploy.command,
-        post_deploy_path
-      );
-      res.logs.push(post_deploy_log);
+      .await
     }
+    .map(|log| res.logs.push(log));
     if !all_logs_success(&res.logs) {
       return Err(anyhow!(
         "Failed at running post_deploy command, stopping the run."
@@ -781,7 +688,6 @@ async fn compose_down(
     "compose down",
     None,
     format!("{docker_compose} -p {project} down{service_arg}"),
-    false,
   )
   .await;
   let success = log.success;
