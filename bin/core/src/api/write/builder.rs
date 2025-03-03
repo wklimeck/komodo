@@ -37,7 +37,7 @@ impl Resolve<WriteArgs> for CopyBuilder {
       )
       .await?;
     Ok(
-      resource::create::<Builder>(&self.name, config.into(), &user)
+      resource::create::<Builder>(&self.name, config.into(), user)
         .await?,
     )
   }
@@ -73,7 +73,7 @@ impl Resolve<WriteArgs> for RenameBuilder {
     WriteArgs { user }: &WriteArgs,
   ) -> serror::Result<Update> {
     Ok(
-      resource::rename::<Builder>(&self.id, &self.name, &user)
+      resource::rename::<Builder>(&self.id, &self.name, user)
         .await?,
     )
   }

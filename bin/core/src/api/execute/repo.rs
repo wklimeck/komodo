@@ -173,7 +173,7 @@ impl Resolve<ExecuteArgs> for BatchPullRepo {
     ExecuteArgs { user, .. }: &ExecuteArgs,
   ) -> serror::Result<BatchExecutionResponse> {
     Ok(
-      super::batch_execute::<BatchPullRepo>(&self.pattern, &user)
+      super::batch_execute::<BatchPullRepo>(&self.pattern, user)
         .await?,
     )
   }
@@ -187,7 +187,7 @@ impl Resolve<ExecuteArgs> for PullRepo {
   ) -> serror::Result<Update> {
     let mut repo = resource::get_check_permissions::<Repo>(
       &self.repo,
-      &user,
+      user,
       PermissionLevel::Execute,
     )
     .await?;
@@ -438,8 +438,7 @@ impl Resolve<ExecuteArgs> for BuildRepo {
         return handle_builder_early_return(
           update, repo.id, repo.name, false,
         )
-        .await
-        .map_err(Into::into);
+        .await;
       }
     };
 

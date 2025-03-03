@@ -281,7 +281,7 @@ impl Resolve<ReadArgs> for ListCommonDeploymentExtraArgs {
       get_all_tags(None).await?
     };
     let deployments = resource::list_full_for_user::<Deployment>(
-      self.query, &user, &all_tags,
+      self.query, user, &all_tags,
     )
     .await
     .context("failed to get resources matching query")?;

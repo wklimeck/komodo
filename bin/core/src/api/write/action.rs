@@ -32,12 +32,12 @@ impl Resolve<WriteArgs> for CopyAction {
     let Action { config, .. } =
       resource::get_check_permissions::<Action>(
         &self.id,
-        &user,
+        user,
         PermissionLevel::Write,
       )
       .await?;
     Ok(
-      resource::create::<Action>(&self.name, config.into(), &user)
+      resource::create::<Action>(&self.name, config.into(), user)
         .await?,
     )
   }

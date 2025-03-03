@@ -69,7 +69,7 @@ impl Resolve<WriteArgs> for CreateResourceSync {
       resource::create::<ResourceSync>(
         &self.name,
         self.config,
-        &user,
+        user,
       )
       .await?,
     )
@@ -85,7 +85,7 @@ impl Resolve<WriteArgs> for CopyResourceSync {
     let ResourceSync { config, .. } =
       resource::get_check_permissions::<ResourceSync>(
         &self.id,
-        &user,
+        user,
         PermissionLevel::Write,
       )
       .await?;
@@ -339,7 +339,7 @@ impl Resolve<WriteArgs> for CommitSync {
 
     let sync = resource::get_check_permissions::<
       entities::sync::ResourceSync,
-    >(&self.sync, &user, PermissionLevel::Write)
+    >(&self.sync, user, PermissionLevel::Write)
     .await?;
 
     let file_contents_empty = sync.config.file_contents_empty();
@@ -388,7 +388,7 @@ impl Resolve<WriteArgs> for CommitSync {
     })
     .await?;
 
-    let mut update = make_update(&sync, Operation::CommitSync, &user);
+    let mut update = make_update(&sync, Operation::CommitSync, user);
     update.id = add_update(update.clone()).await?;
 
     update.logs.push(Log::simple("Resources", res.toml.clone()));
@@ -551,8 +551,7 @@ impl Resolve<WriteArgs> for RefreshResourceSyncPending {
         return Err(
           anyhow!(
             "Remote resources have errors. Cannot compute diffs."
-          )
-          .into(),
+          ),
         );
       }
 

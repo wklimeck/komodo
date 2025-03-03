@@ -44,7 +44,7 @@ impl Resolve<WriteArgs> for CreateGitProviderAccount {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::CreateGitProviderAccount,
-      &user,
+      user,
     );
 
     account.id = db_client()
@@ -114,7 +114,7 @@ impl Resolve<WriteArgs> for UpdateGitProviderAccount {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::UpdateGitProviderAccount,
-      &user,
+      user,
     );
 
     let account = to_document(&self.account).context(
@@ -173,7 +173,7 @@ impl Resolve<WriteArgs> for DeleteGitProviderAccount {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::UpdateGitProviderAccount,
-      &user,
+      user,
     );
 
     let db = db_client();
@@ -235,7 +235,7 @@ impl Resolve<WriteArgs> for CreateDockerRegistryAccount {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::CreateDockerRegistryAccount,
-      &user,
+      user,
     );
 
     account.id = db_client()
@@ -298,8 +298,8 @@ impl Resolve<WriteArgs> for UpdateDockerRegistryAccount {
       if username.is_empty() {
         return Err(
           anyhow!(
-          "cannot update docker registry account with empty username"
-        )
+            "cannot update docker registry account with empty username"
+          )
           .into(),
         );
       }
@@ -310,7 +310,7 @@ impl Resolve<WriteArgs> for UpdateDockerRegistryAccount {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::UpdateDockerRegistryAccount,
-      &user,
+      user,
     );
 
     let account = to_document(&self.account).context(
@@ -373,7 +373,7 @@ impl Resolve<WriteArgs> for DeleteDockerRegistryAccount {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::UpdateDockerRegistryAccount,
-      &user,
+      user,
     );
 
     let db = db_client();

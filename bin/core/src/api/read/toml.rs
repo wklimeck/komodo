@@ -49,7 +49,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Alerter>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -59,7 +59,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Builder>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -69,7 +69,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Server>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -79,7 +79,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Stack>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -89,7 +89,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Deployment>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -99,7 +99,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Build>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -109,7 +109,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Repo>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -119,7 +119,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Procedure>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -129,7 +129,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<Action>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -139,7 +139,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_for_user::<ServerTemplate>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -149,7 +149,7 @@ impl Resolve<ReadArgs> for ExportAllResourcesToToml {
     targets.extend(
       resource::list_full_for_user::<ResourceSync>(
         ResourceQuery::builder().tags(self.tags.clone()).build(),
-        &user,
+        user,
         &all_tags,
       )
       .await?
@@ -198,7 +198,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::Alerter(id) => {
           let alerter = resource::get_check_permissions::<Alerter>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;
@@ -212,7 +212,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::ResourceSync(id) => {
           let sync = resource::get_check_permissions::<ResourceSync>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;
@@ -231,9 +231,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::ServerTemplate(id) => {
           let template = resource::get_check_permissions::<
             ServerTemplate,
-          >(
-            &id, &user, PermissionLevel::Read
-          )
+          >(&id, user, PermissionLevel::Read)
           .await?;
           res.server_templates.push(
             convert_resource::<ServerTemplate>(
@@ -247,7 +245,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::Server(id) => {
           let server = resource::get_check_permissions::<Server>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;
@@ -262,7 +260,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
           let mut builder =
             resource::get_check_permissions::<Builder>(
               &id,
-              &user,
+              user,
               PermissionLevel::Read,
             )
             .await?;
@@ -277,7 +275,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::Build(id) => {
           let mut build = resource::get_check_permissions::<Build>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;
@@ -293,7 +291,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
           let mut deployment = resource::get_check_permissions::<
             Deployment,
           >(
-            &id, &user, PermissionLevel::Read
+            &id, user, PermissionLevel::Read
           )
           .await?;
           Deployment::replace_ids(&mut deployment, &all);
@@ -307,7 +305,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::Repo(id) => {
           let mut repo = resource::get_check_permissions::<Repo>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;
@@ -322,7 +320,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::Stack(id) => {
           let mut stack = resource::get_check_permissions::<Stack>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;
@@ -338,7 +336,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
           let mut procedure = resource::get_check_permissions::<
             Procedure,
           >(
-            &id, &user, PermissionLevel::Read
+            &id, user, PermissionLevel::Read
           )
           .await?;
           Procedure::replace_ids(&mut procedure, &all);
@@ -352,7 +350,7 @@ impl Resolve<ReadArgs> for ExportResourcesToToml {
         ResourceTarget::Action(id) => {
           let mut action = resource::get_check_permissions::<Action>(
             &id,
-            &user,
+            user,
             PermissionLevel::Read,
           )
           .await?;

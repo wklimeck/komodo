@@ -24,7 +24,7 @@ impl Resolve<WriteArgs> for CreateServerTemplate {
       resource::create::<ServerTemplate>(
         &self.name,
         self.config,
-        &user,
+        user,
       )
       .await?,
     )
@@ -40,7 +40,7 @@ impl Resolve<WriteArgs> for CopyServerTemplate {
     let ServerTemplate { config, .. } =
       resource::get_check_permissions::<ServerTemplate>(
         &self.id,
-        &user,
+        user,
         PermissionLevel::Write,
       )
       .await?;
@@ -48,7 +48,7 @@ impl Resolve<WriteArgs> for CopyServerTemplate {
       resource::create::<ServerTemplate>(
         &self.name,
         config.into(),
-        &user,
+        user,
       )
       .await?,
     )

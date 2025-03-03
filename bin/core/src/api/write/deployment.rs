@@ -61,7 +61,7 @@ impl Resolve<WriteArgs> for CopyDeployment {
       resource::create::<Deployment>(
         &self.name,
         config.into(),
-        &user,
+        user,
       )
       .await?,
     )
@@ -157,7 +157,7 @@ impl Resolve<WriteArgs> for CreateDeploymentFromContainer {
     }
 
     Ok(
-      resource::create::<Deployment>(&self.name, config, &user)
+      resource::create::<Deployment>(&self.name, config, user)
         .await?,
     )
   }
@@ -180,7 +180,7 @@ impl Resolve<WriteArgs> for UpdateDeployment {
     WriteArgs { user }: &WriteArgs,
   ) -> serror::Result<Deployment> {
     Ok(
-      resource::update::<Deployment>(&self.id, self.config, &user)
+      resource::update::<Deployment>(&self.id, self.config, user)
         .await?,
     )
   }
@@ -224,7 +224,7 @@ impl Resolve<WriteArgs> for RenameDeployment {
     }
 
     let mut update =
-      make_update(&deployment, Operation::RenameDeployment, &user);
+      make_update(&deployment, Operation::RenameDeployment, user);
 
     update_one_by_id(
       &db_client().deployments,

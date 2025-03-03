@@ -68,7 +68,7 @@ impl Resolve<WriteArgs> for RenameTag {
       return Err(anyhow!("tag name cannot be ObjectId").into());
     }
 
-    get_tag_check_owner(&self.id, &user).await?;
+    get_tag_check_owner(&self.id, user).await?;
 
     update_one_by_id(
       &db_client().tags,
@@ -89,7 +89,7 @@ impl Resolve<WriteArgs> for DeleteTag {
     self,
     WriteArgs { user }: &WriteArgs,
   ) -> serror::Result<Tag> {
-    let tag = get_tag_check_owner(&self.id, &user).await?;
+    let tag = get_tag_check_owner(&self.id, user).await?;
 
     tokio::try_join!(
       resource::remove_tag_from_all::<Server>(&self.id),

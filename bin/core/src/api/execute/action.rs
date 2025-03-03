@@ -67,7 +67,7 @@ impl Resolve<ExecuteArgs> for RunAction {
   ) -> serror::Result<Update> {
     let mut action = resource::get_check_permissions::<Action>(
       &self.action,
-      &user,
+      user,
       PermissionLevel::Execute,
     )
     .await?;

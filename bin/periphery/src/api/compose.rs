@@ -282,7 +282,7 @@ impl Resolve<super::Args> for WriteCommitComposeContents {
 
 //
 
-impl<'a> WriteStackRes for &'a mut ComposePullResponse {
+impl WriteStackRes for &mut ComposePullResponse {
   fn logs(&mut self) -> &mut Vec<Log> {
     &mut self.logs
   }

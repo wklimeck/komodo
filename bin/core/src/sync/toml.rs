@@ -188,6 +188,7 @@ impl ToToml for Stack {
     config
       .into_iter()
       .map(|(key, value)| {
+        #[allow(clippy::single_match)]
         match key.as_str() {
           "server_id" => return Ok((String::from("server"), value)),
           _ => {}

@@ -245,17 +245,17 @@ pub async fn compose_up(
       )
       .await;
       res.logs.push(log);
-    } else {
-      run_komodo_command_with_interpolation(
-        "Compose Build",
-        run_directory.as_ref(),
-        command,
-        false,
-        &periphery_config().secrets,
-        &replacers,
-      )
-      .await
-      .map(|log| res.logs.push(log));
+    } else if let Some(log) = run_komodo_command_with_interpolation(
+      "Compose Build",
+      run_directory.as_ref(),
+      command,
+      false,
+      &periphery_config().secrets,
+      &replacers,
+    )
+    .await
+    {
+      res.logs.push(log);
     }
 
     if !all_logs_success(&res.logs) {
@@ -290,7 +290,7 @@ pub async fn compose_up(
   // Pre deploy command
   let pre_deploy_path =
     run_directory.join(&stack.config.pre_deploy.path);
-  if stack.config.skip_secret_interp {
+  if let Some(log) = if stack.config.skip_secret_interp {
     run_komodo_command_multiline(
       "Pre Deploy",
       pre_deploy_path.as_ref(),
@@ -307,8 +307,9 @@ pub async fn compose_up(
       &replacers,
     )
     .await
+  } {
+    res.logs.push(log);
   }
-  .map(|log| res.logs.push(log));
   if !all_logs_success(&res.logs) {
     return Err(anyhow!(
       "Failed at running pre_deploy command, stopping the run."
@@ -360,7 +361,7 @@ pub async fn compose_up(
   if res.deployed {
     let post_deploy_path =
       run_directory.join(&stack.config.post_deploy.path);
-    if stack.config.skip_secret_interp {
+    if let Some(log) = if stack.config.skip_secret_interp {
       run_komodo_command_multiline(
         "Post Deploy",
         post_deploy_path.as_ref(),
@@ -377,8 +378,9 @@ pub async fn compose_up(
         &replacers,
       )
       .await
+    } {
+      res.logs.push(log)
     }
-    .map(|log| res.logs.push(log));
     if !all_logs_success(&res.logs) {
       return Err(anyhow!(
         "Failed at running post_deploy command, stopping the run."
@@ -396,7 +398,7 @@ pub trait WriteStackRes {
   fn set_commit_message(&mut self, _message: Option<String>) {}
 }
 
-impl<'a> WriteStackRes for &'a mut ComposeUpResponse {
+impl WriteStackRes for &mut ComposeUpResponse {
   fn logs(&mut self) -> &mut Vec<Log> {
     &mut self.logs
   }
@@ -414,13 +416,13 @@ impl<'a> WriteStackRes for &'a mut ComposeUpResponse {
 /// Either writes the stack file_contents to a file, or clones the repo.
 /// Performs variable replacement on env and writes file.
 /// Returns (run_directory, env_file_path, periphery_replacers)
-pub async fn write_stack<'a>(
-  stack: &'a Stack,
+pub async fn write_stack(
+  stack: &Stack,
   git_token: Option<String>,
   mut res: impl WriteStackRes,
 ) -> anyhow::Result<(
   PathBuf,
-  Option<&'a str>,
+  Option<&str>,
   Option<Vec<(String, String)>>,
 )> {
   let root = periphery_config()

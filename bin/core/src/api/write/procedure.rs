@@ -32,7 +32,7 @@ impl Resolve<WriteArgs> for CopyProcedure {
     let Procedure { config, .. } =
       resource::get_check_permissions::<Procedure>(
         &self.id,
-        &user,
+        user,
         PermissionLevel::Write,
       )
       .await?;

@@ -561,7 +561,7 @@ impl Resolve<ExecuteArgs> for UnpauseDeployment {
     ExecuteArgs { user, update }: &ExecuteArgs,
   ) -> serror::Result<Update> {
     let (deployment, server) =
-      setup_deployment_execution(&self.deployment, &user).await?;
+      setup_deployment_execution(&self.deployment, user).await?;
 
     // get the action state for the deployment (or insert default).
     let action_state = action_states()
@@ -610,7 +610,7 @@ impl Resolve<ExecuteArgs> for StopDeployment {
     ExecuteArgs { user, update }: &ExecuteArgs,
   ) -> serror::Result<Update> {
     let (deployment, server) =
-      setup_deployment_execution(&self.deployment, &user).await?;
+      setup_deployment_execution(&self.deployment, user).await?;
 
     // get the action state for the deployment (or insert default).
     let action_state = action_states()

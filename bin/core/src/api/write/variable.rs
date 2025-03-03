@@ -49,7 +49,7 @@ impl Resolve<WriteArgs> for CreateVariable {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::CreateVariable,
-      &user,
+      user,
     );
 
     update
@@ -92,7 +92,7 @@ impl Resolve<WriteArgs> for UpdateVariableValue {
     let mut update = make_update(
       ResourceTarget::system(),
       Operation::UpdateVariableValue,
-      &user,
+      user,
     );
 
     let log = if variable.is_secret {

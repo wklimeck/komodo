@@ -32,7 +32,7 @@ impl Resolve<WriteArgs> for CopyAlerter {
     let Alerter { config, .. } =
       resource::get_check_permissions::<Alerter>(
         &self.id,
-        &user,
+        user,
         PermissionLevel::Write,
       )
       .await?;
