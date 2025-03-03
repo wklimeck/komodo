@@ -31,25 +31,21 @@ export const ResourceSyncPending = ({
   const loading = isPending || syncing;
   return (
     <Section
-      titleOther={
-        <div className="w-full flex flex-wrap gap-2 justify-between items-center">
-          {titleOther}
-          {sync?.config?.managed && (
-            <Tabs value={pendingView} onValueChange={setPendingView as any}>
-              <TabsList className="justify-start w-fit">
-                <TabsTrigger value="Execute" className="w-[110px]">
-                  Execute
-                </TabsTrigger>
-                <TabsTrigger value="Commit" className="w-[110px]">
-                  Commit
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
-        </div>
-      }
+      titleOther={titleOther}
     >
-      <div className="flex items-center gap-2 px-1 flex-wrap">
+      <div className="flex items-center gap-4 py-2 flex-wrap">
+        {sync?.config?.managed && (
+          <Tabs value={pendingView} onValueChange={setPendingView as any}>
+            <TabsList className="justify-start w-fit">
+              <TabsTrigger value="Execute" className="w-[110px]">
+                Execute
+              </TabsTrigger>
+              <TabsTrigger value="Commit" className="w-[110px]">
+                Commit
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
         <div className="text-muted-foreground">{pendingView} Mode:</div>
         <div className="flex items-center gap-1 flex-wrap">
           {pendingView === "Execute" && (
@@ -320,10 +316,10 @@ export const ResourceSyncPending = ({
 const reverse_pending_type = (type: ResourceDiff["data"]["type"]) => {
   switch (type) {
     case "Create":
-      return "Delete";
+      return "Remove";
     case "Update":
       return "Update";
     case "Delete":
-      return "Create";
+      return "Add";
   }
 };
