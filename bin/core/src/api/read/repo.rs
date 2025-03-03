@@ -45,7 +45,7 @@ impl Resolve<ReadArgs> for ListRepos {
       get_all_tags(None).await?
     };
     Ok(
-      resource::list_for_user::<Repo>(self.query, &user, &all_tags)
+      resource::list_for_user::<Repo>(self.query, user, &all_tags)
         .await?,
     )
   }
@@ -63,7 +63,7 @@ impl Resolve<ReadArgs> for ListFullRepos {
     };
     Ok(
       resource::list_full_for_user::<Repo>(
-        self.query, &user, &all_tags,
+        self.query, user, &all_tags,
       )
       .await?,
     )

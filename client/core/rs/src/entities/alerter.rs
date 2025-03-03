@@ -72,6 +72,7 @@ impl AlerterConfig {
   }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for AlerterConfig {
   fn default() -> Self {
     Self {

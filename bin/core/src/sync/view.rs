@@ -12,6 +12,7 @@ use partial_derive2::MaybeNone;
 
 use super::{AllResourcesById, ResourceSyncTrait};
 
+#[allow(clippy::too_many_arguments)]
 pub async fn push_updates_for_view<Resource: ResourceSyncTrait>(
   resources: Vec<ResourceToml<Resource::PartialConfig>>,
   delete: bool,

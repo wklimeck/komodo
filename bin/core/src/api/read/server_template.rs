@@ -76,7 +76,7 @@ impl Resolve<ReadArgs> for GetServerTemplatesSummary {
   ) -> serror::Result<GetServerTemplatesSummaryResponse> {
     let query = match resource::get_resource_object_ids_for_user::<
       ServerTemplate,
-    >(&user)
+    >(user)
     .await?
     {
       Some(ids) => doc! {

@@ -61,7 +61,7 @@ impl Resolve<ReadArgs> for ListFullAlerters {
     };
     Ok(
       resource::list_full_for_user::<Alerter>(
-        self.query, &user, &all_tags,
+        self.query, user, &all_tags,
       )
       .await?,
     )
@@ -75,7 +75,7 @@ impl Resolve<ReadArgs> for GetAlertersSummary {
   ) -> serror::Result<GetAlertersSummaryResponse> {
     let query = match resource::get_resource_object_ids_for_user::<
       Alerter,
-    >(&user)
+    >(user)
     .await?
     {
       Some(ids) => doc! {

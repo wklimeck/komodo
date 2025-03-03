@@ -29,7 +29,7 @@ impl Resolve<ReadArgs> for GetResourceSync {
     Ok(
       resource::get_check_permissions::<ResourceSync>(
         &self.sync,
-        &user,
+        user,
         PermissionLevel::Read,
       )
       .await?,
@@ -49,7 +49,7 @@ impl Resolve<ReadArgs> for ListResourceSyncs {
     };
     Ok(
       resource::list_for_user::<ResourceSync>(
-        self.query, &user, &all_tags,
+        self.query, user, &all_tags,
       )
       .await?,
     )
@@ -68,7 +68,7 @@ impl Resolve<ReadArgs> for ListFullResourceSyncs {
     };
     Ok(
       resource::list_full_for_user::<ResourceSync>(
-        self.query, &user, &all_tags,
+        self.query, user, &all_tags,
       )
       .await?,
     )

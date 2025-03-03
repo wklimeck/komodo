@@ -82,7 +82,7 @@ impl Resolve<ExecuteArgs> for RunBuild {
   ) -> serror::Result<Update> {
     let mut build = resource::get_check_permissions::<Build>(
       &self.build,
-      &user,
+      user,
       PermissionLevel::Execute,
     )
     .await?;
@@ -517,7 +517,7 @@ impl Resolve<ExecuteArgs> for CancelBuild {
   ) -> serror::Result<Update> {
     let build = resource::get_check_permissions::<Build>(
       &self.build,
-      &user,
+      user,
       PermissionLevel::Execute,
     )
     .await?;

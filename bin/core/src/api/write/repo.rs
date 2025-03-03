@@ -53,12 +53,12 @@ impl Resolve<WriteArgs> for CopyRepo {
     let Repo { config, .. } =
       resource::get_check_permissions::<Repo>(
         &self.id,
-        &user,
+        user,
         PermissionLevel::Write,
       )
       .await?;
     Ok(
-      resource::create::<Repo>(&self.name, config.into(), &user)
+      resource::create::<Repo>(&self.name, config.into(), user)
         .await?,
     )
   }
@@ -89,7 +89,7 @@ impl Resolve<WriteArgs> for RenameRepo {
   ) -> serror::Result<Update> {
     let repo = resource::get_check_permissions::<Repo>(
       &self.id,
-      &user,
+      user,
       PermissionLevel::Write,
     )
     .await?;
@@ -98,7 +98,7 @@ impl Resolve<WriteArgs> for RenameRepo {
       || !repo.config.path.is_empty()
     {
       return Ok(
-        resource::rename::<Repo>(&repo.id, &self.name, &user).await?,
+        resource::rename::<Repo>(&repo.id, &self.name, user).await?,
       );
     }
 
@@ -113,7 +113,7 @@ impl Resolve<WriteArgs> for RenameRepo {
 
     let name = to_komodo_name(&self.name);
 
-    let mut update = make_update(&repo, Operation::RenameRepo, &user);
+    let mut update = make_update(&repo, Operation::RenameRepo, user);
 
     update_one_by_id(
       &db_client().repos,
@@ -171,7 +171,7 @@ impl Resolve<WriteArgs> for RefreshRepoCache {
     // repo should be able to do this.
     let repo = resource::get_check_permissions::<Repo>(
       &self.repo,
-      &user,
+      user,
       PermissionLevel::Execute,
     )
     .await?;

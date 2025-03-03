@@ -114,7 +114,7 @@ impl Resolve<WriteArgs> for WriteStackFileContents {
     } = self;
     let (mut stack, server) = get_stack_and_server(
       &stack,
-      &user,
+      user,
       PermissionLevel::Write,
       true,
     )
@@ -127,7 +127,7 @@ impl Resolve<WriteArgs> for WriteStackFileContents {
     }
 
     let mut update =
-      make_update(&stack, Operation::WriteStackContents, &user);
+      make_update(&stack, Operation::WriteStackContents, user);
 
     update.push_simple_log("File contents to write", &contents);
 

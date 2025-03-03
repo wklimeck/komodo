@@ -128,7 +128,7 @@ impl Resolve<ReadArgs> for ListServers {
       get_all_tags(None).await?
     };
     Ok(
-      resource::list_for_user::<Server>(self.query, &user, &all_tags)
+      resource::list_for_user::<Server>(self.query, user, &all_tags)
         .await?,
     )
   }
@@ -146,7 +146,7 @@ impl Resolve<ReadArgs> for ListFullServers {
     };
     Ok(
       resource::list_full_for_user::<Server>(
-        self.query, &user, &all_tags,
+        self.query, user, &all_tags,
       )
       .await?,
     )
@@ -387,7 +387,7 @@ impl Resolve<ReadArgs> for ListAllDockerContainers {
   ) -> serror::Result<ListAllDockerContainersResponse> {
     let servers = resource::list_for_user::<Server>(
       Default::default(),
-      &user,
+      user,
       &[],
     )
     .await?
@@ -533,7 +533,7 @@ impl Resolve<ReadArgs> for GetResourceMatchingContainer {
     let stacks =
       resource::list_full_for_user_using_document::<Stack>(
         doc! { "config.server_id": &server.id },
-        &user,
+        user,
       )
       .await?;
 

@@ -308,7 +308,7 @@ impl Resolve<WriteArgs> for DeleteBuildWebhook {
 
     let build = resource::get_check_permissions::<Build>(
       &self.build,
-      &user,
+      user,
       PermissionLevel::Write,
     )
     .await?;

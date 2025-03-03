@@ -199,7 +199,7 @@ where
 
     if let Some(command) = args.on_pull {
       let on_pull_path = repo_dir.join(&command.path);
-      if let Some(secrets) = secrets {
+      if let Some(log) = if let Some(secrets) = secrets {
         run_komodo_command_with_interpolation(
           "On Pull",
           Some(on_pull_path.as_path()),
@@ -216,8 +216,9 @@ where
           &command.command,
         )
         .await
-      }
-      .map(|log| logs.push(log));
+      } {
+        logs.push(log)
+      };
     }
 
     anyhow::Ok(GitRes {

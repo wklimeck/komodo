@@ -165,6 +165,7 @@ fn read_resource_file(
 }
 
 /// Reads down into directories.
+#[allow(clippy::too_many_arguments)]
 fn read_resources_directory(
   root_path: &Path,
   // relative to root path.

@@ -75,7 +75,7 @@ impl Resolve<ReadArgs> for GetBuildersSummary {
   ) -> serror::Result<GetBuildersSummaryResponse> {
     let query = match resource::get_resource_object_ids_for_user::<
       Builder,
-    >(&user)
+    >(user)
     .await?
     {
       Some(ids) => doc! {

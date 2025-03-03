@@ -130,17 +130,17 @@ impl Resolve<super::Args> for build::Build {
       )
       .await;
       logs.push(build_log);
-    } else {
-      run_komodo_command_with_interpolation(
-        "Docker Build",
-        build_dir.as_ref(),
-        command,
-        false,
-        &periphery_config().secrets,
-        &core_replacers,
-      )
-      .await
-      .map(|log| logs.push(log));
+    } else if let Some(log) = run_komodo_command_with_interpolation(
+      "Docker Build",
+      build_dir.as_ref(),
+      command,
+      false,
+      &periphery_config().secrets,
+      &core_replacers,
+    )
+    .await
+    {
+      logs.push(log)
     }
 
     cleanup_secret_env_vars(&secret_args);

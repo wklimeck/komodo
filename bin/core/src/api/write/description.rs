@@ -33,7 +33,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Server>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -41,7 +41,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Deployment>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -49,7 +49,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Build>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -57,7 +57,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Repo>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -65,7 +65,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Builder>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -73,7 +73,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Alerter>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -81,7 +81,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Procedure>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -89,7 +89,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Action>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -97,7 +97,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<ServerTemplate>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -105,7 +105,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<ResourceSync>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }
@@ -113,7 +113,7 @@ impl Resolve<WriteArgs> for UpdateDescription {
         resource::update_description::<Stack>(
           &id,
           &self.description,
-          &user,
+          user,
         )
         .await?;
       }

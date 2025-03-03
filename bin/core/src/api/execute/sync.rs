@@ -61,7 +61,7 @@ impl Resolve<ExecuteArgs> for RunSync {
     } = self;
     let sync = resource::get_check_permissions::<
       entities::sync::ResourceSync,
-    >(&sync, &user, PermissionLevel::Execute)
+    >(&sync, user, PermissionLevel::Execute)
     .await?;
 
     // get the action state for the sync (or insert default).

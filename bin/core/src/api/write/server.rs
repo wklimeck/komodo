@@ -77,7 +77,7 @@ impl Resolve<WriteArgs> for CreateNetwork {
     let periphery = periphery_client(&server)?;
 
     let mut update =
-      make_update(&server, Operation::CreateNetwork, &user);
+      make_update(&server, Operation::CreateNetwork, user);
     update.status = UpdateStatus::InProgress;
     update.id = add_update(update.clone()).await?;
 
