@@ -27,10 +27,7 @@ impl Resolve<super::Args> for CreateNetwork {
       None => String::new(),
     };
     let command = format!("docker network create{driver} {name}");
-    Ok(
-      run_komodo_command("create network", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Create Network", None, command).await)
   }
 }
 
@@ -40,10 +37,7 @@ impl Resolve<super::Args> for DeleteNetwork {
   #[instrument(name = "DeleteNetwork", skip(self))]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = format!("docker network rm {}", self.name);
-    Ok(
-      run_komodo_command("delete network", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Delete Network", None, command).await)
   }
 }
 
@@ -53,9 +47,6 @@ impl Resolve<super::Args> for PruneNetworks {
   #[instrument(name = "PruneNetworks", skip(self))]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = String::from("docker network prune -f");
-    Ok(
-      run_komodo_command("prune networks", None, command, false)
-        .await,
-    )
+    Ok(run_komodo_command("Prune Networks", None, command).await)
   }
 }

@@ -123,7 +123,6 @@ impl Resolve<ExecuteArgs> for RunAction {
       "Execute Action",
       None,
       format!("deno run --allow-all {}", path.display()),
-      false,
     )
     .await;
 

@@ -75,10 +75,9 @@ impl Resolve<super::Args> for PullImage {
       .await?;
       anyhow::Ok(
         run_komodo_command(
-          "docker pull",
+          "Docker Pull",
           None,
           format!("docker pull {name}"),
-          false,
         )
         .await,
       )
@@ -99,7 +98,7 @@ impl Resolve<super::Args> for DeleteImage {
   #[instrument(name = "DeleteImage")]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = format!("docker image rm {}", self.name);
-    Ok(run_komodo_command("delete image", None, command, false).await)
+    Ok(run_komodo_command("Delete Image", None, command).await)
   }
 }
 
@@ -109,6 +108,6 @@ impl Resolve<super::Args> for PruneImages {
   #[instrument(name = "PruneImages")]
   async fn resolve(self, _: &super::Args) -> serror::Result<Log> {
     let command = String::from("docker image prune -a -f");
-    Ok(run_komodo_command("prune images", None, command, false).await)
+    Ok(run_komodo_command("Prune Images", None, command).await)
   }
 }

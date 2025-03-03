@@ -1,5 +1,7 @@
 use anyhow::Context;
-use command::run_komodo_command;
+use command::{
+  run_komodo_command, run_komodo_command_with_interpolation,
+};
 use formatting::format_serror;
 use komodo_client::{
   entities::{
@@ -88,33 +90,22 @@ impl Resolve<super::Args> for Deploy {
     debug!("docker run command: {command}");
 
     if deployment.config.skip_secret_interp {
-      Ok(run_komodo_command("docker run", None, command, false).await)
+      Ok(run_komodo_command("Docker Run", None, command).await)
     } else {
-      let command = svi::interpolate_variables(
-        &command,
+      match run_komodo_command_with_interpolation(
+        "Docker Run",
+        None,
+        command,
+        false,
         &periphery_config().secrets,
-        svi::Interpolator::DoubleBrackets,
-        true,
+        &core_replacers,
       )
-      .context(
-        "failed to interpolate secrets into docker run command",
-      );
-
-      let (command, mut replacers) = match command {
-        Ok(res) => res,
-        Err(e) => {
-          return Ok(Log::error("docker run", format!("{e:?}")));
-        }
-      };
-
-      replacers.extend(core_replacers);
-      let mut log =
-        run_komodo_command("docker run", None, command, false).await;
-      log.command = svi::replace_in_string(&log.command, &replacers);
-      log.stdout = svi::replace_in_string(&log.stdout, &replacers);
-      log.stderr = svi::replace_in_string(&log.stderr, &replacers);
-
-      Ok(log)
+      .await
+      {
+        Some(log) => Ok(log),
+        // The None case can not be reached, as the command is always non-empty
+        None => unreachable!(),
+      }
     }
   }
 }
