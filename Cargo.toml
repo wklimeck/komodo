@@ -40,7 +40,7 @@ derive_variants = "1.0.0"
 mongo_indexed = "2.0.1"
 resolver_api = "3.0.0"
 toml_pretty = "1.1.2"
-mungos = "1.1.0"
+mungos = "3.2.0"
 svi = "1.0.1"
 
 # ASYNC
@@ -55,19 +55,19 @@ axum-extra = { version = "0.10.0", features = ["typed-header"] }
 tower-http = { version = "0.6.2", features = ["fs", "cors"] }
 axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 axum = { version = "0.8.1", features = ["ws", "json", "macros"] }
-tokio-tungstenite = "0.26.1"
+tokio-tungstenite = "0.26.2"
 
 # SER/DE
 ordered_hash_map = { version = "0.4.0", features = ["serde"] }
-serde = { version = "1.0.217", features = ["derive"] }
-strum = { version = "0.26.3", features = ["derive"] }
-serde_json = "1.0.135"
+serde = { version = "1.0.218", features = ["derive"] }
+strum = { version = "0.27.1", features = ["derive"] }
+serde_json = "1.0.140"
 serde_yaml = "0.9.34"
-toml = "0.8.19"
+toml = "0.8.20"
 
 # ERROR
-anyhow = "1.0.95"
-thiserror = "2.0.11"
+anyhow = "1.0.97"
+thiserror = "2.0.12"
 
 # LOGGING
 opentelemetry-otlp = { version = "0.27.0", features = ["tls-roots", "reqwest-rustls"] }
@@ -79,7 +79,7 @@ opentelemetry = "0.27.1"
 tracing = "0.1.41"
 
 # CONFIG
-clap = { version = "4.5.26", features = ["derive"] }
+clap = { version = "4.5.31", features = ["derive"] }
 dotenvy = "0.15.7"
 envy = "0.4.2"
 
@@ -88,12 +88,12 @@ uuid = { version = "1.12.0", features = ["v4", "fast-rng", "serde"] }
 openidconnect = "3.5.0"
 urlencoding = "2.1.3"
 nom_pem = "4.0.0"
-bcrypt = "0.16.0"
+bcrypt = "0.17.0"
 base64 = "0.22.1"
-rustls = "0.23.21"
+rustls = "0.23.23"
 hmac = "0.12.1"
 sha2 = "0.10.8"
-rand = "0.8.5"
+rand = "0.9.0"
 jwt = "0.16.0"
 hex = "0.4.3"
 
@@ -102,8 +102,8 @@ bollard = "0.18.1"
 sysinfo = "0.33.1"
 
 # CLOUD
-aws-config = "1.5.13"
-aws-sdk-ec2 = "1.101.0"
+aws-config = "1.5.17"
+aws-sdk-ec2 = "1.113.0"
 
 # MISC
 derive_builder = "0.20.2"
