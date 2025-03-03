@@ -21,7 +21,7 @@ use mungos::{
   mongodb::bson::{doc, oid::ObjectId, to_document, Bson},
 };
 use periphery_client::PeripheryClient;
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::Rng;
 use resolver_api::Resolve;
 
 use crate::{
@@ -54,8 +54,8 @@ pub fn empty_or_only_spaces(word: &str) -> bool {
 }
 
 pub fn random_string(length: usize) -> String {
-  thread_rng()
-    .sample_iter(&Alphanumeric)
+  rand::rng()
+    .sample_iter(&rand::distr::Alphanumeric)
     .take(length)
     .map(char::from)
     .collect()
