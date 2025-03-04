@@ -12,7 +12,9 @@ use komodo_client::{
 use mungos::mongodb::bson::{doc, oid::ObjectId};
 use resolver_api::Resolve;
 
-use crate::{helpers::hash_password, state::db_client};
+use crate::{
+  config::core_config, helpers::hash_password, state::db_client,
+};
 
 use super::WriteArgs;
 
@@ -23,6 +25,16 @@ impl Resolve<WriteArgs> for UpdateUserUsername {
     self,
     WriteArgs { user }: &WriteArgs,
   ) -> serror::Result<UpdateUserUsernameResponse> {
+    for locked_username in &core_config().lock_login_credentials_for {
+      if locked_username == "__ALL__"
+        || *locked_username == user.username
+      {
+        return Err(
+          anyhow!("User not allowed to update their username.")
+            .into(),
+        );
+      }
+    }
     if self.username.is_empty() {
       return Err(anyhow!("Username cannot be empty.").into());
     }
@@ -56,6 +68,16 @@ impl Resolve<WriteArgs> for UpdateUserPassword {
     self,
     WriteArgs { user }: &WriteArgs,
   ) -> serror::Result<UpdateUserPasswordResponse> {
+    for locked_username in &core_config().lock_login_credentials_for {
+      if locked_username == "__ALL__"
+        || *locked_username == user.username
+      {
+        return Err(
+          anyhow!("User not allowed to update their password.")
+            .into(),
+        );
+      }
+    }
     let UserConfig::Local { .. } = user.config else {
       return Err(anyhow!("User is not local user").into());
     };
