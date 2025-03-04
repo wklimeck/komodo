@@ -49,7 +49,7 @@ use crate::{
     query::get_id_to_tags,
     update::{add_update, make_update, update_update},
   },
-  resource::{self, refresh_resource_sync_state_cache},
+  resource,
   state::{db_client, github_client},
   sync::{
     deploy::SyncDeployParams, remote::RemoteResources,
@@ -66,12 +66,8 @@ impl Resolve<WriteArgs> for CreateResourceSync {
     WriteArgs { user }: &WriteArgs,
   ) -> serror::Result<ResourceSync> {
     Ok(
-      resource::create::<ResourceSync>(
-        &self.name,
-        self.config,
-        user,
-      )
-      .await?,
+      resource::create::<ResourceSync>(&self.name, self.config, user)
+        .await?,
     )
   }
 }
@@ -483,21 +479,6 @@ impl Resolve<WriteArgs> for CommitSync {
     };
 
     update.finalize();
-
-    // Need to manually update the update before cache refresh,
-    // and before broadcast with add_update.
-    // The Err case of to_document should be unreachable,
-    // but will fail to update cache in that case.
-    if let Ok(update_doc) = to_document(&update) {
-      let _ = update_one_by_id(
-        &db_client().updates,
-        &update.id,
-        mungos::update::Update::Set(update_doc),
-        None,
-      )
-      .await;
-      refresh_resource_sync_state_cache().await;
-    }
     update_update(update.clone()).await?;
 
     Ok(update)
@@ -548,11 +529,9 @@ impl Resolve<WriteArgs> for RefreshResourceSyncPending {
       sync.info.pending_message = message;
 
       if !sync.info.remote_errors.is_empty() {
-        return Err(
-          anyhow!(
-            "Remote resources have errors. Cannot compute diffs."
-          ),
-        );
+        return Err(anyhow!(
+          "Remote resources have errors. Cannot compute diffs."
+        ));
       }
 
       let resources = resources?;
