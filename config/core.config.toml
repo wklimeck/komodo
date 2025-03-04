@@ -118,6 +118,15 @@ transparent_mode = false
 ## Default: false
 disable_non_admin_create = false
 
+## Normally users can update their username / password using the API.
+## This will disable this ability for specific users or all users.
+## Example:
+##  - `lock_login_credentials_for = []` will allow all users to update username / password.
+##  - `lock_login_credentials_for = ["demo"]` will block the demo user from doing so.
+##  - `lock_login_credentials_for = ["__ALL__"]` will block all users.
+## Default: empty list
+lock_login_credentials_for = []
+
 ## Optionally provide a specific jwt secret.
 ## Passing nothing or an empty string will cause one to be generated on every startup.
 ## This means users will have to log in again if Komodo restarts.
