@@ -73,10 +73,6 @@ pub use refresh::spawn_resource_refresh_loop;
 pub use repo::{
   refresh_repo_state_cache, spawn_repo_state_refresh_loop,
 };
-pub use sync::{
-  refresh_resource_sync_state_cache,
-  spawn_resource_sync_state_refresh_loop,
-};
 
 /// Implement on each Komodo resource for common methods
 pub trait KomodoResource {

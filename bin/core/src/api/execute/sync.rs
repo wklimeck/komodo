@@ -25,16 +25,13 @@ use komodo_client::{
   },
 };
 use mongo_indexed::doc;
-use mungos::{
-  by_id::update_one_by_id,
-  mongodb::bson::{oid::ObjectId, to_document},
-};
+use mungos::{by_id::update_one_by_id, mongodb::bson::oid::ObjectId};
 use resolver_api::Resolve;
 
 use crate::{
   api::write::WriteArgs,
   helpers::{query::get_id_to_tags, update::update_update},
-  resource::{self, refresh_resource_sync_state_cache},
+  resource,
   state::{action_states, db_client},
   sync::{
     deploy::{
@@ -609,21 +606,6 @@ impl Resolve<ExecuteArgs> for RunSync {
     }
 
     update.finalize();
-
-    // Need to manually update the update before cache refresh,
-    // and before broadcast with add_update.
-    // The Err case of to_document should be unreachable,
-    // but will fail to update cache in that case.
-    if let Ok(update_doc) = to_document(&update) {
-      let _ = update_one_by_id(
-        &db.updates,
-        &update.id,
-        mungos::update::Update::Set(update_doc),
-        None,
-      )
-      .await;
-      refresh_resource_sync_state_cache().await;
-    }
     update_update(update.clone()).await?;
 
     Ok(update)

@@ -6,7 +6,6 @@ use komodo_client::{
     permission::PermissionLevel,
     sync::{
       ResourceSync, ResourceSyncActionState, ResourceSyncListItem,
-      ResourceSyncState,
     },
   },
 };
@@ -16,7 +15,7 @@ use crate::{
   config::core_config,
   helpers::query::get_all_tags,
   resource,
-  state::{action_states, github_client, resource_sync_state_cache},
+  state::{action_states, github_client},
 };
 
 use super::ReadArgs;
@@ -112,7 +111,6 @@ impl Resolve<ReadArgs> for GetResourceSyncsSummary {
 
     let mut res = GetResourceSyncsSummaryResponse::default();
 
-    let cache = resource_sync_state_cache();
     let action_states = action_states();
 
     for resource_sync in resource_syncs {
@@ -131,29 +129,15 @@ impl Resolve<ReadArgs> for GetResourceSyncsSummary {
         res.failed += 1;
         continue;
       }
-
-      match (
-        cache.get(&resource_sync.id).await.unwrap_or_default(),
-        action_states
-          .resource_sync
-          .get(&resource_sync.id)
-          .await
-          .unwrap_or_default()
-          .get()?,
-      ) {
-        (_, action_states) if action_states.syncing => {
-          res.syncing += 1;
-        }
-        (ResourceSyncState::Ok, _) => res.ok += 1,
-        (ResourceSyncState::Failed, _) => res.failed += 1,
-        (ResourceSyncState::Unknown, _) => res.unknown += 1,
-        // will never come off the cache in the building state, since that comes from action states
-        (ResourceSyncState::Syncing, _) => {
-          unreachable!()
-        }
-        (ResourceSyncState::Pending, _) => {
-          unreachable!()
-        }
+      if action_states
+        .resource_sync
+        .get(&resource_sync.id)
+        .await
+        .unwrap_or_default()
+        .get()?
+        .syncing
+      {
+        res.syncing += 1;
       }
     }
 
