@@ -71,22 +71,35 @@ pub async fn write_file(
     (contents, None)
   };
 
+  if let Some(parent) = env_file_path.parent() {
+    if let Err(e) = tokio::fs::create_dir_all(parent)
+      .await
+      .with_context(|| format!("Failed to initialize environment file parent directory {parent:?}"))
+    {
+      logs.push(Log::error(
+        "Write Environment File",
+        format_serror(&e.into()),
+      ));
+      return Err(());
+    }
+  }
+
   if let Err(e) = tokio::fs::write(&env_file_path, contents)
     .await
     .with_context(|| {
-      format!("failed to write environment file to {env_file_path:?}")
+      format!("Failed to write environment file to {env_file_path:?}")
     })
   {
     logs.push(Log::error(
-      "write environment file",
+      "Write Environment File",
       format_serror(&e.into()),
     ));
     return Err(());
   }
 
   logs.push(Log::simple(
-    "write environment file",
-    format!("environment written to {env_file_path:?}"),
+    "Write Environment File",
+    format!("Environment file written to {env_file_path:?}"),
   ));
 
   Ok((Some(env_file_path), replacers))
@@ -117,6 +130,19 @@ pub async fn write_file_simple(
     .map(|env| format!("{}={}", env.variable, env.value))
     .collect::<Vec<_>>()
     .join("\n");
+
+  if let Some(parent) = env_file_path.parent() {
+    if let Err(e) = tokio::fs::create_dir_all(parent)
+      .await
+      .with_context(|| format!("Failed to initialize environment file parent directory {parent:?}"))
+    {
+      logs.push(Log::error(
+        "Write Environment File",
+        format_serror(&(&e).into()),
+      ));
+      return Err(e);
+    }
+  }
 
   if let Err(e) = tokio::fs::write(&env_file_path, contents)
     .await

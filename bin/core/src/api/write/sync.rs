@@ -156,12 +156,16 @@ async fn write_sync_file_contents_on_host(
   let full_path = root.join(&resource_path).join(&file_path);
 
   if let Some(parent) = full_path.parent() {
-    let _ = fs::create_dir_all(parent).await;
+    fs::create_dir_all(parent).await.with_context(|| {
+      format!(
+        "Failed to initialize resource file parent directory {parent:?}"
+      )
+    })?;
   }
 
   if let Err(e) =
     fs::write(&full_path, &contents).await.with_context(|| {
-      format!("Failed to write file contents to {full_path:?}")
+      format!("Failed to write resource file contents to {full_path:?}")
     })
   {
     update.push_error_log("Write File", format_serror(&e.into()));
@@ -219,7 +223,11 @@ async fn write_sync_file_contents_git(
   let full_path = root.join(&resource_path).join(&file_path);
 
   if let Some(parent) = full_path.parent() {
-    let _ = fs::create_dir_all(parent).await;
+    fs::create_dir_all(parent).await.with_context(|| {
+      format!(
+        "Failed to initialize resource file parent directory {parent:?}"
+      )
+    })?;
   }
 
   // Ensure the folder is initialized as git repo.
@@ -253,7 +261,7 @@ async fn write_sync_file_contents_git(
 
   if let Err(e) =
     fs::write(&full_path, &contents).await.with_context(|| {
-      format!("Failed to write file contents to {full_path:?}")
+      format!("Failed to write resource file contents to {full_path:?}")
     })
   {
     update.push_error_log("Write File", format_serror(&e.into()));
@@ -399,7 +407,9 @@ impl Resolve<WriteArgs> for CommitSync {
         .join(to_komodo_name(&sync.name))
         .join(&resource_path);
       if let Some(parent) = file_path.parent() {
-        let _ = tokio::fs::create_dir_all(&parent).await;
+        fs::create_dir_all(parent)
+          .await
+          .with_context(|| format!("Failed to initialize resource file parent directory {parent:?}"))?;
       };
       if let Err(e) = tokio::fs::write(&file_path, &res.toml)
         .await
