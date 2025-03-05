@@ -111,7 +111,9 @@ impl Resolve<ExecuteArgs> for RunAction {
     let path = core_config().action_directory.join(&file);
 
     if let Some(parent) = path.parent() {
-      let _ = fs::create_dir_all(parent).await;
+      fs::create_dir_all(parent)
+        .await
+        .with_context(|| format!("Failed to initialize Action file parent directory {parent:?}"))?;
     }
 
     fs::write(&path, contents).await.with_context(|| {

@@ -23,7 +23,9 @@ pub async fn write_commit_file(
   let path = repo_dir.join(file).components().collect::<PathBuf>();
 
   if let Some(parent) = path.parent() {
-    let _ = fs::create_dir_all(&parent).await;
+    fs::create_dir_all(parent).await.with_context(|| {
+      format!("Failed to initialize file parent directory {parent:?}")
+    })?;
   }
 
   fs::write(&path, contents).await.with_context(|| {

@@ -204,7 +204,9 @@ impl Resolve<super::Args> for WriteComposeContentsToHost {
       .collect::<PathBuf>();
     // Ensure parent directory exists
     if let Some(parent) = file_path.parent() {
-      let _ = fs::create_dir_all(&parent).await;
+      fs::create_dir_all(&parent)
+        .await
+        .with_context(|| format!("Failed to initialize environment file parent directory {parent:?}"))?;
     }
     fs::write(&file_path, contents).await.with_context(|| {
       format!(
