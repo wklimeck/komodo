@@ -12,9 +12,8 @@ use komodo_client::entities::{
 };
 use mungos::mongodb::bson::{doc, Document};
 use openidconnect::{
-  core::CoreAuthenticationFlow, AccessTokenHash, AuthorizationCode,
-  CsrfToken, Nonce, OAuth2TokenResponse, PkceCodeChallenge,
-  PkceCodeVerifier, Scope, TokenResponse,
+  core::CoreAuthenticationFlow, AuthorizationCode, CsrfToken, Nonce,
+  Scope, TokenResponse,
 };
 use reqwest::StatusCode;
 use serde::Deserialize;
@@ -29,13 +28,22 @@ use super::RedirectQuery;
 
 pub mod client;
 
+fn reqwest_client() -> &'static reqwest::Client {
+  static REQWEST: OnceLock<reqwest::Client> = OnceLock::new();
+  REQWEST.get_or_init(|| {
+    reqwest::Client::builder()
+      .redirect(reqwest::redirect::Policy::none())
+      .build()
+      .expect("Invalid OIDC reqwest client")
+  })
+}
+
 /// CSRF tokens can only be used once from the callback,
 /// and must be used within this timeframe
 const CSRF_VALID_FOR_MS: i64 = 120_000; // 2 minutes for user to log in.
 
 type RedirectUrl = Option<String>;
-type CsrfMap =
-  DashMap<String, (PkceCodeVerifier, Nonce, RedirectUrl, i64)>;
+type CsrfMap = DashMap<String, (Nonce, RedirectUrl, i64)>;
 fn csrf_verifier_tokens() -> &'static CsrfMap {
   static CSRF: OnceLock<CsrfMap> = OnceLock::new();
   CSRF.get_or_init(Default::default)
@@ -64,10 +72,6 @@ async fn login(
   let client =
     default_oidc_client().context("OIDC Client not configured")?;
 
-  // Generate a PKCE challenge.
-  let (pkce_challenge, pkce_verifier) =
-    PkceCodeChallenge::new_random_sha256();
-
   // Generate the authorization URL.
   let (auth_url, csrf_token, nonce) = client
     .authorize_url(
@@ -77,18 +81,12 @@ async fn login(
     )
     .add_scope(Scope::new("openid".to_string()))
     .add_scope(Scope::new("email".to_string()))
-    .set_pkce_challenge(pkce_challenge)
     .url();
 
   // Data inserted here will be matched on callback side for csrf protection.
   csrf_verifier_tokens().insert(
     csrf_token.secret().clone(),
-    (
-      pkce_verifier,
-      nonce,
-      redirect,
-      komodo_timestamp() + CSRF_VALID_FOR_MS,
-    ),
+    (nonce, redirect, komodo_timestamp() + CSRF_VALID_FOR_MS),
   );
 
   let config = core_config();
@@ -135,10 +133,9 @@ async fn callback(
     query.state.context("Provider did not return state")?,
   );
 
-  let (_, (pkce_verifier, nonce, redirect, valid_until)) =
-    csrf_verifier_tokens()
-      .remove(state.secret())
-      .context("CSRF Token invalid")?;
+  let (_, (nonce, redirect, valid_until)) = csrf_verifier_tokens()
+    .remove(state.secret())
+    .context("CSRF Token invalid")?;
 
   if komodo_timestamp() > valid_until {
     return Err(anyhow!(
@@ -148,9 +145,8 @@ async fn callback(
 
   let token_response = client
     .exchange_code(AuthorizationCode::new(code))
-    // Set the PKCE code verifier.
-    .set_pkce_verifier(pkce_verifier)
-    .request_async(openidconnect::reqwest::async_http_client)
+    .context("Failed to get Oauth token at exchange code")?
+    .request_async(reqwest_client())
     .await
     .context("Failed to get Oauth token")?;
 
@@ -174,19 +170,6 @@ async fn callback(
   let claims = id_token
     .claims(&verifier, &nonce)
     .context("Failed to verify token claims")?;
-
-  // Verify the access token hash to ensure that the access token hasn't been substituted for
-  // another user's.
-  if let Some(expected_access_token_hash) = claims.access_token_hash()
-  {
-    let actual_access_token_hash = AccessTokenHash::from_token(
-      token_response.access_token(),
-      &id_token.signing_alg()?,
-    )?;
-    if actual_access_token_hash != *expected_access_token_hash {
-      return Err(anyhow!("Invalid access token"));
-    }
-  }
 
   let user_id = claims.subject().as_str();
 

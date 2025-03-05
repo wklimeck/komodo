@@ -2,17 +2,37 @@ use std::sync::OnceLock;
 
 use anyhow::Context;
 use openidconnect::{
-  core::{CoreClient, CoreProviderMetadata},
-  reqwest::async_http_client,
-  ClientId, ClientSecret, IssuerUrl, RedirectUrl,
+  core::*, Client, ClientId, ClientSecret, EmptyAdditionalClaims,
+  EndpointMaybeSet, EndpointNotSet, EndpointSet, IssuerUrl,
+  RedirectUrl, StandardErrorResponse,
 };
 
 use crate::config::core_config;
 
-static DEFAULT_OIDC_CLIENT: OnceLock<Option<CoreClient>> =
+type OidcClient = Client<
+  EmptyAdditionalClaims,
+  CoreAuthDisplay,
+  CoreGenderClaim,
+  CoreJweContentEncryptionAlgorithm,
+  CoreJsonWebKey,
+  CoreAuthPrompt,
+  StandardErrorResponse<CoreErrorResponseType>,
+  CoreTokenResponse,
+  CoreTokenIntrospectionResponse,
+  CoreRevocableToken,
+  CoreRevocationErrorResponse,
+  EndpointSet,
+  EndpointNotSet,
+  EndpointNotSet,
+  EndpointNotSet,
+  EndpointMaybeSet,
+  EndpointMaybeSet,
+>;
+
+static DEFAULT_OIDC_CLIENT: OnceLock<Option<OidcClient>> =
   OnceLock::new();
 
-pub fn default_oidc_client() -> Option<&'static CoreClient> {
+pub fn default_oidc_client() -> Option<&'static OidcClient> {
   DEFAULT_OIDC_CLIENT
     .get()
     .expect("OIDC client get before init")
@@ -35,7 +55,7 @@ pub async fn init_default_oidc_client() {
     // Use OpenID Connect Discovery to fetch the provider metadata.
     let provider_metadata = CoreProviderMetadata::discover_async(
       IssuerUrl::new(config.oidc_provider.clone())?,
-      async_http_client,
+      super::reqwest_client(),
     )
     .await
     .context(
