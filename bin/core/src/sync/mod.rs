@@ -223,13 +223,26 @@ impl AllResourcesById {
 fn deserialize_resources_toml(
   toml_str: &str,
 ) -> anyhow::Result<ResourcesToml> {
-  ::toml::from_str::<ResourcesToml>(
-    &toml_str
-      // Escape the \ for the user on incoming.
-      // After deserialized by `toml` crate, the contents
-      // will match what would be passed on eg command line exactly.
-      .replace(r#"\"#, r#"\\"#),
-  )
+  ::toml::from_str::<ResourcesToml>(&escape_between_triple_string(
+    toml_str,
+  ))
   // the error without this comes through with multiple lines (\n) and looks bad
   .map_err(|e| anyhow!("{e:#}"))
+}
+
+fn escape_between_triple_string(toml_str: &str) -> String {
+  toml_str
+    .split(r#"""""#)
+    .enumerate()
+    .map(|(i, section)| {
+      // The odd entries are between triple string,
+      // and the \ need to be escaped.
+      if i % 2 == 0 {
+        section.to_string()
+      } else {
+        section.replace(r#"\"#, r#"\\"#)
+      }
+    })
+    .collect::<Vec<_>>()
+    .join(r#"""""#)
 }
