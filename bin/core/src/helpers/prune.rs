@@ -34,8 +34,9 @@ async fn prune_images() -> anyhow::Result<()> {
     .await
     .context("failed to get servers from db")?
     .into_iter()
-    // This could be done in the mongo query, but rather have rust type system guarantee this.
-    .filter(|server| server.config.auto_prune)
+    .filter(|server| {
+      server.config.enabled && server.config.auto_prune
+    })
     .map(|server| async move {
       (
         async {
