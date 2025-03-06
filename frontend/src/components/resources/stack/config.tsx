@@ -256,6 +256,19 @@ export const StackConfig = ({
         auto_update: {
           description: "Trigger a redeploy if a newer image is found.",
         },
+        auto_update_all_services: (value, set) => {
+          return (
+            <ConfigSwitch
+              label="Full Stack Auto Update"
+              description="Always redeploy full stack instead of just specific services with update."
+              value={value}
+              onChange={(auto_update_all_services) =>
+                set({ auto_update_all_services })
+              }
+              disabled={disabled || !auto_update}
+            />
+          );
+        },
       },
     },
     {
@@ -309,14 +322,14 @@ export const StackConfig = ({
     {
       label: "Post Deploy",
       description:
-          "Execute a shell command after running docker compose up. The 'path' is relative to the Run Directory",
+        "Execute a shell command after running docker compose up. The 'path' is relative to the Run Directory",
       components: {
         post_deploy: (value, set) => (
-            <SystemCommand
-                value={value}
-                set={(value) => set({ post_deploy: value })}
-                disabled={disabled}
-            />
+          <SystemCommand
+            value={value}
+            set={(value) => set({ post_deploy: value })}
+            disabled={disabled}
+          />
         ),
       },
     },

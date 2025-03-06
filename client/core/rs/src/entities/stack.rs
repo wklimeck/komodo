@@ -172,9 +172,6 @@ pub struct StackInfo {
   /// The output of `docker compose config`.
   /// This is updated whenever Komodo successfully deploys the stack.
   pub deployed_config: Option<String>,
-  // /// The output of ``
-  // pub pulled_config: Option<String>,
-
   /// The latest service names.
   /// This is updated whenever the stack cache refreshes, using the latest file contents (either db defined or remote).
   #[serde(default)]
@@ -252,6 +249,14 @@ pub struct StackConfig {
   #[serde(default)]
   #[builder(default)]
   pub auto_update: bool,
+
+  /// If auto update is enabled, Komodo will
+  /// by default only update the specific services
+  /// with image updates. If this parameter is set to true,
+  /// Komodo will redeploy the whole Stack (all services).
+  #[serde(default)]
+  #[builder(default)]
+  pub auto_update_all_services: bool,
 
   /// Whether to run `docker compose down` before `compose up`.
   #[serde(default)]
@@ -498,6 +503,7 @@ impl Default for StackConfig {
       auto_pull: default_auto_pull(),
       poll_for_updates: Default::default(),
       auto_update: Default::default(),
+      auto_update_all_services: Default::default(),
       ignore_services: Default::default(),
       pre_deploy: Default::default(),
       post_deploy: Default::default(),
