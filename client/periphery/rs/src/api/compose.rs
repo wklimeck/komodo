@@ -49,6 +49,7 @@ pub struct GetComposeLog {
   pub project: String,
   /// Filter the logs to only ones from specific services.
   /// If empty, will include logs from all services.
+  #[serde(default)]
   pub services: Vec<String>,
   /// Pass `--tail` for only recent log contents. Max of 5000
   #[serde(default = "default_tail")]
@@ -73,6 +74,7 @@ pub struct GetComposeLogSearch {
   pub project: String,
   /// Filter the logs to only ones from specific services.
   /// If empty, will include logs from all services.
+  #[serde(default)]
   pub services: Vec<String>,
   /// The search terms.
   pub terms: Vec<String>,
@@ -137,8 +139,10 @@ pub struct WriteCommitComposeContents {
 pub struct ComposePull {
   /// The stack to deploy
   pub stack: Stack,
-  /// Only deploy one service
-  pub service: Option<String>,
+  /// Filter to only pull specific services.
+  /// If empty, will pull all services.
+  #[serde(default)]
+  pub services: Vec<String>,
   /// If provided, use it to login in. Otherwise check periphery local registries.
   pub git_token: Option<String>,
   /// If provided, use it to login in. Otherwise check periphery local git providers.
@@ -160,8 +164,10 @@ pub struct ComposePullResponse {
 pub struct ComposeUp {
   /// The stack to deploy
   pub stack: Stack,
-  /// Only deploy one service
-  pub service: Option<String>,
+  /// Filter to only deploy specific services.
+  /// If empty, will deploy all services.
+  #[serde(default)]
+  pub services: Vec<String>,
   /// If provided, use it to login in. Otherwise check periphery local registries.
   pub git_token: Option<String>,
   /// If provided, use it to login in. Otherwise check periphery local git providers.

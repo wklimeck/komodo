@@ -4448,8 +4448,11 @@ export interface Deploy {
 export interface DeployStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to "compose up" */
-    service?: string;
+    /**
+     * Filter to only deploy specific services.
+     * If empty, will deploy all services.
+     */
+    services?: string[];
     /**
      * Override the default termination max time.
      * Only used if the stack needs to be taken down first.
@@ -4504,8 +4507,11 @@ export interface DestroyDeployment {
 export interface DestroyStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to destroy */
-    service?: string;
+    /**
+     * Filter to only destroy specific services.
+     * If empty, will destroy all services.
+     */
+    services?: string[];
     /** Pass `--remove-orphans` */
     remove_orphans?: boolean;
     /** Override the default termination max time. */
@@ -5903,8 +5909,11 @@ export interface PauseDeployment {
 export interface PauseStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to pause */
-    service?: string;
+    /**
+     * Filter to only pause specific services.
+     * If empty, will pause all services.
+     */
+    services?: string[];
 }
 export interface PermissionToml {
     /**
@@ -6022,8 +6031,11 @@ export interface PullRepo {
 export interface PullStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to start */
-    service?: string;
+    /**
+     * Filter to only pull specific services.
+     * If empty, will pull all services.
+     */
+    services?: string[];
 }
 /**
  * Push a resource to the front of the users 10 most recently viewed resources.
@@ -6268,8 +6280,11 @@ export interface RestartDeployment {
 export interface RestartStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to restart */
-    service?: string;
+    /**
+     * Filter to only restart specific services.
+     * If empty, will restart all services.
+     */
+    services?: string[];
 }
 /** Runs the target Action. Response: [Update] */
 export interface RunAction {
@@ -6469,8 +6484,11 @@ export interface StartDeployment {
 export interface StartStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to start */
-    service?: string;
+    /**
+     * Filter to only start specific services.
+     * If empty, will start all services.
+     */
+    services?: string[];
 }
 /** Stops all containers on the target server. Response: [Update] */
 export interface StopAllContainers {
@@ -6511,8 +6529,11 @@ export interface StopStack {
     stack: string;
     /** Override the default termination max time. */
     stop_time?: number;
-    /** Optionally specify a specific service to stop */
-    service?: string;
+    /**
+     * Filter to only stop specific services.
+     * If empty, will stop all services.
+     */
+    services?: string[];
 }
 export interface TerminationSignalLabel {
     signal: TerminationSignal;
@@ -6567,8 +6588,11 @@ export interface UnpauseDeployment {
 export interface UnpauseStack {
     /** Id or name */
     stack: string;
-    /** Optionally specify a specific service to unpause */
-    service?: string;
+    /**
+     * Filter to only unpause specific services.
+     * If empty, will unpause all services.
+     */
+    services?: string[];
 }
 /**
  * Update the action at the given id, and return the updated action.

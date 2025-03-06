@@ -40,7 +40,7 @@ pub fn docker_compose() -> &'static str {
 /// If this fn returns Err, the caller of `compose_up` has to write result to the log before return.
 pub async fn compose_up(
   stack: Stack,
-  service: Option<String>,
+  services: Vec<String>,
   git_token: Option<String>,
   registry_token: Option<String>,
   res: &mut ComposeUpResponse,
@@ -121,10 +121,12 @@ pub async fn compose_up(
   }
 
   let docker_compose = docker_compose();
-  let service_arg = service
-    .as_ref()
-    .map(|service| format!(" {service}"))
-    .unwrap_or_default();
+
+  let service_args = if services.is_empty() {
+    String::new()
+  } else {
+    format!(" {}", services.join(" "))
+  };
 
   let file_args = if stack.config.file_paths.is_empty() {
     String::from("compose.yaml")
@@ -235,7 +237,7 @@ pub async fn compose_up(
     let build_extra_args =
       parse_extra_args(&stack.config.build_extra_args);
     let command = format!(
-      "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} build{build_extra_args}{service_arg}",
+      "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} build{build_extra_args}{service_args}",
     );
     if stack.config.skip_secret_interp {
       let log = run_komodo_command(
@@ -273,7 +275,7 @@ pub async fn compose_up(
       "Compose Pull",
       run_directory.as_ref(),
       format!(
-        "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} pull{service_arg}",
+        "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} pull{service_args}",
       ),
     )
     .await;
@@ -322,7 +324,7 @@ pub async fn compose_up(
   {
     // Take down the existing containers.
     // This one tries to use the previously deployed service name, to ensure the right stack is taken down.
-    compose_down(&last_project_name, service, res)
+    compose_down(&last_project_name, &services, res)
       .await
       .context("failed to destroy existing containers")?;
   }
@@ -330,7 +332,7 @@ pub async fn compose_up(
   // Run compose up
   let extra_args = parse_extra_args(&stack.config.extra_args);
   let command = format!(
-    "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} up -d{extra_args}{service_arg}",
+    "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} up -d{extra_args}{service_args}",
   );
 
   let log = if stack.config.skip_secret_interp {
@@ -678,18 +680,19 @@ pub async fn write_stack(
 
 async fn compose_down(
   project: &str,
-  service: Option<String>,
+  services: &[String],
   res: &mut ComposeUpResponse,
 ) -> anyhow::Result<()> {
   let docker_compose = docker_compose();
-  let service_arg = service
-    .as_ref()
-    .map(|service| format!(" {service}"))
-    .unwrap_or_default();
+  let service_args = if services.is_empty() {
+    String::new()
+  } else {
+    format!(" {}", services.join(" "))
+  };
   let log = run_komodo_command(
     "compose down",
     None,
-    format!("{docker_compose} -p {project} down{service_arg}"),
+    format!("{docker_compose} -p {project} down{service_args}"),
   )
   .await;
   let success = log.success;

@@ -105,7 +105,7 @@ pub async fn deploy_from_cache(
             ResourceTarget::Stack(name) => {
               let req = ExecuteRequest::DeployStack(DeployStack {
                 stack: name.to_string(),
-                service: None,
+                services: Vec::new(),
                 stop_time: None,
               });
 
