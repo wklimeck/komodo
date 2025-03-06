@@ -1606,6 +1606,13 @@ export interface StackConfig {
 	 * enable both.
 	 */
 	auto_update?: boolean;
+	/**
+	 * If auto update is enabled, Komodo will
+	 * by default only update the specific services
+	 * with image updates. If this parameter is set to true,
+	 * Komodo will redeploy the whole Stack (all services).
+	 */
+	auto_update_all_services?: boolean;
 	/** Whether to run `docker compose down` before `compose up`. */
 	destroy_before_deploy?: boolean;
 	/** Whether to skip secret interpolation into the stack environment variables. */

@@ -358,11 +358,16 @@ pub async fn update_stack_cache(
     {
       let id = stack.id.clone();
       let server_name = server_name.clone();
+      let services = if stack.config.auto_update_all_services {
+        Vec::new()
+      } else {
+        services_to_update
+      };
       tokio::spawn(async move {
         match execute::inner_handler(
           ExecuteRequest::DeployStack(DeployStack {
             stack: stack.name.clone(),
-            services: services_to_update,
+            services,
             stop_time: None,
           }),
           auto_redeploy_user().to_owned(),
