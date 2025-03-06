@@ -41,7 +41,7 @@ impl super::BatchExecute for BatchDeployStack {
   fn single_request(stack: String) -> ExecuteRequest {
     ExecuteRequest::DeployStack(DeployStack {
       stack,
-      service: None,
+      services: Vec::new(),
       stop_time: None,
     })
   }
@@ -87,10 +87,13 @@ impl Resolve<ExecuteArgs> for DeployStack {
 
     update_update(update.clone()).await?;
 
-    if let Some(service) = &self.service {
+    if !self.services.is_empty() {
       update.logs.push(Log::simple(
-        &format!("Service: {service}"),
-        format!("Execution requested for Stack service {service}"),
+        &format!("Service/s",),
+        format!(
+          "Execution requested for Stack service/s {}",
+          self.services.join(", ")
+        ),
       ))
     }
 
@@ -183,7 +186,7 @@ impl Resolve<ExecuteArgs> for DeployStack {
     } = periphery_client(&server)?
       .request(ComposeUp {
         stack: stack.clone(),
-        service: self.service,
+        services: self.services,
         git_token,
         registry_token,
         replacers: secret_replacers.into_iter().collect(),
@@ -371,7 +374,7 @@ impl Resolve<ExecuteArgs> for DeployStackIfChanged {
 
     DeployStack {
       stack: stack.name,
-      service: None,
+      services: Vec::new(),
       stop_time: self.stop_time,
     }
     .resolve(&ExecuteArgs {
@@ -384,14 +387,18 @@ impl Resolve<ExecuteArgs> for DeployStackIfChanged {
 
 pub async fn pull_stack_inner(
   mut stack: Stack,
-  service: Option<String>,
+  services: Vec<String>,
   server: &Server,
   mut update: Option<&mut Update>,
 ) -> anyhow::Result<ComposePullResponse> {
-  if let (Some(service), Some(update)) = (&service, update.as_mut()) {
+  if let Some(update) = update.as_mut() {
+    if !services.is_empty() {}
     update.logs.push(Log::simple(
-      &format!("Service: {service}"),
-      format!("Execution requested for Stack service {service}"),
+      &format!("Service/s"),
+      format!(
+        "Execution requested for Stack service/s {}",
+        services.join(", ")
+      ),
     ))
   }
 
@@ -443,7 +450,7 @@ pub async fn pull_stack_inner(
   let res = periphery_client(server)?
     .request(ComposePull {
       stack,
-      service,
+      services,
       git_token,
       registry_token,
     })
@@ -483,7 +490,7 @@ impl Resolve<ExecuteArgs> for PullStack {
 
     let res = pull_stack_inner(
       stack,
-      self.service,
+      self.services,
       &server,
       Some(&mut update),
     )
@@ -505,7 +512,7 @@ impl Resolve<ExecuteArgs> for StartStack {
   ) -> serror::Result<Update> {
     execute_compose::<StartStack>(
       &self.stack,
-      self.service,
+      self.services,
       user,
       |state| state.starting = true,
       update.clone(),
@@ -524,7 +531,7 @@ impl Resolve<ExecuteArgs> for RestartStack {
   ) -> serror::Result<Update> {
     execute_compose::<RestartStack>(
       &self.stack,
-      self.service,
+      self.services,
       user,
       |state| {
         state.restarting = true;
@@ -545,7 +552,7 @@ impl Resolve<ExecuteArgs> for PauseStack {
   ) -> serror::Result<Update> {
     execute_compose::<PauseStack>(
       &self.stack,
-      self.service,
+      self.services,
       user,
       |state| state.pausing = true,
       update.clone(),
@@ -564,7 +571,7 @@ impl Resolve<ExecuteArgs> for UnpauseStack {
   ) -> serror::Result<Update> {
     execute_compose::<UnpauseStack>(
       &self.stack,
-      self.service,
+      self.services,
       user,
       |state| state.unpausing = true,
       update.clone(),
@@ -583,7 +590,7 @@ impl Resolve<ExecuteArgs> for StopStack {
   ) -> serror::Result<Update> {
     execute_compose::<StopStack>(
       &self.stack,
-      self.service,
+      self.services,
       user,
       |state| state.stopping = true,
       update.clone(),
@@ -599,7 +606,7 @@ impl super::BatchExecute for BatchDestroyStack {
   fn single_request(stack: String) -> ExecuteRequest {
     ExecuteRequest::DestroyStack(DestroyStack {
       stack,
-      service: None,
+      services: Vec::new(),
       remove_orphans: false,
       stop_time: None,
     })
@@ -626,7 +633,7 @@ impl Resolve<ExecuteArgs> for DestroyStack {
   ) -> serror::Result<Update> {
     execute_compose::<DestroyStack>(
       &self.stack,
-      self.service,
+      self.services,
       user,
       |state| state.destroying = true,
       update.clone(),

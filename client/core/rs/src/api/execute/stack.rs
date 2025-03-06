@@ -26,8 +26,10 @@ use super::{BatchExecutionResponse, KomodoExecuteRequest};
 pub struct DeployStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to "compose up"
-  pub service: Option<String>,
+  /// Filter to only deploy specific services.
+  /// If empty, will deploy all services.
+  #[serde(default)]
+  pub services: Vec<String>,
   /// Override the default termination max time.
   /// Only used if the stack needs to be taken down first.
   pub stop_time: Option<i32>,
@@ -142,8 +144,10 @@ pub struct BatchDeployStackIfChanged {
 pub struct PullStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to start
-  pub service: Option<String>,
+  /// Filter to only pull specific services.
+  /// If empty, will pull all services.
+  #[serde(default)]
+  pub services: Vec<String>,
 }
 
 //
@@ -166,8 +170,10 @@ pub struct PullStack {
 pub struct StartStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to start
-  pub service: Option<String>,
+  /// Filter to only start specific services.
+  /// If empty, will start all services.
+  #[serde(default)]
+  pub services: Vec<String>,
 }
 
 //
@@ -190,8 +196,10 @@ pub struct StartStack {
 pub struct RestartStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to restart
-  pub service: Option<String>,
+  /// Filter to only restart specific services.
+  /// If empty, will restart all services.
+  #[serde(default)]
+  pub services: Vec<String>,
 }
 
 //
@@ -214,8 +222,10 @@ pub struct RestartStack {
 pub struct PauseStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to pause
-  pub service: Option<String>,
+  /// Filter to only pause specific services.
+  /// If empty, will pause all services.
+  #[serde(default)]
+  pub services: Vec<String>,
 }
 
 //
@@ -240,8 +250,10 @@ pub struct PauseStack {
 pub struct UnpauseStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to unpause
-  pub service: Option<String>,
+  /// Filter to only unpause specific services.
+  /// If empty, will unpause all services.
+  #[serde(default)]
+  pub services: Vec<String>,
 }
 
 //
@@ -266,8 +278,10 @@ pub struct StopStack {
   pub stack: String,
   /// Override the default termination max time.
   pub stop_time: Option<i32>,
-  /// Optionally specify a specific service to stop
-  pub service: Option<String>,
+  /// Filter to only stop specific services.
+  /// If empty, will stop all services.
+  #[serde(default)]
+  pub services: Vec<String>,
 }
 
 //
@@ -290,8 +304,10 @@ pub struct StopStack {
 pub struct DestroyStack {
   /// Id or name
   pub stack: String,
-  /// Optionally specify a specific service to destroy
-  pub service: Option<String>,
+  /// Filter to only destroy specific services.
+  /// If empty, will destroy all services.
+  #[serde(default)]
+  pub services: Vec<String>,
   /// Pass `--remove-orphans`
   #[serde(default)]
   pub remove_orphans: bool,

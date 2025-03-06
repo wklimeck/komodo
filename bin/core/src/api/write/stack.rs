@@ -402,7 +402,7 @@ impl Resolve<WriteArgs> for RefreshStackCache {
       if state == ServerState::Ok {
         let name = stack.name.clone();
         if let Err(e) =
-          pull_stack_inner(stack, None, &server, None).await
+          pull_stack_inner(stack, Vec::new(), &server, None).await
         {
           warn!(
             "Failed to pull latest images for Stack {name} | {e:#}",

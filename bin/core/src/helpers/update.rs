@@ -405,7 +405,7 @@ pub async fn init_execution_update(
 
     // Stack
     ExecuteRequest::DeployStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::DeployStackService
       } else {
         Operation::DeployStack
@@ -427,7 +427,7 @@ pub async fn init_execution_update(
       return Ok(Default::default())
     }
     ExecuteRequest::StartStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::StartStackService
       } else {
         Operation::StartStack
@@ -437,7 +437,7 @@ pub async fn init_execution_update(
       ),
     ),
     ExecuteRequest::PullStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::PullStackService
       } else {
         Operation::PullStack
@@ -447,7 +447,7 @@ pub async fn init_execution_update(
       ),
     ),
     ExecuteRequest::RestartStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::RestartStackService
       } else {
         Operation::RestartStack
@@ -457,7 +457,7 @@ pub async fn init_execution_update(
       ),
     ),
     ExecuteRequest::PauseStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::PauseStackService
       } else {
         Operation::PauseStack
@@ -467,7 +467,7 @@ pub async fn init_execution_update(
       ),
     ),
     ExecuteRequest::UnpauseStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::UnpauseStackService
       } else {
         Operation::UnpauseStack
@@ -477,7 +477,7 @@ pub async fn init_execution_update(
       ),
     ),
     ExecuteRequest::StopStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::StopStackService
       } else {
         Operation::StopStack
@@ -487,7 +487,7 @@ pub async fn init_execution_update(
       ),
     ),
     ExecuteRequest::DestroyStack(data) => (
-      if data.service.is_some() {
+      if !data.services.is_empty() {
         Operation::DestroyStackService
       } else {
         Operation::DestroyStack

@@ -1259,7 +1259,7 @@ impl ExtendBatch for BatchDeployStack {
   fn single_execution(stack: String) -> Execution {
     Execution::DeployStack(DeployStack {
       stack,
-      service: None,
+      services: Vec::new(),
       stop_time: None,
     })
   }
@@ -1280,7 +1280,7 @@ impl ExtendBatch for BatchDestroyStack {
   fn single_execution(stack: String) -> Execution {
     Execution::DestroyStack(DestroyStack {
       stack,
-      service: None,
+      services: Vec::new(),
       remove_orphans: false,
       stop_time: None,
     })

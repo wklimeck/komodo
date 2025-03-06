@@ -322,8 +322,8 @@ pub async fn update_stack_cache(
       }
     }).collect::<Vec<_>>();
 
-    let mut update_available = false;
     let mut images_with_update = Vec::new();
+    let mut services_to_update = Vec::new();
 
     for service in services_with_containers.iter() {
       if service.update_available {
@@ -336,7 +336,7 @@ pub async fn update_stack_cache(
           .map(|c| c.state == ContainerStateStatusEnum::Running)
           .unwrap_or_default()
         {
-          update_available = true
+          services_to_update.push(service.service.clone());
         }
       }
     }
@@ -346,7 +346,7 @@ pub async fn update_stack_cache(
       &services,
       containers,
     );
-    if update_available
+    if !services_to_update.is_empty()
       && stack.config.auto_update
       && state == StackState::Running
       && !action_states()
@@ -362,7 +362,7 @@ pub async fn update_stack_cache(
         match execute::inner_handler(
           ExecuteRequest::DeployStack(DeployStack {
             stack: stack.name.clone(),
-            service: None,
+            services: services_to_update,
             stop_time: None,
           }),
           auto_redeploy_user().to_owned(),

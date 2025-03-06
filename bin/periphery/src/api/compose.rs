@@ -296,7 +296,7 @@ impl Resolve<super::Args> for ComposePull {
     skip_all,
     fields(
       stack = &self.stack.name,
-      service = &self.service,
+      services = format!("{:?}", self.services),
     )
   )]
   async fn resolve(
@@ -305,7 +305,7 @@ impl Resolve<super::Args> for ComposePull {
   ) -> serror::Result<ComposePullResponse> {
     let ComposePull {
       stack,
-      service,
+      services,
       git_token,
       registry_token,
     } = self;
@@ -347,10 +347,12 @@ impl Resolve<super::Args> for ComposePull {
     }
 
     let docker_compose = docker_compose();
-    let service_arg = service
-      .as_ref()
-      .map(|service| format!(" {service}"))
-      .unwrap_or_default();
+
+    let service_args = if services.is_empty() {
+      String::new()
+    } else {
+      format!(" {}", services.join(" "))
+    };
 
     let file_args = if stack.config.file_paths.is_empty() {
       String::from("compose.yaml")
@@ -397,7 +399,7 @@ impl Resolve<super::Args> for ComposePull {
       "Compose Pull",
       run_directory.as_ref(),
       format!(
-        "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} pull{service_arg}",
+        "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} pull{service_args}",
       ),
     )
     .await;
@@ -416,7 +418,7 @@ impl Resolve<super::Args> for ComposeUp {
     skip_all,
     fields(
       stack = &self.stack.name,
-      service = &self.service,
+      services = format!("{:?}", self.services),
     )
   )]
   async fn resolve(
@@ -425,7 +427,7 @@ impl Resolve<super::Args> for ComposeUp {
   ) -> serror::Result<ComposeUpResponse> {
     let ComposeUp {
       stack,
-      service,
+      services,
       git_token,
       registry_token,
       replacers,
@@ -433,7 +435,7 @@ impl Resolve<super::Args> for ComposeUp {
     let mut res = ComposeUpResponse::default();
     if let Err(e) = compose_up(
       stack,
-      service,
+      services,
       git_token,
       registry_token,
       &mut res,
