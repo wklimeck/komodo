@@ -85,7 +85,7 @@ impl Resolve<AuthArgs> for CreateLocalUser {
       .to_string();
 
     let jwt = jwt_client()
-      .generate(user_id)
+      .encode(user_id)
       .context("failed to generate jwt for user")?;
 
     Ok(CreateLocalUserResponse { jwt })
@@ -131,7 +131,7 @@ impl Resolve<AuthArgs> for LoginLocalUser {
     }
 
     let jwt = jwt_client()
-      .generate(user.id)
+      .encode(user.id)
       .context("failed at generating jwt for user")?;
 
     Ok(LoginLocalUserResponse { jwt })

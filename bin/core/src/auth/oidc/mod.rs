@@ -216,7 +216,7 @@ async fn callback(
 
   let jwt = match user {
     Some(user) => jwt_client()
-      .generate(user.id)
+      .encode(user.id)
       .context("failed to generate jwt")?,
     None => {
       let ts = komodo_timestamp();
@@ -272,7 +272,7 @@ async fn callback(
         .context("inserted_id is not ObjectId")?
         .to_string();
       jwt_client()
-        .generate(user_id)
+        .encode(user_id)
         .context("failed to generate jwt")?
     }
   };

@@ -81,7 +81,7 @@ async fn callback(
     .context("failed at find user query from mongo")?;
   let jwt = match user {
     Some(user) => jwt_client()
-      .generate(user.id)
+      .encode(user.id)
       .context("failed to generate jwt")?,
     None => {
       let ts = unix_timestamp_ms() as i64;
@@ -124,7 +124,7 @@ async fn callback(
         .context("inserted_id is not ObjectId")?
         .to_string();
       jwt_client()
-        .generate(user_id)
+        .encode(user_id)
         .context("failed to generate jwt")?
     }
   };

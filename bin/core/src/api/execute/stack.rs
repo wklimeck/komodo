@@ -89,7 +89,7 @@ impl Resolve<ExecuteArgs> for DeployStack {
 
     if !self.services.is_empty() {
       update.logs.push(Log::simple(
-        &format!("Service/s",),
+        "Service/s",
         format!(
           "Execution requested for Stack service/s {}",
           self.services.join(", ")
@@ -392,14 +392,15 @@ pub async fn pull_stack_inner(
   mut update: Option<&mut Update>,
 ) -> anyhow::Result<ComposePullResponse> {
   if let Some(update) = update.as_mut() {
-    if !services.is_empty() {}
-    update.logs.push(Log::simple(
-      &format!("Service/s"),
-      format!(
-        "Execution requested for Stack service/s {}",
-        services.join(", ")
-      ),
-    ))
+    if !services.is_empty() {
+      update.logs.push(Log::simple(
+        "Service/s",
+        format!(
+          "Execution requested for Stack service/s {}",
+          services.join(", ")
+        ),
+      ))
+    }
   }
 
   let git_token = crate::helpers::git_token(

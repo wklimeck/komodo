@@ -878,7 +878,7 @@ dependencies = [
 
 [[package]]
 name = "cache"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "tokio",
@@ -1018,7 +1018,7 @@ dependencies = [
 
 [[package]]
 name = "command"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "formatting",
@@ -1497,7 +1497,7 @@ dependencies = [
 
 [[package]]
 name = "environment_file"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "thiserror 2.0.12",
 ]
@@ -1566,7 +1566,7 @@ dependencies = [
 
 [[package]]
 name = "formatting"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "serror",
 ]
@@ -1716,7 +1716,7 @@ checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 
 [[package]]
 name = "git"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "cache",
@@ -2453,23 +2453,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "jwt"
-version = "0.16.0"
+name = "jsonwebtoken"
+version = "9.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6204285f77fe7d9784db3fdc449ecce1a0114927a51d5a41c4c7a292011c015f"
+checksum = "5a87cc7a48537badeae96744432de36f4be2b4a34a05a5ef32e9dd8a1c169dde"
 dependencies = [
- "base64 0.13.1",
- "crypto-common",
- "digest",
- "hmac",
+ "base64 0.22.1",
+ "js-sys",
+ "ring 0.17.8",
  "serde",
  "serde_json",
- "sha2",
 ]
 
 [[package]]
 name = "komodo_cli"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "clap",
@@ -2485,7 +2483,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_client"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "async_timing_util",
@@ -2516,7 +2514,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_core"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -2541,7 +2539,7 @@ dependencies = [
  "git",
  "hex",
  "hmac",
- "jwt",
+ "jsonwebtoken 9.3.1",
  "komodo_client",
  "logger",
  "merge_config_files",
@@ -2580,7 +2578,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_periphery"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "async_timing_util",
@@ -2692,7 +2690,7 @@ dependencies = [
 
 [[package]]
 name = "logger"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "komodo_client",
@@ -3094,7 +3092,7 @@ dependencies = [
  "bytes",
  "chrono",
  "http 1.1.0",
- "jsonwebtoken",
+ "jsonwebtoken 8.3.0",
  "log",
  "mime",
  "parse_link_header",
@@ -3421,7 +3419,7 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "periphery_client"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "komodo_client",
@@ -3904,7 +3902,7 @@ dependencies = [
 
 [[package]]
 name = "response"
-version = "1.17.0-dev-6"
+version = "1.17.0-dev-7"
 dependencies = [
  "anyhow",
  "axum",

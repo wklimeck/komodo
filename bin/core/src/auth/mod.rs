@@ -1,4 +1,3 @@
-use ::jwt::VerifyWithKey;
 use anyhow::{Context, anyhow};
 use async_timing_util::unix_timestamp_ms;
 use axum::{
@@ -95,9 +94,7 @@ pub async fn authenticate_check_enabled(
 pub async fn auth_jwt_get_user_id(
   jwt: &str,
 ) -> anyhow::Result<String> {
-  let claims: JwtClaims = jwt
-    .verify_with_key(&jwt_client().key)
-    .context("failed to verify claims")?;
+  let claims: JwtClaims = jwt_client().decode(jwt)?;
   if claims.exp > unix_timestamp_ms() {
     Ok(claims.id)
   } else {
