@@ -32,12 +32,20 @@ pub mod user_groups;
 pub mod variables;
 pub mod view;
 
-pub type ToUpdate<T> = Vec<ToUpdateItem<T>>;
-pub type ToCreate<T> = Vec<ResourceToml<T>>;
-/// Vec of resource names
-pub type ToDelete = Vec<String>;
+#[derive(Default)]
+pub struct SyncDeltas<T: Default> {
+  pub to_create: Vec<ResourceToml<T>>,
+  pub to_update: Vec<ToUpdateItem<T>>,
+  pub to_delete: Vec<String>,
+}
 
-type UpdatesResult<T> = (ToCreate<T>, ToUpdate<T>, ToDelete);
+impl<T: Default> SyncDeltas<T> {
+  pub fn no_changes(&self) -> bool {
+    self.to_create.is_empty()
+      && self.to_update.is_empty()
+      && self.to_delete.is_empty()
+  }
+}
 
 pub struct ToUpdateItem<T: Default> {
   pub id: String,

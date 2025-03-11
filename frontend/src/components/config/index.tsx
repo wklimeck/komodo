@@ -191,24 +191,26 @@ export const Config = <T,>({
                   </div>
                 </div>
               ))}
-              <div className="flex flex-col gap-2">
-                <ConfirmUpdate
-                  previous={original}
-                  content={update}
-                  onConfirm={onConfirm}
-                  disabled={disabled || !changesMade}
-                  file_contents_language={file_contents_language}
-                />
-                <Button
-                  variant="outline"
-                  onClick={onReset}
-                  disabled={disabled || !changesMade}
-                  className="flex items-center gap-2"
-                >
-                  <History className="w-4 h-4" />
-                  Reset
-                </Button>
-              </div>
+              {changesMade && (
+                <div className="flex flex-col gap-2">
+                  <ConfirmUpdate
+                    previous={original}
+                    content={update}
+                    onConfirm={onConfirm}
+                    disabled={disabled || !changesMade}
+                    file_contents_language={file_contents_language}
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={onReset}
+                    disabled={disabled || !changesMade}
+                    className="flex items-center gap-2"
+                  >
+                    <History className="w-4 h-4" />
+                    Reset
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

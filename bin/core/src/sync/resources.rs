@@ -33,7 +33,7 @@ use crate::{
 };
 
 use super::{
-  AllResourcesById, ResourceSyncTrait, ToCreate, ToDelete, ToUpdate,
+  AllResourcesById, ResourceSyncTrait, SyncDeltas,
   execute::ExecuteResourceSync,
   include_resource_by_resource_type_and_name,
   include_resource_by_tags,
@@ -718,9 +718,11 @@ impl ResourceSyncTrait for Procedure {
 
 impl ExecuteResourceSync for Procedure {
   async fn execute_sync_updates(
-    mut to_create: ToCreate<Self::PartialConfig>,
-    mut to_update: ToUpdate<Self::PartialConfig>,
-    to_delete: ToDelete,
+    SyncDeltas {
+      mut to_create,
+      mut to_update,
+      to_delete,
+    }: SyncDeltas<Self::PartialConfig>,
   ) -> Option<Log> {
     if to_create.is_empty()
       && to_update.is_empty()

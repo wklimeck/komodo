@@ -27,9 +27,27 @@ pub struct TomlResponse {
 #[response(ExportAllResourcesToTomlResponse)]
 #[error(serror::Error)]
 pub struct ExportAllResourcesToToml {
-  /// Tag name or id. Empty array will not filter by tag.
+  /// Whether to include any resources (servers, stacks, etc.)
+  /// in the exported contents.
+  /// Default: `true`
+  #[serde(default = "default_include_resources")]
+  pub include_resources: bool,
+  /// Filter resources by tag.
+  /// Accepts tag name or id. Empty array will not filter by tag.
   #[serde(default)]
   pub tags: Vec<String>,
+  /// Whether to include variables in the exported contents.
+  /// Default: false
+  #[serde(default)]
+  pub include_variables: bool,
+  /// Whether to include user groups in the exported contents.
+  /// Default: false
+  #[serde(default)]
+  pub include_user_groups: bool,
+}
+
+fn default_include_resources() -> bool {
+  true
 }
 
 #[typeshare]

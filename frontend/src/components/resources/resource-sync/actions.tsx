@@ -87,7 +87,7 @@ export const CommitSync = ({ id }: { id: string }) => {
   if (freshSync) {
     return (
       <ActionButton
-        title="Initialize"
+        title="Commit Changes"
         icon={<NotebookPen className="w-4 h-4" />}
         onClick={() => mutate({ sync: id })}
         disabled={isPending}

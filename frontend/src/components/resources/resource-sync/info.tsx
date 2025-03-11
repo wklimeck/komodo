@@ -85,6 +85,7 @@ export const ResourceSyncInfo = ({
                     }
                   }}
                   loading={isPending}
+                  disabled={!canEdit}
                 />
               )}
             </CardHeader>

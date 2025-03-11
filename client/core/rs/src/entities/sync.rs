@@ -229,12 +229,6 @@ pub struct ResourceSyncConfig {
   #[builder(default)]
   pub resource_path: Vec<String>,
 
-  /// Excluse Komodo Resources (Servers / Stacks / Builds)
-  /// from the sync. Will be variable / user group only sync.
-  #[serde(default)]
-  #[builder(default)]
-  pub exclude_resources: bool,
-
   /// Enable "pushes" to the file,
   /// which exports resources matching tags to single file.
   ///  - If using `files_on_host`, it is stored in the file_contents, which must point to a .toml file path (it will be created if it doesn't exist).
@@ -250,6 +244,13 @@ pub struct ResourceSyncConfig {
   #[builder(default)]
   pub delete: bool,
 
+  /// Whether sync should include resources.
+  /// Default: true
+  #[serde(default = "default_include_resources")]
+  #[builder(default = "default_include_resources()")]
+  #[partial_default(default_include_resources())]
+  pub include_resources: bool,
+
   /// When using `managed` resource sync, will only export resources
   /// matching all of the given tags. If none, will match all resources.
   #[serde(default, deserialize_with = "string_list_deserializer")]
@@ -259,6 +260,16 @@ pub struct ResourceSyncConfig {
   ))]
   #[builder(default)]
   pub match_tags: Vec<String>,
+
+  /// Whether sync should include variables.
+  #[serde(default)]
+  #[builder(default)]
+  pub include_variables: bool,
+
+  /// Whether sync should include user groups.
+  #[serde(default)]
+  #[builder(default)]
+  pub include_user_groups: bool,
 
   /// Manage the file contents in the UI.
   #[serde(default, deserialize_with = "file_contents_deserializer")]
@@ -303,6 +314,10 @@ fn default_webhook_enabled() -> bool {
   true
 }
 
+fn default_include_resources() -> bool {
+  true
+}
+
 impl Default for ResourceSyncConfig {
   fn default() -> Self {
     Self {
@@ -315,9 +330,11 @@ impl Default for ResourceSyncConfig {
       resource_path: Default::default(),
       files_on_host: Default::default(),
       file_contents: Default::default(),
-      exclude_resources: Default::default(),
       managed: Default::default(),
+      include_resources: default_include_resources(),
       match_tags: Default::default(),
+      include_variables: Default::default(),
+      include_user_groups: Default::default(),
       delete: Default::default(),
       webhook_enabled: default_webhook_enabled(),
       webhook_secret: Default::default(),

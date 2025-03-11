@@ -23,6 +23,7 @@ use komodo_client::{
     stack::Stack,
     sync::{
       PartialResourceSyncConfig, ResourceSync, ResourceSyncInfo,
+      SyncDeployUpdate,
     },
     to_komodo_name,
     update::{Log, Update},
@@ -388,7 +389,10 @@ impl Resolve<WriteArgs> for CommitSync {
       };
 
     let res = ExportAllResourcesToToml {
+      include_resources: sync.config.include_resources,
       tags: sync.config.match_tags.clone(),
+      include_variables: sync.config.include_variables,
+      include_user_groups: sync.config.include_user_groups,
     }
     .resolve(&ReadArgs {
       user: sync_user().to_owned(),
@@ -548,162 +552,168 @@ impl Resolve<WriteArgs> for RefreshResourceSyncPending {
       }
 
       let resources = resources?;
-
-      let id_to_tags = get_id_to_tags(None).await?;
+      let delete = sync.config.managed || sync.config.delete;
       let all_resources = AllResourcesById::load().await?;
 
-      let deployments_by_name = all_resources
-        .deployments
-        .values()
-        .map(|deployment| {
-          (deployment.name.clone(), deployment.clone())
-        })
-        .collect::<HashMap<_, _>>();
-      let stacks_by_name = all_resources
-        .stacks
-        .values()
-        .map(|stack| (stack.name.clone(), stack.clone()))
-        .collect::<HashMap<_, _>>();
+      let (resource_updates, deploy_updates) =
+        if sync.config.include_resources {
+          let id_to_tags = get_id_to_tags(None).await?;
 
-      let deploy_updates =
-        crate::sync::deploy::get_updates_for_view(SyncDeployParams {
-          deployments: &resources.deployments,
-          deployment_map: &deployments_by_name,
-          stacks: &resources.stacks,
-          stack_map: &stacks_by_name,
-          all_resources: &all_resources,
-        })
-        .await;
+          let deployments_by_name = all_resources
+            .deployments
+            .values()
+            .map(|deployment| {
+              (deployment.name.clone(), deployment.clone())
+            })
+            .collect::<HashMap<_, _>>();
+          let stacks_by_name = all_resources
+            .stacks
+            .values()
+            .map(|stack| (stack.name.clone(), stack.clone()))
+            .collect::<HashMap<_, _>>();
 
-      let delete = sync.config.managed || sync.config.delete;
+          let deploy_updates =
+            crate::sync::deploy::get_updates_for_view(
+              SyncDeployParams {
+                deployments: &resources.deployments,
+                deployment_map: &deployments_by_name,
+                stacks: &resources.stacks,
+                stack_map: &stacks_by_name,
+                all_resources: &all_resources,
+              },
+            )
+            .await;
 
-      let mut diffs = Vec::new();
+          let mut diffs = Vec::new();
 
-      {
-        push_updates_for_view::<Server>(
-          resources.servers,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Stack>(
-          resources.stacks,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Deployment>(
-          resources.deployments,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Build>(
-          resources.builds,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Repo>(
-          resources.repos,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Procedure>(
-          resources.procedures,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Action>(
-          resources.actions,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Builder>(
-          resources.builders,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<Alerter>(
-          resources.alerters,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<ServerTemplate>(
-          resources.server_templates,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-        push_updates_for_view::<ResourceSync>(
-          resources.resource_syncs,
-          delete,
-          &all_resources,
-          None,
-          None,
-          &id_to_tags,
-          &sync.config.match_tags,
-          &mut diffs,
-        )
-        .await?;
-      }
+          push_updates_for_view::<Server>(
+            resources.servers,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Stack>(
+            resources.stacks,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Deployment>(
+            resources.deployments,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Build>(
+            resources.builds,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Repo>(
+            resources.repos,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Procedure>(
+            resources.procedures,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Action>(
+            resources.actions,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Builder>(
+            resources.builders,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<Alerter>(
+            resources.alerters,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<ServerTemplate>(
+            resources.server_templates,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
+          push_updates_for_view::<ResourceSync>(
+            resources.resource_syncs,
+            delete,
+            &all_resources,
+            None,
+            None,
+            &id_to_tags,
+            &sync.config.match_tags,
+            &mut diffs,
+          )
+          .await?;
 
-      let variable_updates = if sync.config.match_tags.is_empty() {
+          (diffs, deploy_updates)
+        } else {
+          (Vec::new(), SyncDeployUpdate::default())
+        };
+
+      let variable_updates = if sync.config.include_variables {
         crate::sync::variables::get_updates_for_view(
           &resources.variables,
           delete,
@@ -713,7 +723,7 @@ impl Resolve<WriteArgs> for RefreshResourceSyncPending {
         Default::default()
       };
 
-      let user_group_updates = if sync.config.match_tags.is_empty() {
+      let user_group_updates = if sync.config.include_user_groups {
         crate::sync::user_groups::get_updates_for_view(
           resources.user_groups,
           delete,
@@ -725,7 +735,7 @@ impl Resolve<WriteArgs> for RefreshResourceSyncPending {
       };
 
       anyhow::Ok((
-        diffs,
+        resource_updates,
         deploy_updates,
         variable_updates,
         user_group_updates,

@@ -16,8 +16,7 @@ use resolver_api::Resolve;
 use crate::api::write::WriteArgs;
 
 use super::{
-  AllResourcesById, ResourceSyncTrait, ToCreate, ToDelete, ToUpdate,
-  ToUpdateItem, UpdatesResult,
+  AllResourcesById, ResourceSyncTrait, SyncDeltas, ToUpdateItem,
 };
 
 /// Gets all the resources to update. For use in sync execution.
@@ -31,7 +30,7 @@ pub async fn get_updates_for_execution<
   match_resources: Option<&[String]>,
   id_to_tags: &HashMap<String, Tag>,
   match_tags: &[String],
-) -> anyhow::Result<UpdatesResult<Resource::PartialConfig>> {
+) -> anyhow::Result<SyncDeltas<Resource::PartialConfig>> {
   let map = find_collect(Resource::coll(), None, None)
     .await
     .context("failed to get resources from db")?
@@ -64,14 +63,12 @@ pub async fn get_updates_for_execution<
     })
     .collect::<Vec<_>>();
 
-  let mut to_create = ToCreate::<Resource::PartialConfig>::new();
-  let mut to_update = ToUpdate::<Resource::PartialConfig>::new();
-  let mut to_delete = ToDelete::new();
+  let mut deltas = SyncDeltas::<Resource::PartialConfig>::default();
 
   if delete {
     for resource in map.values() {
       if !resources.iter().any(|r| r.name == resource.name) {
-        to_delete.push(resource.name.clone());
+        deltas.to_delete.push(resource.name.clone());
       }
     }
   }
@@ -120,20 +117,22 @@ pub async fn get_updates_for_execution<
           resource,
         };
 
-        to_update.push(update);
+        deltas.to_update.push(update);
       }
-      None => to_create.push(resource),
+      None => deltas.to_create.push(resource),
     }
   }
 
-  Ok((to_create, to_update, to_delete))
+  Ok(deltas)
 }
 
 pub trait ExecuteResourceSync: ResourceSyncTrait {
   async fn execute_sync_updates(
-    to_create: ToCreate<Self::PartialConfig>,
-    to_update: ToUpdate<Self::PartialConfig>,
-    to_delete: ToDelete,
+    SyncDeltas {
+      to_create,
+      to_update,
+      to_delete,
+    }: SyncDeltas<Self::PartialConfig>,
   ) -> Option<Log> {
     if to_create.is_empty()
       && to_update.is_empty()

@@ -206,7 +206,7 @@ impl Resolve<ExecuteArgs> for RunSync {
 
     let delete = sync.config.managed || sync.config.delete;
 
-    let (servers_to_create, servers_to_update, servers_to_delete) =
+    let server_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Server>(
         resources.servers,
         delete,
@@ -216,22 +216,11 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (
-      deployments_to_create,
-      deployments_to_update,
-      deployments_to_delete,
-    ) = get_updates_for_execution::<Deployment>(
-      resources.deployments,
-      delete,
-      &all_resources,
-      match_resource_type,
-      match_resources.as_deref(),
-      &id_to_tags,
-      &sync.config.match_tags,
-    )
-    .await?;
-    let (stacks_to_create, stacks_to_update, stacks_to_delete) =
+      .await?
+    } else {
+      Default::default()
+    };
+    let stack_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Stack>(
         resources.stacks,
         delete,
@@ -241,8 +230,25 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (builds_to_create, builds_to_update, builds_to_delete) =
+      .await?
+    } else {
+      Default::default()
+    };
+    let deployment_deltas = if sync.config.include_resources {
+      get_updates_for_execution::<Deployment>(
+        resources.deployments,
+        delete,
+        &all_resources,
+        match_resource_type,
+        match_resources.as_deref(),
+        &id_to_tags,
+        &sync.config.match_tags,
+      )
+      .await?
+    } else {
+      Default::default()
+    };
+    let build_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Build>(
         resources.builds,
         delete,
@@ -252,8 +258,11 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (repos_to_create, repos_to_update, repos_to_delete) =
+      .await?
+    } else {
+      Default::default()
+    };
+    let repo_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Repo>(
         resources.repos,
         delete,
@@ -263,22 +272,25 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (
-      procedures_to_create,
-      procedures_to_update,
-      procedures_to_delete,
-    ) = get_updates_for_execution::<Procedure>(
-      resources.procedures,
-      delete,
-      &all_resources,
-      match_resource_type,
-      match_resources.as_deref(),
-      &id_to_tags,
-      &sync.config.match_tags,
-    )
-    .await?;
-    let (actions_to_create, actions_to_update, actions_to_delete) =
+      .await?
+    } else {
+      Default::default()
+    };
+    let procedure_deltas = if sync.config.include_resources {
+      get_updates_for_execution::<Procedure>(
+        resources.procedures,
+        delete,
+        &all_resources,
+        match_resource_type,
+        match_resources.as_deref(),
+        &id_to_tags,
+        &sync.config.match_tags,
+      )
+      .await?
+    } else {
+      Default::default()
+    };
+    let action_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Action>(
         resources.actions,
         delete,
@@ -288,8 +300,11 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (builders_to_create, builders_to_update, builders_to_delete) =
+      .await?
+    } else {
+      Default::default()
+    };
+    let builder_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Builder>(
         resources.builders,
         delete,
@@ -299,8 +314,11 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (alerters_to_create, alerters_to_update, alerters_to_delete) =
+      .await?
+    } else {
+      Default::default()
+    };
+    let alerter_deltas = if sync.config.include_resources {
       get_updates_for_execution::<Alerter>(
         resources.alerters,
         delete,
@@ -310,35 +328,38 @@ impl Resolve<ExecuteArgs> for RunSync {
         &id_to_tags,
         &sync.config.match_tags,
       )
-      .await?;
-    let (
-      server_templates_to_create,
-      server_templates_to_update,
-      server_templates_to_delete,
-    ) = get_updates_for_execution::<ServerTemplate>(
-      resources.server_templates,
-      delete,
-      &all_resources,
-      match_resource_type,
-      match_resources.as_deref(),
-      &id_to_tags,
-      &sync.config.match_tags,
-    )
-    .await?;
-    let (
-      resource_syncs_to_create,
-      resource_syncs_to_update,
-      resource_syncs_to_delete,
-    ) = get_updates_for_execution::<entities::sync::ResourceSync>(
-      resources.resource_syncs,
-      delete,
-      &all_resources,
-      match_resource_type,
-      match_resources.as_deref(),
-      &id_to_tags,
-      &sync.config.match_tags,
-    )
-    .await?;
+      .await?
+    } else {
+      Default::default()
+    };
+    let server_template_deltas = if sync.config.include_resources {
+      get_updates_for_execution::<ServerTemplate>(
+        resources.server_templates,
+        delete,
+        &all_resources,
+        match_resource_type,
+        match_resources.as_deref(),
+        &id_to_tags,
+        &sync.config.match_tags,
+      )
+      .await?
+    } else {
+      Default::default()
+    };
+    let resource_sync_deltas = if sync.config.include_resources {
+      get_updates_for_execution::<entities::sync::ResourceSync>(
+        resources.resource_syncs,
+        delete,
+        &all_resources,
+        match_resource_type,
+        match_resources.as_deref(),
+        &id_to_tags,
+        &sync.config.match_tags,
+      )
+      .await?
+    } else {
+      Default::default()
+    };
 
     let (
       variables_to_create,
@@ -346,12 +367,11 @@ impl Resolve<ExecuteArgs> for RunSync {
       variables_to_delete,
     ) = if match_resource_type.is_none()
       && match_resources.is_none()
-      && sync.config.match_tags.is_empty()
+      && sync.config.include_variables
     {
       crate::sync::variables::get_updates_for_execution(
         resources.variables,
-        // Delete doesn't work with variables when match tags are set
-        sync.config.match_tags.is_empty() && delete,
+        delete,
       )
       .await?
     } else {
@@ -363,12 +383,11 @@ impl Resolve<ExecuteArgs> for RunSync {
       user_groups_to_delete,
     ) = if match_resource_type.is_none()
       && match_resources.is_none()
-      && sync.config.match_tags.is_empty()
+      && sync.config.include_user_groups
     {
       crate::sync::user_groups::get_updates_for_execution(
         resources.user_groups,
-        // Delete doesn't work with user groups when match tags are set
-        sync.config.match_tags.is_empty() && delete,
+        delete,
         &all_resources,
       )
       .await?
@@ -377,39 +396,17 @@ impl Resolve<ExecuteArgs> for RunSync {
     };
 
     if deploy_cache.is_empty()
-      && resource_syncs_to_create.is_empty()
-      && resource_syncs_to_update.is_empty()
-      && resource_syncs_to_delete.is_empty()
-      && server_templates_to_create.is_empty()
-      && server_templates_to_update.is_empty()
-      && server_templates_to_delete.is_empty()
-      && servers_to_create.is_empty()
-      && servers_to_update.is_empty()
-      && servers_to_delete.is_empty()
-      && deployments_to_create.is_empty()
-      && deployments_to_update.is_empty()
-      && deployments_to_delete.is_empty()
-      && stacks_to_create.is_empty()
-      && stacks_to_update.is_empty()
-      && stacks_to_delete.is_empty()
-      && builds_to_create.is_empty()
-      && builds_to_update.is_empty()
-      && builds_to_delete.is_empty()
-      && builders_to_create.is_empty()
-      && builders_to_update.is_empty()
-      && builders_to_delete.is_empty()
-      && alerters_to_create.is_empty()
-      && alerters_to_update.is_empty()
-      && alerters_to_delete.is_empty()
-      && repos_to_create.is_empty()
-      && repos_to_update.is_empty()
-      && repos_to_delete.is_empty()
-      && procedures_to_create.is_empty()
-      && procedures_to_update.is_empty()
-      && procedures_to_delete.is_empty()
-      && actions_to_create.is_empty()
-      && actions_to_update.is_empty()
-      && actions_to_delete.is_empty()
+      && resource_sync_deltas.no_changes()
+      && server_template_deltas.no_changes()
+      && server_deltas.no_changes()
+      && deployment_deltas.no_changes()
+      && stack_deltas.no_changes()
+      && build_deltas.no_changes()
+      && builder_deltas.no_changes()
+      && alerter_deltas.no_changes()
+      && repo_deltas.no_changes()
+      && procedure_deltas.no_changes()
+      && action_deltas.no_changes()
       && user_groups_to_create.is_empty()
       && user_groups_to_update.is_empty()
       && user_groups_to_delete.is_empty()
@@ -452,111 +449,57 @@ impl Resolve<ExecuteArgs> for RunSync {
     );
     maybe_extend(
       &mut update.logs,
-      ResourceSync::execute_sync_updates(
-        resource_syncs_to_create,
-        resource_syncs_to_update,
-        resource_syncs_to_delete,
-      )
-      .await,
+      ResourceSync::execute_sync_updates(resource_sync_deltas).await,
     );
     maybe_extend(
       &mut update.logs,
-      ServerTemplate::execute_sync_updates(
-        server_templates_to_create,
-        server_templates_to_update,
-        server_templates_to_delete,
-      )
-      .await,
+      ServerTemplate::execute_sync_updates(server_template_deltas)
+        .await,
     );
     maybe_extend(
       &mut update.logs,
-      Server::execute_sync_updates(
-        servers_to_create,
-        servers_to_update,
-        servers_to_delete,
-      )
-      .await,
+      Server::execute_sync_updates(server_deltas).await,
     );
     maybe_extend(
       &mut update.logs,
-      Alerter::execute_sync_updates(
-        alerters_to_create,
-        alerters_to_update,
-        alerters_to_delete,
-      )
-      .await,
+      Alerter::execute_sync_updates(alerter_deltas).await,
     );
     maybe_extend(
       &mut update.logs,
-      Action::execute_sync_updates(
-        actions_to_create,
-        actions_to_update,
-        actions_to_delete,
-      )
-      .await,
+      Action::execute_sync_updates(action_deltas).await,
     );
 
     // Dependent on server
     maybe_extend(
       &mut update.logs,
-      Builder::execute_sync_updates(
-        builders_to_create,
-        builders_to_update,
-        builders_to_delete,
-      )
-      .await,
+      Builder::execute_sync_updates(builder_deltas).await,
     );
     maybe_extend(
       &mut update.logs,
-      Repo::execute_sync_updates(
-        repos_to_create,
-        repos_to_update,
-        repos_to_delete,
-      )
-      .await,
+      Repo::execute_sync_updates(repo_deltas).await,
     );
 
     // Dependant on builder
     maybe_extend(
       &mut update.logs,
-      Build::execute_sync_updates(
-        builds_to_create,
-        builds_to_update,
-        builds_to_delete,
-      )
-      .await,
+      Build::execute_sync_updates(build_deltas).await,
     );
 
     // Dependant on server / build
     maybe_extend(
       &mut update.logs,
-      Deployment::execute_sync_updates(
-        deployments_to_create,
-        deployments_to_update,
-        deployments_to_delete,
-      )
-      .await,
+      Deployment::execute_sync_updates(deployment_deltas).await,
     );
     // stack only depends on server, but maybe will depend on build later.
     maybe_extend(
       &mut update.logs,
-      Stack::execute_sync_updates(
-        stacks_to_create,
-        stacks_to_update,
-        stacks_to_delete,
-      )
-      .await,
+      Stack::execute_sync_updates(stack_deltas).await,
     );
 
     // Dependant on everything
     maybe_extend(
       &mut update.logs,
-      Procedure::execute_sync_updates(
-        procedures_to_create,
-        procedures_to_update,
-        procedures_to_delete,
-      )
-      .await,
+      Procedure::execute_sync_updates(procedure_deltas).await,
     );
 
     // Execute the deploy cache

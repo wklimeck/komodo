@@ -981,8 +981,20 @@ export interface DeploymentListItemInfo {
 }
 export type DeploymentListItem = ResourceListItem<DeploymentListItemInfo>;
 export interface DeploymentQuerySpecifics {
+    /**
+     * Query only for Deployments on these Servers.
+     * If empty, does not filter by Server.
+     * Only accepts Server id (not name).
+     */
     server_ids?: string[];
+    /**
+     * Query only for Deployments with these Builds attached.
+     * If empty, does not filter by Build.
+     * Only accepts Build id (not name).
+     */
     build_ids?: string[];
+    /** Query only for Deployments with available image updates. */
+    update_available?: boolean;
 }
 export type DeploymentQuery = ResourceQuery<DeploymentQuerySpecifics>;
 /** Response for [ExchangeForJwt]. */
@@ -1456,11 +1468,6 @@ export interface ResourceSyncConfig {
      */
     resource_path?: string[];
     /**
-     * Excluse Komodo Resources (Servers / Stacks / Builds)
-     * from the sync. Will be variable / user group only sync.
-     */
-    exclude_resources?: boolean;
-    /**
      * Enable "pushes" to the file,
      * which exports resources matching tags to single file.
      * - If using `files_on_host`, it is stored in the file_contents, which must point to a .toml file path (it will be created if it doesn't exist).
@@ -1474,10 +1481,19 @@ export interface ResourceSyncConfig {
      */
     delete?: boolean;
     /**
+     * Whether sync should include resources.
+     * Default: true
+     */
+    include_resources: boolean;
+    /**
      * When using `managed` resource sync, will only export resources
      * matching all of the given tags. If none, will match all resources.
      */
     match_tags?: string[];
+    /** Whether sync should include variables. */
+    include_variables?: boolean;
+    /** Whether sync should include user groups. */
+    include_user_groups?: boolean;
     /** Manage the file contents in the UI. */
     file_contents?: string;
 }
@@ -3399,8 +3415,16 @@ export interface ServerTemplateQuerySpecifics {
 export type ServerTemplateQuery = ResourceQuery<ServerTemplateQuerySpecifics>;
 export type SetLastSeenUpdateResponse = NoData;
 export interface StackQuerySpecifics {
+    /**
+     * Query only for Stacks on these Servers.
+     * If empty, does not filter by Server.
+     * Only accepts Server id (not name).
+     */
+    server_ids?: string[];
     /** Filter syncs by their repo. */
-    repos: string[];
+    repos?: string[];
+    /** Query only for Stack with available image updates. */
+    update_available?: boolean;
 }
 export type StackQuery = ResourceQuery<StackQuerySpecifics>;
 export type UpdateDescriptionResponse = NoData;
@@ -4548,8 +4572,27 @@ export interface ExchangeForJwt {
  * Response: [TomlResponse].
  */
 export interface ExportAllResourcesToToml {
-    /** Tag name or id. Empty array will not filter by tag. */
+    /**
+     * Whether to include any resources (servers, stacks, etc.)
+     * in the exported contents.
+     * Default: `true`
+     */
+    include_resources: boolean;
+    /**
+     * Filter resources by tag.
+     * Accepts tag name or id. Empty array will not filter by tag.
+     */
     tags?: string[];
+    /**
+     * Whether to include variables in the exported contents.
+     * Default: false
+     */
+    include_variables?: boolean;
+    /**
+     * Whether to include user groups in the exported contents.
+     * Default: false
+     */
+    include_user_groups?: boolean;
 }
 /**
  * Get pretty formatted monrun sync toml for specific resources and user groups.
