@@ -2503,7 +2503,6 @@ dependencies = [
  "futures",
  "mongo_indexed",
  "partial_derive2",
- "rand 0.9.0",
  "reqwest",
  "resolver_api",
  "serde",

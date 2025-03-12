@@ -48,8 +48,6 @@ async fn app() -> anyhow::Result<()> {
     helpers::ensure_first_server_and_builder(),
     // Cleanup open updates / invalid alerts
     helpers::startup_cleanup(),
-    // Randomly populate tag colors on 1.16 -> 1.17 upgrade
-    helpers::generate_tag_colors(),
   );
   // init jwt client to crash on failure
   state::jwt_client();

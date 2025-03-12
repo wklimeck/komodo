@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use partial_derive2::Partial;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumCount, FromRepr};
+use strum::AsRefStr;
 use typeshare::typeshare;
 
 use crate::entities::MongoId;
@@ -43,11 +43,10 @@ pub struct Tag {
 }
 
 #[typeshare]
-#[derive(
-  Serialize, Deserialize, Debug, Clone, EnumCount, FromRepr, AsRefStr,
-)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, AsRefStr)]
 pub enum TagColor {
   LightSlate,
+  #[default]
   Slate,
   DarkSlate,
 
@@ -118,18 +117,4 @@ pub enum TagColor {
   LightRose,
   Rose,
   DarkRose,
-}
-
-impl TagColor {
-  pub fn random() -> Self {
-    let index = rand::random_range(0..TagColor::COUNT);
-    // Unwrap OK, index will always be in range
-    Self::from_repr(index).unwrap()
-  }
-}
-
-impl Default for TagColor {
-  fn default() -> Self {
-    Self::random()
-  }
 }

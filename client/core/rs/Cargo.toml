@@ -39,7 +39,6 @@ anyhow.workspace = true
 serde.workspace = true
 tokio.workspace = true
 strum.workspace = true
-rand.workspace = true
 envy.workspace = true
 uuid.workspace = true
 clap.workspace = true

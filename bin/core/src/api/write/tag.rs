@@ -50,7 +50,7 @@ impl Resolve<WriteArgs> for CreateTag {
     let mut tag = Tag {
       id: Default::default(),
       name: self.name,
-      color: TagColor::random(),
+      color: TagColor::Slate,
       owner: user.id.clone(),
     };
 
