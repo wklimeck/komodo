@@ -138,7 +138,9 @@ impl Resolve<ReadArgs> for GetResourceSyncsSummary {
         .syncing
       {
         res.syncing += 1;
+        continue;
       }
+      res.ok += 1;
     }
 
     Ok(res)
