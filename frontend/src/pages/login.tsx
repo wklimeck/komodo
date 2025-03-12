@@ -132,8 +132,8 @@ export const Login = () => {
   // Otherwise just standard login
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="container flex justify-between items-center h-16">
-        <img src="/komodo-logo.svg" className="w-[32px]" />
+      <div className="container flex justify-end items-center h-16">
+        {/* <img src="/komodo-512x512.png" className="w-[32px]" /> */}
         <ThemeToggle />
       </div>
       <div
@@ -144,9 +144,12 @@ export const Login = () => {
       >
         <Card className="w-full max-w-[500px] place-self-center">
           <CardHeader className="flex-row justify-between">
-            <div>
-              <CardTitle className="text-xl">Komodo</CardTitle>
-              <CardDescription>Log In</CardDescription>
+            <div className="flex gap-4 items-center">
+              <img src="/komodo-512x512.png" className="w-[32px] h-[32px]" />
+              <div>
+                <CardTitle className="text-xl">Komodo</CardTitle>{" "}
+                <CardDescription>Log In</CardDescription>
+              </div>
             </div>
             <div className="flex gap-2">
               {(

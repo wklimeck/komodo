@@ -3,15 +3,24 @@ use std::str::FromStr;
 use anyhow::{Context, anyhow};
 use komodo_client::{
   api::write::{
-    CreateTag, DeleteTag, RenameTag, UpdateTagsOnResource,
-    UpdateTagsOnResourceResponse,
+    CreateTag, DeleteTag, RenameTag, UpdateTagColor,
+    UpdateTagsOnResource, UpdateTagsOnResourceResponse,
   },
   entities::{
-    ResourceTarget, action::Action, alerter::Alerter, build::Build,
-    builder::Builder, deployment::Deployment,
-    permission::PermissionLevel, procedure::Procedure, repo::Repo,
-    server::Server, server_template::ServerTemplate, stack::Stack,
-    sync::ResourceSync, tag::Tag,
+    ResourceTarget,
+    action::Action,
+    alerter::Alerter,
+    build::Build,
+    builder::Builder,
+    deployment::Deployment,
+    permission::PermissionLevel,
+    procedure::Procedure,
+    repo::Repo,
+    server::Server,
+    server_template::ServerTemplate,
+    stack::Stack,
+    sync::ResourceSync,
+    tag::{Tag, TagColor},
   },
 };
 use mungos::{
@@ -41,6 +50,7 @@ impl Resolve<WriteArgs> for CreateTag {
     let mut tag = Tag {
       id: Default::default(),
       name: self.name,
+      color: TagColor::random(),
       owner: user.id.clone(),
     };
 
@@ -80,6 +90,27 @@ impl Resolve<WriteArgs> for RenameTag {
     .context("failed to rename tag on db")?;
 
     Ok(get_tag(&self.id).await?)
+  }
+}
+
+impl Resolve<WriteArgs> for UpdateTagColor {
+  #[instrument(name = "UpdateTagColor", skip(user))]
+  async fn resolve(
+    self,
+    WriteArgs { user }: &WriteArgs,
+  ) -> serror::Result<Tag> {
+    let tag = get_tag_check_owner(&self.tag, user).await?;
+
+    update_one_by_id(
+      &db_client().tags,
+      &tag.id,
+      doc! { "$set": { "color": self.color.as_ref() } },
+      None,
+    )
+    .await
+    .context("failed to rename tag on db")?;
+
+    Ok(get_tag(&self.tag).await?)
   }
 }
 

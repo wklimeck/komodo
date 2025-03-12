@@ -17,10 +17,12 @@ use komodo_client::{
 };
 use mongo_indexed::Document;
 use mungos::{
+  bulk_update::{BulkUpdate, bulk_update},
   find::find_collect,
   mongodb::bson::{Bson, doc, oid::ObjectId, to_document},
 };
 use periphery_client::PeripheryClient;
+use query::get_all_tags;
 use rand::Rng;
 use resolver_api::Resolve;
 
@@ -351,5 +353,33 @@ pub async fn ensure_first_server_and_builder() {
       "Failed to initialize 'first_builder' | Failed to CreateBuilder | {:#}",
       e.error
     );
+  }
+}
+
+/// In 1.17, Tag colors are introduced.
+/// This will generate and save tag colors for all existing tags.
+/// Tags which already have color set will not be changed, making this a no-op.
+/// All new tags going forward will have a color assigned on creation,
+/// so this method will no longer be needed and should be removed in 1.18+.
+pub async fn generate_tag_colors() {
+  let inner = async {
+    let updates = get_all_tags(None)
+      .await?
+      .into_iter()
+      .map(|tag| {
+        BulkUpdate::new(
+          doc! { "name": tag.name },
+          // If the tag doesn't have a color saved in the database,
+          // a random one will be generated to populate the field,
+          // and this just saves that back to the database.
+          doc! { "$set": { "color": tag.color.as_ref() } },
+        )
+      })
+      .collect::<Vec<_>>();
+    bulk_update(&db_client().db, "Tag", &updates, false).await?;
+    anyhow::Ok(())
+  };
+  if let Err(e) = inner.await {
+    error!("Failed to generate tag colors | {e:#}");
   }
 }

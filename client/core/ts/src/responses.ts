@@ -303,6 +303,7 @@ export type WriteResponses = {
   CreateTag: Types.Tag;
   DeleteTag: Types.Tag;
   RenameTag: Types.Tag;
+  UpdateTagColor: Types.Tag;
   UpdateTagsOnResource: Types.UpdateTagsOnResourceResponse;
 
   // ==== VARIABLE ====

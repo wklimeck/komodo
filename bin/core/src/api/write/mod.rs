@@ -172,6 +172,7 @@ pub enum WriteRequest {
   CreateTag(CreateTag),
   DeleteTag(DeleteTag),
   RenameTag(RenameTag),
+  UpdateTagColor(UpdateTagColor),
   UpdateTagsOnResource(UpdateTagsOnResource),
 
   // ==== VARIABLE ====

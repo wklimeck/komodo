@@ -60,7 +60,7 @@ impl aws_credential_types::provider::ProvideCredentials
 #[instrument]
 async fn create_ec2_client(region: String) -> Client {
   let region = Region::new(region);
-  let config = aws_config::defaults(BehaviorVersion::v2024_03_28())
+  let config = aws_config::defaults(BehaviorVersion::latest())
     .region(region)
     .credentials_provider(CredentialsFromConfig)
     .load()

@@ -1913,6 +1913,63 @@ export interface SystemStats {
 
 export type GetSystemStatsResponse = SystemStats;
 
+export enum TagColor {
+	LightSlate = "LightSlate",
+	Slate = "Slate",
+	DarkSlate = "DarkSlate",
+	LightRed = "LightRed",
+	Red = "Red",
+	DarkRed = "DarkRed",
+	LightOrange = "LightOrange",
+	Orange = "Orange",
+	DarkOrange = "DarkOrange",
+	LightAmber = "LightAmber",
+	Amber = "Amber",
+	DarkAmber = "DarkAmber",
+	LightYellow = "LightYellow",
+	Yellow = "Yellow",
+	DarkYellow = "DarkYellow",
+	LightLime = "LightLime",
+	Lime = "Lime",
+	DarkLime = "DarkLime",
+	LightGreen = "LightGreen",
+	Green = "Green",
+	DarkGreen = "DarkGreen",
+	LightEmerald = "LightEmerald",
+	Emerald = "Emerald",
+	DarkEmerald = "DarkEmerald",
+	LightTeal = "LightTeal",
+	Teal = "Teal",
+	DarkTeal = "DarkTeal",
+	LightCyan = "LightCyan",
+	Cyan = "Cyan",
+	DarkCyan = "DarkCyan",
+	LightSky = "LightSky",
+	Sky = "Sky",
+	DarkSky = "DarkSky",
+	LightBlue = "LightBlue",
+	Blue = "Blue",
+	DarkBlue = "DarkBlue",
+	LightIndigo = "LightIndigo",
+	Indigo = "Indigo",
+	DarkIndigo = "DarkIndigo",
+	LightViolet = "LightViolet",
+	Violet = "Violet",
+	DarkViolet = "DarkViolet",
+	LightPurple = "LightPurple",
+	Purple = "Purple",
+	DarkPurple = "DarkPurple",
+	LightFuchsia = "LightFuchsia",
+	Fuchsia = "Fuchsia",
+	DarkFuchsia = "DarkFuchsia",
+	LightPink = "LightPink",
+	Pink = "Pink",
+	DarkPink = "DarkPink",
+	LightRose = "LightRose",
+	Rose = "Rose",
+	DarkRose = "DarkRose",
+}
+
 export interface Tag {
 	/**
 	 * The Mongo ID of the tag.
@@ -1921,6 +1978,8 @@ export interface Tag {
 	 */
 	_id?: MongoId;
 	name: string;
+	/** Hex color code with alpha for UI display */
+	color?: TagColor;
 	owner?: string;
 }
 
@@ -7347,6 +7406,14 @@ export interface UpdateStack {
 	config: _PartialStackConfig;
 }
 
+/** Update color for tag. Response: [Tag]. */
+export interface UpdateTagColor {
+	/** The name or id of the tag to update. */
+	tag: string;
+	/** The new color for the tag. */
+	color: TagColor;
+}
+
 /**
  * Update the tags on a resource.
  * Response: [NoData]
@@ -7754,6 +7821,7 @@ export type WriteRequest =
 	| { type: "CreateTag", params: CreateTag }
 	| { type: "DeleteTag", params: DeleteTag }
 	| { type: "RenameTag", params: RenameTag }
+	| { type: "UpdateTagColor", params: UpdateTagColor }
 	| { type: "UpdateTagsOnResource", params: UpdateTagsOnResource }
 	| { type: "CreateVariable", params: CreateVariable }
 	| { type: "UpdateVariableValue", params: UpdateVariableValue }
