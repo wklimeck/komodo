@@ -133,7 +133,7 @@ export const TagsFilterTags = ({
             key={tag_id}
             variant="secondary"
             className={cn(
-              "flex gap-1 px-2 py-1.5 cursor-pointer text-nowrap bg-opacity-40 hover:bg-opacity-70",
+              "flex gap-1 px-2 py-1.5 cursor-pointer text-nowrap bg-opacity-30 hover:bg-opacity-70",
               color,
               `hover:${color}`
             )}
@@ -211,7 +211,7 @@ export const TagsWithBadge = ({
             key={tag_id}
             variant="secondary"
             className={cn(
-              "gap-2 px-1.5 py-0.5 cursor-pointer text-nowrap bg-opacity-40 hover:bg-opacity-70",
+              "gap-2 px-1.5 py-0.5 cursor-pointer text-nowrap bg-opacity-30 hover:bg-opacity-70",
               color,
               `hover:${color}`,
               className
