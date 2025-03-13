@@ -29,8 +29,8 @@ import {
   StatusBadge,
 } from "@components/util";
 import { RenameResource } from "@components/config/util";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@ui/hover-card";
 import { GroupActions } from "@components/group-actions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
 
 // const configOrLog = atomWithStorage("config-or-log-v1", "Config");
 
@@ -319,8 +319,8 @@ export const UpdateAvailable = ({
     return null;
   }
   return (
-    <HoverCard openDelay={200}>
-      <HoverCardTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <div
           className={cn(
             "px-2 py-1 border rounded-md border-blue-400 hover:border-blue-500 opacity-50 hover:opacity-70 transition-colors cursor-pointer flex items-center gap-2",
@@ -334,10 +334,10 @@ export const UpdateAvailable = ({
             </div>
           )}
         </div>
-      </HoverCardTrigger>
-      <HoverCardContent align="start" className="w-fit text-sm">
+      </TooltipTrigger>
+      <TooltipContent className="w-fit text-sm">
         There is a newer image available
-      </HoverCardContent>
-    </HoverCard>
+      </TooltipContent>
+    </Tooltip>
   );
 };

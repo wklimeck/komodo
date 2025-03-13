@@ -18,7 +18,6 @@ import {
   stroke_color_class_by_intention,
 } from "@lib/color";
 import { cn } from "@lib/utils";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@ui/hover-card";
 import { useServer } from "../server";
 import { Types } from "komodo_client";
 import {
@@ -41,6 +40,7 @@ import { StackConfig } from "./config";
 import { RenameResource } from "@components/config/util";
 import { GroupActions } from "@components/group-actions";
 import { StackLogs } from "./log";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@ui/tooltip";
 
 export const useStack = (id?: string) =>
   useRead("ListStacks", {}, { refetchInterval: 10_000 }).data?.find(
@@ -210,22 +210,22 @@ export const StackComponents: RequiredResourceComponents = {
         return null;
       }
       return (
-        <HoverCard openDelay={200}>
-          <HoverCardTrigger asChild>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Card className="px-3 py-2 bg-destructive/75 hover:bg-destructive transition-colors cursor-pointer">
               <div className="text-sm text-nowrap overflow-hidden overflow-ellipsis">
                 Config Missing
               </div>
             </Card>
-          </HoverCardTrigger>
-          <HoverCardContent align="start">
+          </TooltipTrigger>
+          <TooltipContent>
             <div className="grid gap-2">
               No configuration provided for stack. Cannot get stack state.
               Either paste the compose file contents into the UI, or configure a
               git repo containing your files.
             </div>
-          </HoverCardContent>
-        </HoverCard>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     ProjectMissing: ({ id }) => {
@@ -239,22 +239,22 @@ export const StackComponents: RequiredResourceComponents = {
         return null;
       }
       return (
-        <HoverCard openDelay={200}>
-          <HoverCardTrigger asChild>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Card className="px-3 py-2 bg-destructive/75 hover:bg-destructive transition-colors cursor-pointer">
               <div className="text-sm text-nowrap overflow-hidden overflow-ellipsis">
                 Project Missing
               </div>
             </Card>
-          </HoverCardTrigger>
-          <HoverCardContent align="start">
+          </TooltipTrigger>
+          <TooltipContent>
             <div className="grid gap-2">
               The compose project is not on the host. If the compose stack is
               running, the 'Project Name' needs to be set. This can be found
               with 'docker compose ls'.
             </div>
-          </HoverCardContent>
-        </HoverCard>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     RemoteErrors: ({ id }) => {
@@ -264,21 +264,21 @@ export const StackComponents: RequiredResourceComponents = {
         return null;
       }
       return (
-        <HoverCard openDelay={200}>
-          <HoverCardTrigger asChild>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Card className="px-3 py-2 bg-destructive/75 hover:bg-destructive transition-colors cursor-pointer">
               <div className="text-sm text-nowrap overflow-hidden overflow-ellipsis">
                 Remote Error
               </div>
             </Card>
-          </HoverCardTrigger>
-          <HoverCardContent align="start">
+          </TooltipTrigger>
+          <TooltipContent>
             <div>
               There are errors reading the remote file contents. See{" "}
               <span className="font-bold">Info</span> tab for details.
             </div>
-          </HoverCardContent>
-        </HoverCard>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     UpdateAvailable: ({ id }) => <UpdateAvailable id={id} />,
@@ -301,8 +301,8 @@ export const StackComponents: RequiredResourceComponents = {
       const out_of_date =
         info.deployed_hash && info.deployed_hash !== info.latest_hash;
       return (
-        <HoverCard openDelay={200}>
-          <HoverCardTrigger asChild>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Card
               className={cn(
                 "px-3 py-2 hover:bg-accent/50 transition-colors cursor-pointer",
@@ -314,8 +314,8 @@ export const StackComponents: RequiredResourceComponents = {
                 {info.deployed_hash || info.latest_hash}
               </div>
             </Card>
-          </HoverCardTrigger>
-          <HoverCardContent align="start">
+          </TooltipTrigger>
+          <TooltipContent>
             <div className="grid gap-2">
               <Badge
                 variant="secondary"
@@ -344,8 +344,8 @@ export const StackComponents: RequiredResourceComponents = {
                 </>
               )}
             </div>
-          </HoverCardContent>
-        </HoverCard>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     Refresh: ({ id }) => {
@@ -475,8 +475,8 @@ export const UpdateAvailable = ({
     return null;
   }
   return (
-    <HoverCard openDelay={200}>
-      <HoverCardTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <div
           className={cn(
             "px-2 py-1 border rounded-md border-blue-400 hover:border-blue-500 opacity-50 hover:opacity-70 transition-colors cursor-pointer flex items-center gap-2",
@@ -495,8 +495,8 @@ export const UpdateAvailable = ({
             </div>
           )}
         </div>
-      </HoverCardTrigger>
-      <HoverCardContent align="start" className="flex flex-col gap-2 w-fit">
+      </TooltipTrigger>
+      <TooltipContent className="flex flex-col gap-2 w-fit">
         {info?.services
           .filter((service) => service.update_available)
           .map((s) => (
@@ -506,7 +506,7 @@ export const UpdateAvailable = ({
               <div>{s.image}</div>
             </div>
           ))}
-      </HoverCardContent>
-    </HoverCard>
+      </TooltipContent>
+    </Tooltip>
   );
 };

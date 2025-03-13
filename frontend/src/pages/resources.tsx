@@ -32,11 +32,15 @@ export const Resources = () => {
   const [search, set] = useState("");
   const [filter_update_available, toggle_filter_update_available] =
     useFilterByUpdateAvailable();
-  const resources = useRead(`List${type}s`, {
-    query: {
-      specific: { update_available: filter_update_available },
-    },
-  }).data;
+  const query =
+    type === "Stack" || type === "Deployment"
+      ? {
+          query: {
+            specific: { update_available: filter_update_available },
+          },
+        }
+      : {};
+  const resources = useRead(`List${type}s`, query).data;
   const filtered = useFilterResources(resources as any, search);
 
   const Components = ResourceComponents[type];
