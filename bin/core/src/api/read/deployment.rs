@@ -51,20 +51,15 @@ impl Resolve<ReadArgs> for ListDeployments {
     } else {
       get_all_tags(None).await?
     };
-    let update_available_filter =
-      self.query.specific.update_available;
+    let only_update_available = self.query.specific.update_available;
     let deployments = resource::list_for_user::<Deployment>(
       self.query, user, &all_tags,
     )
     .await?;
-    let deployments = if let Some(update_available_filter) =
-      update_available_filter
-    {
+    let deployments = if only_update_available {
       deployments
         .into_iter()
-        .filter(|deployment| {
-          deployment.info.update_available == update_available_filter
-        })
+        .filter(|deployment| deployment.info.update_available)
         .collect()
     } else {
       deployments

@@ -613,7 +613,8 @@ pub struct StackQuerySpecifics {
   #[serde(default)]
   pub repos: Vec<String>,
   /// Query only for Stack with available image updates.
-  pub update_available: Option<bool>,
+  #[serde(default)]
+  pub update_available: bool,
 }
 
 impl super::resource::AddFilters for StackQuerySpecifics {

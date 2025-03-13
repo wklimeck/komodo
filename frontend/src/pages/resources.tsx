@@ -3,6 +3,7 @@ import { Page } from "@components/layouts";
 import { ResourceComponents } from "@components/resources";
 import { TagsFilter } from "@components/tags";
 import {
+  useFilterByUpdateAvailable,
   useFilterResources,
   useRead,
   useResourceParamType,
@@ -14,6 +15,7 @@ import { Input } from "@ui/input";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { NotFound } from "@components/util";
+import { Switch } from "@ui/switch";
 
 export const Resources = () => {
   const is_admin = useUser().data?.admin ?? false;
@@ -28,7 +30,13 @@ export const Resources = () => {
         : type;
   useSetTitle(name + "s");
   const [search, set] = useState("");
-  const resources = useRead(`List${type}s`, {}).data;
+  const [filter_update_available, toggle_filter_update_available] =
+    useFilterByUpdateAvailable();
+  const resources = useRead(`List${type}s`, {
+    query: {
+      specific: { update_available: filter_update_available },
+    },
+  }).data;
   const filtered = useFilterResources(resources as any, search);
 
   const Components = ResourceComponents[type];
@@ -62,6 +70,15 @@ export const Resources = () => {
             <Components.GroupActions />
           </div>
           <div className="flex items-center gap-4 flex-wrap">
+            {(type === "Stack" || type === "Deployment") && (
+              <div
+                className="flex gap-2 items-center cursor-pointer px-3 py-2 text-sm text-muted-foreground"
+                onClick={() => toggle_filter_update_available()}
+              >
+                Pending Update
+                <Switch checked={filter_update_available} />
+              </div>
+            )}
             <TagsFilter />
             <div className="relative">
               <Search className="w-4 absolute top-[50%] left-3 -translate-y-[50%] text-muted-foreground" />

@@ -493,3 +493,12 @@ const selected_resources = atomFamily((_: UsableResource) =>
 );
 export const useSelectedResources = (type: UsableResource) =>
   useAtom(selected_resources(type));
+
+const filter_by_update_available = atomWithStorage<boolean>(
+  "update-available-filter-v1",
+  false
+);
+export const useFilterByUpdateAvailable: () => [boolean, () => void] = () => {
+  const [filter, set] = useAtom<boolean>(filter_by_update_available);
+  return [filter, () => set(!filter)];
+};

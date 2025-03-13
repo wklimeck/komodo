@@ -191,8 +191,12 @@ export const ResourceSyncConfig = ({
   };
 
   const include_toggles: ConfigComponent<Types.ResourceSyncConfig> = {
-    label: "Toggle",
+    label: "Include",
     components: {
+      include_resources: {
+        label: "Sync Resources",
+        description: "Include resources (servers, stacks, etc.) in the sync.",
+      },
       include_variables: {
         label: "Sync Variables",
         description: "Include variables in the sync.",
@@ -200,10 +204,6 @@ export const ResourceSyncConfig = ({
       include_user_groups: {
         label: "Sync User Groups",
         description: "Include user groups in the sync.",
-      },
-      include_resources: {
-        label: "Sync Resources",
-        description: "Include resources (servers, stacks, etc.) in the sync.",
       },
     },
   };

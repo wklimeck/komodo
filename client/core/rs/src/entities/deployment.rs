@@ -466,7 +466,8 @@ pub struct DeploymentQuerySpecifics {
   pub build_ids: Vec<String>,
 
   /// Query only for Deployments with available image updates.
-  pub update_available: Option<bool>,
+  #[serde(default)]
+  pub update_available: bool,
 }
 
 impl super::resource::AddFilters for DeploymentQuerySpecifics {
