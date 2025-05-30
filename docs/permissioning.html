@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.7.0">
 <title data-rh="true">Permissioning | Komodo</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://komo.do/img/monitor-lizard.png"><meta data-rh="true" name="twitter:image" content="https://komo.do/img/monitor-lizard.png"><meta data-rh="true" property="og:url" content="https://komo.do/docs/permissioning"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Permissioning | Komodo"><meta data-rh="true" name="description" content="Komodo has a granular, layer-based permissioning system to provide non-admin users access only to intended Resources."><meta data-rh="true" property="og:description" content="Komodo has a granular, layer-based permissioning system to provide non-admin users access only to intended Resources."><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://komo.do/docs/permissioning"><link data-rh="true" rel="alternate" href="https://komo.do/docs/permissioning" hreflang="en"><link data-rh="true" rel="alternate" href="https://komo.do/docs/permissioning" hreflang="x-default"><link rel="stylesheet" href="/assets/css/styles.d7cba00c.css">
-<script src="/assets/js/runtime~main.2ba371a2.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.b8bb4b9a.js" defer="defer"></script>
 <script src="/assets/js/main.dccff006.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -35,30 +35,30 @@ There is also an <code>Everyone</code> mode for User Groups, if this is enabled 
 <p>Permission levels alone are not quite enough to provide granular access control.
 Some features are additionally gated behind a specific permission for that feature.</p>
 <ul>
-<li><code>Terminal</code>: User can access the associated resource&#x27;s terminal.<!-- -->
-<ul>
-<li>If given on a <code>Server</code>, this allows server level terminal access.</li>
-<li>If given on a <code>Stack</code> or <code>Deployment</code>, this allows container exec terminal (even without <code>Terminal</code> on <code>Server</code>)</li>
-</ul>
-</li>
-<li><code>Attach</code>: User can &quot;attach&quot; <em>other resources</em> to the resource.<!-- -->
-<ul>
-<li>If given on a <code>Server</code>, allows users to attach <code>Stacks</code> and <code>Deployments</code></li>
-<li>If given on a <code>Builder</code>, allows users to attach <code>Builds</code></li>
-</ul>
-</li>
-<li><code>DockerInspect</code>:  User can &quot;inspect&quot; docker resources (like containers) on the <code>Server</code>
-<ul>
-<li>Access to this api will expose all container environments on the given server, and can easily lead to secrets being leaked to unintended users if not protected.</li>
-</ul>
-</li>
-<li><code>DockerLogs</code>: User can retrieve docker / docker compose logs on the associated resource.<!-- -->
+<li><strong><code>Logs</code></strong>: User can retrieve docker / docker compose logs on the associated resource.<!-- -->
 <ul>
 <li>Valid on <code>Server</code>, <code>Stack</code>, <code>Deployment</code></li>
 <li>For admins wanting this permission by default for all users with read permissions, see below on default user groups.</li>
 </ul>
 </li>
-<li><code>ProcessList</code>: User can retrieve the full running process list on the <code>Server</code></li>
+<li><strong><code>Inspect</code></strong>:  User can &quot;inspect&quot; docker resources (like containers) on the <code>Server</code>
+<ul>
+<li>Access to this api will expose all container environments on the given server, and can easily lead to secrets being leaked to unintended users if not protected.</li>
+</ul>
+</li>
+<li><strong><code>Terminal</code></strong>: User can access the associated resource&#x27;s terminal.<!-- -->
+<ul>
+<li>If given on a <code>Server</code>, this allows server level terminal access.</li>
+<li>If given on a <code>Stack</code> or <code>Deployment</code>, this allows container exec terminal (even without <code>Terminal</code> on <code>Server</code>)</li>
+</ul>
+</li>
+<li><strong><code>Attach</code></strong>: User can &quot;attach&quot; <em>other resources</em> to the resource.<!-- -->
+<ul>
+<li>If given on a <code>Server</code>, allows users to attach <code>Stacks</code> and <code>Deployments</code></li>
+<li>If given on a <code>Builder</code>, allows users to attach <code>Builds</code></li>
+</ul>
+</li>
+<li><strong><code>Processes</code></strong>: User can retrieve the full running process list on the <code>Server</code></li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="permissioning-by-resource-type">Permissioning by Resource Type<a href="#permissioning-by-resource-type" class="hash-link" aria-label="Direct link to Permissioning by Resource Type" title="Direct link to Permissioning by Resource Type">​</a></h2>
 <p>Users or User Groups can be given a base permission level on all Resources of a particular type, such as Stack.
