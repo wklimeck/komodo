@@ -156,7 +156,7 @@ pub fn get_image_name(
   ) {
     // If organization and account provided, name under organization.
     (true, true, true) => {
-      format!("{domain}/{}/{name}", organization)
+      format!("{domain}/{organization}/{name}")
     }
     // Just domain / account provided
     (true, false, true) => format!("{domain}/{account}/{name}"),
