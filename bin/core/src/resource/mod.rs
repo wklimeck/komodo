@@ -872,7 +872,7 @@ pub fn validate_resource_query_tags<T: Default + std::fmt::Debug>(
         .find(|t| t.name == *tag || t.id == *tag)
         .map(|tag| tag.id.clone())
         .with_context(|| {
-          format!("No tag found matching name or id: {}", tag)
+          format!("No tag found matching name or id: {tag}")
         })
     })
     .collect::<anyhow::Result<Vec<_>>>()?;

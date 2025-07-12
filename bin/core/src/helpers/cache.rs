@@ -34,7 +34,7 @@ impl<
   #[instrument(level = "debug", skip(self))]
   pub async fn get_list(&self) -> Vec<T> {
     let cache = self.cache.read().await;
-    cache.iter().map(|(_, e)| e.clone()).collect()
+    cache.values().cloned().collect()
   }
 
   #[instrument(level = "debug", skip(self))]
