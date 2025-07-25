@@ -19,6 +19,7 @@ const ALERT_TYPES: Types.AlertData["type"][] = [
   "DeploymentImageUpdateAvailable",
   "DeploymentAutoUpdated",
   // Misc
+  "ScheduleRun",
   "BuildFailed",
   "ResourceSyncPendingUpdates",
   "RepoBuildFailed",
