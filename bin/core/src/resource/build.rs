@@ -216,9 +216,10 @@ impl super::KomodoResource for Build {
   }
 
   async fn post_delete(
-    _resource: &Resource<Self::Config, Self::Info>,
+    resource: &Resource<Self::Config, Self::Info>,
     _update: &mut Update,
   ) -> anyhow::Result<()> {
+    build_state_cache().remove(&resource.id).await;
     Ok(())
   }
 }

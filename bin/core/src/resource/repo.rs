@@ -161,13 +161,6 @@ impl super::KomodoResource for Repo {
   }
 
   async fn pre_delete(
-    _resource: &Resource<Self::Config, Self::Info>,
-    _update: &mut Update,
-  ) -> anyhow::Result<()> {
-    Ok(())
-  }
-
-  async fn post_delete(
     repo: &Resource<Self::Config, Self::Info>,
     update: &mut Update,
   ) -> anyhow::Result<()> {
@@ -191,10 +184,21 @@ impl super::KomodoResource for Repo {
     {
       Ok(log) => update.logs.push(log),
       Err(e) => update.push_error_log(
-        "delete repo on periphery",
-        format_serror(&e.context("failed to delete repo").into()),
+        "Delete Repo on Periphery",
+        format_serror(
+          &e.context("Failed to delete repo files").into(),
+        ),
       ),
     }
+
+    Ok(())
+  }
+
+  async fn post_delete(
+    repo: &Resource<Self::Config, Self::Info>,
+    _update: &mut Update,
+  ) -> anyhow::Result<()> {
+    repo_state_cache().remove(&repo.id).await;
 
     Ok(())
   }

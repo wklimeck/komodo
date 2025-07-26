@@ -320,7 +320,6 @@ impl super::KomodoResource for Stack {
       };
 
     if !server.config.enabled {
-      // Don't need to
       update.push_simple_log(
         "destroy stack",
         "skipping stack destroy, server is disabled.",
@@ -366,9 +365,10 @@ impl super::KomodoResource for Stack {
   }
 
   async fn post_delete(
-    _resource: &Resource<Self::Config, Self::Info>,
+    resource: &Resource<Self::Config, Self::Info>,
     _update: &mut Update,
   ) -> anyhow::Result<()> {
+    stack_status_cache().remove(&resource.id).await;
     Ok(())
   }
 }

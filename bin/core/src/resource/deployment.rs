@@ -301,9 +301,10 @@ impl super::KomodoResource for Deployment {
   }
 
   async fn post_delete(
-    _resource: &Resource<Self::Config, Self::Info>,
+    resource: &Resource<Self::Config, Self::Info>,
     _update: &mut Update,
   ) -> anyhow::Result<()> {
+    deployment_status_cache().remove(&resource.id).await;
     Ok(())
   }
 }

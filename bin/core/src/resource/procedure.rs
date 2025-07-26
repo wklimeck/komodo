@@ -165,6 +165,7 @@ impl super::KomodoResource for Procedure {
     _update: &mut Update,
   ) -> anyhow::Result<()> {
     cancel_schedule(&ResourceTarget::Procedure(resource.id.clone()));
+    procedure_state_cache().remove(&resource.id).await;
     Ok(())
   }
 }
