@@ -371,7 +371,7 @@ export const BuildConfig = ({
               />
             )}
             <InputList
-              field="ext ra_args"
+              field="extra_args"
               values={value ?? []}
               set={set}
               disabled={disabled}
