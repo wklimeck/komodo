@@ -56,7 +56,7 @@ const NoSearchLogs = (
       tail,
       timestamps,
     },
-    { refetchInterval: poll ? 3 : false }
+    { refetchInterval: poll ? 3000 : false }
   );
   return {
     Log: (
@@ -85,7 +85,7 @@ const SearchLogs = (
       invert,
       timestamps,
     },
-    { refetchInterval: poll ? 10 : false }
+    { refetchInterval: poll ? 10000 : false }
   );
   return {
     Log: (
