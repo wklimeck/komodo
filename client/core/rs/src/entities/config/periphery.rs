@@ -12,14 +12,17 @@
 //! the configuration file.
 //!
 
-use std::{collections::HashMap, path::PathBuf};
-use ipnetwork::IpNetwork;
 use clap::Parser;
+use ipnetwork::IpNetwork;
 use serde::Deserialize;
+use std::{collections::HashMap, path::PathBuf};
 
-use crate::entities::{
-  Timelength,
-  logger::{LogConfig, LogLevel, StdioLogMode},
+use crate::{
+  deserializers::ForgivingVec,
+  entities::{
+    Timelength,
+    logger::{LogConfig, LogLevel, StdioLogMode},
+  },
 };
 
 use super::{
@@ -150,15 +153,15 @@ pub struct Env {
   pub periphery_pretty_startup_config: Option<bool>,
 
   /// Override `allowed_ips`
-  pub periphery_allowed_ips: Option<Vec<IpNetwork>>,
+  pub periphery_allowed_ips: Option<ForgivingVec<IpNetwork>>,
   /// Override `passkeys`
   pub periphery_passkeys: Option<Vec<String>>,
   /// Override `passkeys` from file
   pub periphery_passkeys_file: Option<PathBuf>,
   /// Override `include_disk_mounts`
-  pub periphery_include_disk_mounts: Option<Vec<PathBuf>>,
+  pub periphery_include_disk_mounts: Option<ForgivingVec<PathBuf>>,
   /// Override `exclude_disk_mounts`
-  pub periphery_exclude_disk_mounts: Option<Vec<PathBuf>>,
+  pub periphery_exclude_disk_mounts: Option<ForgivingVec<PathBuf>>,
 
   /// Override `ssl_enabled`
   pub periphery_ssl_enabled: Option<bool>,
@@ -255,7 +258,7 @@ pub struct PeripheryConfig {
   ///
   /// Note: this should be configured to increase security.
   #[serde(default)]
-  pub allowed_ips: Vec<IpNetwork>,
+  pub allowed_ips: ForgivingVec<IpNetwork>,
 
   /// Limits the accepted passkeys.
   /// Default: none
@@ -266,11 +269,11 @@ pub struct PeripheryConfig {
 
   /// If non-empty, only includes specific mount paths in the disk report.
   #[serde(default)]
-  pub include_disk_mounts: Vec<PathBuf>,
+  pub include_disk_mounts: ForgivingVec<PathBuf>,
 
   /// Exclude specific mount paths in the disk report.
   #[serde(default)]
-  pub exclude_disk_mounts: Vec<PathBuf>,
+  pub exclude_disk_mounts: ForgivingVec<PathBuf>,
 
   /// Mapping on local periphery secrets. These can be interpolated into eg. Deployment environment variables.
   /// Default: none
@@ -280,12 +283,12 @@ pub struct PeripheryConfig {
   /// Configure git credentials used to clone private repos.
   /// Supports any git provider.
   #[serde(default, alias = "git_provider")]
-  pub git_providers: Vec<GitProvider>,
+  pub git_providers: ForgivingVec<GitProvider>,
 
   /// Configure docker credentials used to push / pull images.
   /// Supports any docker image repository.
   #[serde(default, alias = "docker_registry")]
-  pub docker_registries: Vec<DockerRegistry>,
+  pub docker_registries: ForgivingVec<DockerRegistry>,
 
   /// Whether to enable ssl.
   /// Default: true

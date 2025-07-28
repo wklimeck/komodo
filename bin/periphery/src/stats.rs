@@ -120,7 +120,7 @@ impl StatsClient {
           return false;
         }
         let path = d.mount_point();
-        for mount in &config.exclude_disk_mounts {
+        for mount in config.exclude_disk_mounts.iter() {
           if path == mount {
             return false;
           }
@@ -128,7 +128,7 @@ impl StatsClient {
         if config.include_disk_mounts.is_empty() {
           return true;
         }
-        for mount in &config.include_disk_mounts {
+        for mount in config.include_disk_mounts.iter() {
           if path == mount {
             return true;
           }
