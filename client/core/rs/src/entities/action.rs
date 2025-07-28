@@ -161,7 +161,7 @@ fn default_failure_alert() -> bool {
 }
 
 fn default_run_at_startup() -> bool {
-    false
+  false
 }
 
 fn default_webhook_enabled() -> bool {

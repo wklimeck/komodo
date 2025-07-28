@@ -103,8 +103,11 @@ impl Resolve<super::Args> for GetComposeLog {
       timestamps,
     } = self;
     let docker_compose = docker_compose();
-    let timestamps =
-      if timestamps { " --timestamps" } else { Default::default() };
+    let timestamps = if timestamps {
+      " --timestamps"
+    } else {
+      Default::default()
+    };
     let command = format!(
       "{docker_compose} -p {project} logs --tail {tail}{timestamps} {}",
       services.join(" ")
@@ -126,8 +129,11 @@ impl Resolve<super::Args> for GetComposeLogSearch {
     } = self;
     let docker_compose = docker_compose();
     let grep = log_grep(&terms, combinator, invert);
-    let timestamps =
-      if timestamps { " --timestamps" } else { Default::default() };
+    let timestamps = if timestamps {
+      " --timestamps"
+    } else {
+      Default::default()
+    };
     let command = format!(
       "{docker_compose} -p {project} logs --tail 5000{timestamps} {} 2>&1 | {grep}",
       services.join(" ")
