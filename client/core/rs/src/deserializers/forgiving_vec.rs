@@ -3,7 +3,6 @@ use serde::{
   Deserialize, Deserializer,
   de::{IntoDeserializer, Visitor},
 };
-use tracing::warn;
 
 #[derive(Debug, Clone)]
 pub struct ForgivingVec<T>(pub Vec<T>);
@@ -77,15 +76,17 @@ impl<'de, T: Deserialize<'de>> Visitor<'de>
           ) {
             Ok(item) => res.push(item),
             Err(e) => {
-              warn!(
-                "failed to parse item in list | {content:?} | {e:?}"
+              // Since this is used to parse startup config (including logging config),
+              // the tracing logging is not initialized. Need to use eprintln.
+              eprintln!(
+                "WARN: failed to parse item in list | {content:?} | {e:?}",
               )
             }
           }
         }
         Ok(None) => break,
         Err(e) => {
-          warn!("failed to get item in list | {e:?}");
+          eprintln!("WARN: failed to get item in list | {e:?}");
         }
       }
     }
