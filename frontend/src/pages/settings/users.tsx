@@ -10,28 +10,35 @@ import {
   useUser,
   useWrite,
 } from "@lib/hooks";
+import { filterBySplit } from "@lib/utils";
 import { DataTable } from "@ui/data-table";
 import { Input } from "@ui/input";
 import { useToast } from "@ui/use-toast";
 import { Search, User, Users } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const UsersPage = ({ goToProfile }: { goToProfile: () => void }) => {
   useSetTitle("Users");
+  const [search, setSearch] = useState("");
   return (
     <div className="flex flex-col gap-6">
-      <UserGroupsSection />
-      <UsersSection goToProfile={goToProfile} />
+      <UserGroupsSection search={search} setSearch={setSearch} />
+      <UsersSection search={search} goToProfile={goToProfile} />
     </div>
   );
 };
 
-const UserGroupsSection = () => {
+const UserGroupsSection = ({
+  search,
+  setSearch,
+}: {
+  search: string;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const nav = useNavigate();
   const groups = useRead("ListUserGroups", {}).data;
-  const [search, setSearch] = useState("");
-  const searchSplit = search.split(" ");
+  const filtered = filterBySplit(groups, search, (group) => group.name);
   return (
     <Section title="User Groups" icon={<Users className="w-4 h-4" />}>
       <div className="flex items-center justify-between">
@@ -59,11 +66,7 @@ const UserGroupsSection = () => {
       </div>
       <DataTable
         tableKey="user-groups"
-        data={
-          groups?.filter((group) =>
-            searchSplit.every((term) => group.name.includes(term))
-          ) ?? []
-        }
+        data={filtered}
         columns={[
           { header: "Name", accessorKey: "name" },
           {
@@ -84,7 +87,13 @@ const UserGroupsSection = () => {
   );
 };
 
-const UsersSection = ({ goToProfile }: { goToProfile: () => void }) => {
+const UsersSection = ({
+  goToProfile,
+  search,
+}: {
+  goToProfile: () => void;
+  search: string;
+}) => {
   const user = useUser().data;
   const inv = useInvalidate();
   const { toast } = useToast();
@@ -95,13 +104,12 @@ const UsersSection = ({ goToProfile }: { goToProfile: () => void }) => {
     },
   });
   const users = useRead("ListUsers", {}).data;
-  const [search, setSearch] = useState("");
-  const searchSplit = search.split(" ");
+  const filtered = filterBySplit(users, search, (user) => user.username);
   return (
     <Section title="Users" icon={<User className="w-4 h-4" />}>
       <div className="flex items-center justify-between">
         <NewServiceUser />
-        <div className="relative">
+        {/* <div className="relative">
           <Search className="w-4 absolute top-[50%] left-3 -translate-y-[50%] text-muted-foreground" />
           <Input
             placeholder="search..."
@@ -109,14 +117,10 @@ const UsersSection = ({ goToProfile }: { goToProfile: () => void }) => {
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 w-[200px] lg:w-[300px]"
           />
-        </div>
+        </div> */}
       </div>
       <UserTable
-        users={
-          users?.filter((user) =>
-            searchSplit.every((term) => user.username.includes(term))
-          ) ?? []
-        }
+        users={filtered}
         onUserDelete={
           user?.admin ? (user_id) => deleteUser({ user: user_id }) : undefined
         }
