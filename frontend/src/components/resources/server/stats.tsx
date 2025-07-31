@@ -1,8 +1,16 @@
 import { Section } from "@components/layouts";
 import { Card, CardContent, CardHeader, CardTitle } from "@ui/card";
 import { Progress } from "@ui/progress";
-import { Cpu, Database, Loader2, MemoryStick } from "lucide-react";
-import { usePermissions, useRead } from "@lib/hooks";
+import {
+  ChevronDown,
+  ChevronUp,
+  Cpu,
+  Database,
+  Loader2,
+  MemoryStick,
+  Search,
+} from "lucide-react";
+import { useLocalStorage, usePermissions, useRead } from "@lib/hooks";
 import { Types } from "komodo_client";
 import { DataTable, SortableHeader } from "@ui/data-table";
 import { ReactNode, useMemo, useState } from "react";
@@ -17,6 +25,8 @@ import {
   SelectValue,
 } from "@ui/select";
 import { DockerResourceLink, ShowHideButton } from "@components/util";
+import { filterBySplit } from "@lib/utils";
+import { Button } from "@ui/button";
 
 export const ServerStats = ({
   id,
@@ -40,7 +50,21 @@ export const ServerStats = ({
   const containers = useRead("ListDockerContainers", {
     server: id,
   }).data?.filter((c) => c.stats);
+  const [showContainers, setShowContainers] = useLocalStorage(
+    "stats-show-container-table-v1",
+    true
+  );
+  const [containerSearch, setContainerSearch] = useState("");
+  const filteredContainers = filterBySplit(
+    containers,
+    containerSearch,
+    (container) => container.name
+  );
 
+  const [showDisks, setShowDisks] = useLocalStorage(
+    "stats-show-disks-table-v1",
+    true
+  );
   const disk_used = stats?.disks.reduce(
     (acc, curr) => (acc += curr.used_gb),
     0
@@ -107,70 +131,98 @@ export const ServerStats = ({
         </Section>
 
         {/* Container Breakdown */}
-        <Section title="Containers">
-          <DataTable
-            tableKey="container-stats"
-            data={containers ?? []}
-            columns={[
-              {
-                accessorKey: "name",
-                size: 200,
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="Name" />
-                ),
-                cell: ({ row }) => (
-                  <DockerResourceLink
-                    type="container"
-                    server_id={id}
-                    name={row.original.name}
-                  />
-                ),
-              },
-              {
-                accessorKey: "stats.cpu_perc",
-                size: 100,
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="CPU" />
-                ),
-              },
-              {
-                accessorKey: "stats.mem_perc",
-                size: 200,
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="Memory" />
-                ),
-                cell: ({ row }) => (
-                  <div className="flex items-center gap-2">
-                    {row.original.stats?.mem_perc}
-                    <div className="text-muted-foreground text-sm">
-                      ({row.original.stats?.mem_usage})
+        <Section
+          title="Containers"
+          actions={
+            <div className="flex gap-4 items-center">
+              <div className="relative">
+                <Search className="w-4 absolute top-[50%] left-3 -translate-y-[50%] text-muted-foreground" />
+                <Input
+                  value={containerSearch}
+                  onChange={(e) => setContainerSearch(e.target.value)}
+                  placeholder="search..."
+                  className="pl-8 w-[200px] lg:w-[300px]"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowContainers((y) => !y)}
+              >
+                {showContainers ? "Hide" : "Show"}
+                {showContainers ? (
+                  <ChevronUp className="w-4" />
+                ) : (
+                  <ChevronDown className="w-4" />
+                )}
+              </Button>
+            </div>
+          }
+        >
+          {showContainers && (
+            <DataTable
+              tableKey="container-stats"
+              data={filteredContainers}
+              columns={[
+                {
+                  accessorKey: "name",
+                  size: 200,
+                  header: ({ column }) => (
+                    <SortableHeader column={column} title="Name" />
+                  ),
+                  cell: ({ row }) => (
+                    <DockerResourceLink
+                      type="container"
+                      server_id={id}
+                      name={row.original.name}
+                    />
+                  ),
+                },
+                {
+                  accessorKey: "stats.cpu_perc",
+                  size: 100,
+                  header: ({ column }) => (
+                    <SortableHeader column={column} title="CPU" />
+                  ),
+                },
+                {
+                  accessorKey: "stats.mem_perc",
+                  size: 200,
+                  header: ({ column }) => (
+                    <SortableHeader column={column} title="Memory" />
+                  ),
+                  cell: ({ row }) => (
+                    <div className="flex items-center gap-2">
+                      {row.original.stats?.mem_perc}
+                      <div className="text-muted-foreground text-sm">
+                        ({row.original.stats?.mem_usage})
+                      </div>
                     </div>
-                  </div>
-                ),
-              },
-              {
-                accessorKey: "stats.net_io",
-                size: 150,
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="Net I/O" />
-                ),
-              },
-              {
-                accessorKey: "stats.block_io",
-                size: 150,
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="Block I/O" />
-                ),
-              },
-              {
-                accessorKey: "stats.pids",
-                size: 100,
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="PIDs" />
-                ),
-              },
-            ]}
-          />
+                  ),
+                },
+                {
+                  accessorKey: "stats.net_io",
+                  size: 150,
+                  header: ({ column }) => (
+                    <SortableHeader column={column} title="Net I/O" />
+                  ),
+                },
+                {
+                  accessorKey: "stats.block_io",
+                  size: 150,
+                  header: ({ column }) => (
+                    <SortableHeader column={column} title="Block I/O" />
+                  ),
+                },
+                {
+                  accessorKey: "stats.pids",
+                  size: 100,
+                  header: ({ column }) => (
+                    <SortableHeader column={column} title="PIDs" />
+                  ),
+                },
+              ]}
+            />
+          )}
         </Section>
 
         {/* Current Disk Breakdown */}
@@ -186,56 +238,74 @@ export const ServerStats = ({
                 <div className="text-muted-foreground">Total:</div>
                 {disk_total?.toFixed(2)} GB
               </div>
+              <Button variant="outline" onClick={() => setShowDisks((y) => !y)}>
+                {showDisks ? "Hide" : "Show"}
+                {showDisks ? (
+                  <ChevronUp className="w-4" />
+                ) : (
+                  <ChevronDown className="w-4" />
+                )}
+              </Button>
             </div>
           }
         >
-          <DataTable
-            sortDescFirst
-            tableKey="server-disks"
-            data={
-              stats?.disks.map((disk) => ({
-                ...disk,
-                percentage: 100 * (disk.used_gb / disk.total_gb),
-              })) ?? []
-            }
-            columns={[
-              {
-                header: "Path",
-                cell: ({ row }) => (
-                  <div className="overflow-hidden overflow-ellipsis">
-                    {row.original.mount}
-                  </div>
-                ),
-              },
-              {
-                accessorKey: "used_gb",
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="Used" sortDescFirst />
-                ),
-                cell: ({ row }) => <>{row.original.used_gb.toFixed(2)} GB</>,
-              },
-              {
-                accessorKey: "total_gb",
-                header: ({ column }) => (
-                  <SortableHeader column={column} title="Total" sortDescFirst />
-                ),
-                cell: ({ row }) => <>{row.original.total_gb.toFixed(2)} GB</>,
-              },
-              {
-                accessorKey: "percentage",
-                header: ({ column }) => (
-                  <SortableHeader
-                    column={column}
-                    title="Percentage"
-                    sortDescFirst
-                  />
-                ),
-                cell: ({ row }) => (
-                  <>{row.original.percentage.toFixed(2)}% Full</>
-                ),
-              },
-            ]}
-          />
+          {showDisks && (
+            <DataTable
+              sortDescFirst
+              tableKey="server-disks"
+              data={
+                stats?.disks.map((disk) => ({
+                  ...disk,
+                  percentage: 100 * (disk.used_gb / disk.total_gb),
+                })) ?? []
+              }
+              columns={[
+                {
+                  header: "Path",
+                  cell: ({ row }) => (
+                    <div className="overflow-hidden overflow-ellipsis">
+                      {row.original.mount}
+                    </div>
+                  ),
+                },
+                {
+                  accessorKey: "used_gb",
+                  header: ({ column }) => (
+                    <SortableHeader
+                      column={column}
+                      title="Used"
+                      sortDescFirst
+                    />
+                  ),
+                  cell: ({ row }) => <>{row.original.used_gb.toFixed(2)} GB</>,
+                },
+                {
+                  accessorKey: "total_gb",
+                  header: ({ column }) => (
+                    <SortableHeader
+                      column={column}
+                      title="Total"
+                      sortDescFirst
+                    />
+                  ),
+                  cell: ({ row }) => <>{row.original.total_gb.toFixed(2)} GB</>,
+                },
+                {
+                  accessorKey: "percentage",
+                  header: ({ column }) => (
+                    <SortableHeader
+                      column={column}
+                      title="Percentage"
+                      sortDescFirst
+                    />
+                  ),
+                  cell: ({ row }) => (
+                    <>{row.original.percentage.toFixed(2)}% Full</>
+                  ),
+                },
+              ]}
+            />
+          )}
         </Section>
 
         {/* Historical Charts */}
