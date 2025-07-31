@@ -53,7 +53,7 @@ export const ServerStats = ({
   return (
     <Section titleOther={titleOther}>
       <div className="flex flex-col gap-8">
-        {/* Stats */}
+        {/* System Info */}
         <Section title="System Info">
           <DataTable
             tableKey="system-info"
@@ -96,6 +96,7 @@ export const ServerStats = ({
           />
         </Section>
 
+        {/* Current Overview */}
         <Section title="Current">
           <div className="flex flex-col xl:flex-row gap-4">
             <CPU stats={stats} />
@@ -105,6 +106,7 @@ export const ServerStats = ({
           </div>
         </Section>
 
+        {/* Container Breakdown */}
         <Section title="Containers">
           <DataTable
             tableKey="container-stats"
@@ -171,69 +173,7 @@ export const ServerStats = ({
           />
         </Section>
 
-        <Section
-          title="Historical"
-          actions={
-            <div className="flex gap-4 items-center">
-              {/* Granularity Dropdown */}
-              <div className="flex items-center gap-2">
-                <div className="text-muted-foreground">Interval:</div>
-                <Select
-                  value={interval}
-                  onValueChange={(interval) =>
-                    setInterval(interval as Types.Timelength)
-                  }
-                >
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      Types.Timelength.FifteenSeconds,
-                      Types.Timelength.ThirtySeconds,
-                      Types.Timelength.OneMinute,
-                      Types.Timelength.FiveMinutes,
-                      Types.Timelength.FifteenMinutes,
-                      Types.Timelength.ThirtyMinutes,
-                      Types.Timelength.OneHour,
-                      Types.Timelength.SixHours,
-                      Types.Timelength.OneDay,
-                    ].map((timelength) => (
-                      <SelectItem key={timelength} value={timelength}>
-                        {timelength}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          }
-        >
-          <div className="flex flex-col gap-8">
-            <StatChart server_id={id} type="Cpu" className="w-full h-[250px]" />
-            <StatChart
-              server_id={id}
-              type="Memory"
-              className="w-full h-[250px]"
-            />
-            <StatChart
-              server_id={id}
-              type="Disk"
-              className="w-full h-[250px]"
-            />
-            <StatChart
-              server_id={id}
-              type="Network Ingress"
-              className="w-full h-[250px]"
-            />
-            <StatChart
-              server_id={id}
-              type="Network Egress"
-              className="w-full h-[250px]"
-            />
-          </div>
-        </Section>
-
+        {/* Current Disk Breakdown */}
         <Section
           title="Disks"
           actions={
@@ -296,6 +236,70 @@ export const ServerStats = ({
               },
             ]}
           />
+        </Section>
+
+        {/* Historical Charts */}
+        <Section
+          title="Historical"
+          actions={
+            <div className="flex gap-4 items-center">
+              {/* Granularity Dropdown */}
+              <div className="flex items-center gap-2">
+                <div className="text-muted-foreground">Interval:</div>
+                <Select
+                  value={interval}
+                  onValueChange={(interval) =>
+                    setInterval(interval as Types.Timelength)
+                  }
+                >
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      Types.Timelength.FifteenSeconds,
+                      Types.Timelength.ThirtySeconds,
+                      Types.Timelength.OneMinute,
+                      Types.Timelength.FiveMinutes,
+                      Types.Timelength.FifteenMinutes,
+                      Types.Timelength.ThirtyMinutes,
+                      Types.Timelength.OneHour,
+                      Types.Timelength.SixHours,
+                      Types.Timelength.OneDay,
+                    ].map((timelength) => (
+                      <SelectItem key={timelength} value={timelength}>
+                        {timelength}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-8">
+            <StatChart server_id={id} type="Cpu" className="w-full h-[250px]" />
+            <StatChart
+              server_id={id}
+              type="Memory"
+              className="w-full h-[250px]"
+            />
+            <StatChart
+              server_id={id}
+              type="Disk"
+              className="w-full h-[250px]"
+            />
+            <StatChart
+              server_id={id}
+              type="Network Ingress"
+              className="w-full h-[250px]"
+            />
+            <StatChart
+              server_id={id}
+              type="Network Egress"
+              className="w-full h-[250px]"
+            />
+          </div>
         </Section>
 
         {specific.includes(Types.SpecificPermission.Processes) && (
