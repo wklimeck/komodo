@@ -607,7 +607,7 @@ impl Resolve<super::Args> for ComposeUp {
       let build_extra_args =
         parse_extra_args(&stack.config.build_extra_args);
       let command = format!(
-        "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} build{build_extra_args}{service_args}",
+        "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} build{build_extra_args}{service_args}",
       );
       let Some(log) = run_komodo_command_with_sanitization(
         "Compose Build",
@@ -631,7 +631,7 @@ impl Resolve<super::Args> for ComposeUp {
       // Pull images before destroying to minimize downtime.
       // If this fails, do not continue.
       let command = format!(
-        "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} pull{service_args}",
+        "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} pull{service_args}",
       );
       let log = run_komodo_command(
         "Compose Pull",
@@ -659,7 +659,7 @@ impl Resolve<super::Args> for ComposeUp {
     // Run compose up
     let extra_args = parse_extra_args(&stack.config.extra_args);
     let command = format!(
-      "{docker_compose} -p {project_name} -f {file_args}{env_file}{additional_env_files} up -d{extra_args}{service_args}",
+      "{docker_compose} -p {project_name} -f {file_args}{additional_env_files}{env_file} up -d{extra_args}{service_args}",
     );
 
     let Some(log) = run_komodo_command_with_sanitization(
