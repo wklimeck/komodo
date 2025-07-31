@@ -2429,9 +2429,14 @@ export interface Tag {
 	 */
 	_id?: MongoId;
 	name: string;
+	owner?: string;
 	/** Hex color code with alpha for UI display */
 	color?: TagColor;
-	owner?: string;
+	/**
+	 * This field is not stored on database,
+	 * but rather populated at query time based on results from the other resources.
+	 */
+	unused?: boolean;
 }
 
 export type GetTagResponse = Tag;

@@ -46,6 +46,7 @@ impl Resolve<WriteArgs> for CreateTag {
       name: self.name,
       color: TagColor::Slate,
       owner: user.id.clone(),
+      unused: false,
     };
 
     tag.id = db_client()
