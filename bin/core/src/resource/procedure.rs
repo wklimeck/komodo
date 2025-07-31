@@ -725,6 +725,13 @@ async fn validate_config(
           .await?;
           params.alerter = alerter.id;
         }
+        Execution::ClearRepoCache(_params) => {
+          if !user.admin {
+            return Err(anyhow!(
+              "Non admin user cannot clear repo cache"
+            ));
+          }
+        }
         Execution::Sleep(_) => {}
       }
     }

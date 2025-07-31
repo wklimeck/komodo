@@ -669,6 +669,7 @@ impl ResourceSyncTrait for Procedure {
               .map(|a| a.name.clone())
               .unwrap_or_default();
           }
+          Execution::ClearRepoCache(_) => {}
           Execution::Sleep(_) => {}
         }
       }

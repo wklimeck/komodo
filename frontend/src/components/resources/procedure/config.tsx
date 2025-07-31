@@ -1412,6 +1412,11 @@ const TARGET_COMPONENTS: ExecutionConfigs = {
     ),
   },
 
+  ClearRepoCache: {
+    params: {},
+    Component: () => <></>,
+  },
+
   Sleep: {
     params: { duration_ms: 0 },
     Component: ({ params, setParams, disabled }) => {

@@ -87,7 +87,7 @@ export interface ActionConfig {
     /** Whether to send alerts when the schedule was run. */
     schedule_alert: boolean;
     /** Whether this action should run at startup. */
-    run_at_startup?: boolean;
+    run_at_startup: boolean;
     /** Whether to send alerts when this action fails. */
     failure_alert: boolean;
     /** Whether incoming webhooks actually trigger action. */
@@ -439,6 +439,7 @@ export declare enum Operation {
     WriteSyncContents = "WriteSyncContents",
     CommitSync = "CommitSync",
     RunSync = "RunSync",
+    ClearRepoCache = "ClearRepoCache",
     CreateVariable = "CreateVariable",
     UpdateVariableValue = "UpdateVariableValue",
     DeleteVariable = "DeleteVariable",
@@ -960,6 +961,9 @@ export type Execution =
 } | {
     type: "TestAlerter";
     params: TestAlerter;
+} | {
+    type: "ClearRepoCache";
+    params: ClearRepoCache;
 } | {
     type: "Sleep";
     params: Sleep;
@@ -4180,6 +4184,9 @@ export interface CancelRepoBuild {
     /** Can be id or name */
     repo: string;
 }
+/** Clears all repos from the Core repo cache. Admin only. */
+export interface ClearRepoCache {
+}
 /**
  * Clones the target repo. Response: [Update].
  *
@@ -7227,6 +7234,7 @@ export interface SlackAlerterEndpoint {
     /** The Slack app webhook url */
     url: string;
 }
+/** Sleeps for the specified time. */
 export interface Sleep {
     duration_ms?: I64;
 }
@@ -7928,6 +7936,9 @@ export type ExecuteRequest = {
 } | {
     type: "RunSync";
     params: RunSync;
+} | {
+    type: "ClearRepoCache";
+    params: ClearRepoCache;
 };
 /**
  * One representative IANA zone for each distinct base UTC offset in the tz database.

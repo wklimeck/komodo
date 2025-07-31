@@ -786,7 +786,9 @@ impl ToToml for Procedure {
               .map(|a| &a.name)
               .unwrap_or(&String::new()),
           ),
-          Execution::Sleep(_) | Execution::None(_) => {}
+          Execution::None(_)
+          | Execution::Sleep(_)
+          | Execution::ClearRepoCache(_) => {}
         }
       }
     }

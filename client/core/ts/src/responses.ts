@@ -407,4 +407,7 @@ export type ExecuteResponses = {
 
   // ==== ALERTER ====
   TestAlerter: Types.Update;
+
+  // ==== MAINTENANCE ====
+  ClearRepoCache: Types.Update;
 };

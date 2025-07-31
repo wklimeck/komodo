@@ -1161,6 +1161,9 @@ pub enum Operation {
   CommitSync,
   RunSync,
 
+  // maintenance
+  ClearRepoCache,
+
   // variable
   CreateVariable,
   UpdateVariableValue,

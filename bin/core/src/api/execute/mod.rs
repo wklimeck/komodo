@@ -1,6 +1,6 @@
-use std::{pin::Pin, time::Instant};
+use std::{pin::Pin, sync::OnceLock, time::Instant};
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use axum::{
   Extension, Router, extract::Path, middleware, routing::post,
 };
@@ -18,16 +18,19 @@ use komodo_client::{
   },
 };
 use mungos::by_id::find_one_by_id;
+use reqwest::StatusCode;
 use resolver_api::Resolve;
 use response::JsonString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use serror::Json;
+use serror::{AddStatusCodeError, Json};
+use tokio::sync::Mutex;
 use typeshare::typeshare;
 use uuid::Uuid;
 
 use crate::{
   auth::auth_request,
+  config::core_config,
   helpers::update::{init_execution_update, update_update},
   resource::{KomodoResource, list_full_for_user_using_pattern},
   state::db_client,
@@ -141,6 +144,9 @@ pub enum ExecuteRequest {
 
   // ==== SYNC ====
   RunSync(RunSync),
+
+  // ==== MAINTENANCE ====
+  ClearRepoCache(ClearRepoCache),
 }
 
 pub fn router() -> Router {
@@ -327,4 +333,72 @@ async fn batch_execute<E: BatchExecute>(
     }
   });
   Ok(join_all(futures).await)
+}
+
+fn clear_repo_cache_lock() -> &'static Mutex<()> {
+  static CLEAR_REPO_CACHE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+  CLEAR_REPO_CACHE_LOCK.get_or_init(Default::default)
+}
+
+impl Resolve<ExecuteArgs> for ClearRepoCache {
+  #[instrument(name = "ClearRepoCache", skip(user, update), fields(user_id = user.id, update_id = update.id))]
+  async fn resolve(
+    self,
+    ExecuteArgs { user, update }: &ExecuteArgs,
+  ) -> Result<Self::Response, Self::Error> {
+    if !user.admin {
+      return Err(
+        anyhow!("This method is admin only.")
+          .status_code(StatusCode::UNAUTHORIZED),
+      );
+    }
+
+    let _lock = clear_repo_cache_lock()
+      .try_lock()
+      .context("Clear already in progress...")?;
+
+    let mut update = update.clone();
+
+    let mut contents =
+      tokio::fs::read_dir(&core_config().repo_directory)
+        .await
+        .context("Failed to read repo cache directory")?;
+
+    loop {
+      let path = match contents
+        .next_entry()
+        .await
+        .context("Failed to read contents at path")
+      {
+        Ok(Some(contents)) => contents.path(),
+        Ok(None) => break,
+        Err(e) => {
+          update.push_error_log(
+            "Read Directory",
+            format_serror(&e.into()),
+          );
+          continue;
+        }
+      };
+      if path.is_dir() {
+        match tokio::fs::remove_dir_all(&path)
+          .await
+          .context("Failed to clear contents at path")
+        {
+          Ok(_) => {}
+          Err(e) => {
+            update.push_error_log(
+              "Clear Directory",
+              format_serror(&e.into()),
+            );
+          }
+        };
+      }
+    }
+
+    update.finalize();
+    update_update(update.clone()).await?;
+
+    Ok(update)
+  }
 }

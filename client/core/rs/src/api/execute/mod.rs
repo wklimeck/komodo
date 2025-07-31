@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
+use derive_empty_traits::EmptyTraits;
 use derive_variants::EnumVariants;
-use resolver_api::HasResponse;
+use resolver_api::{HasResponse, Resolve};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use typeshare::typeshare;
@@ -138,16 +139,37 @@ pub enum Execution {
   // ALERTER
   TestAlerter(TestAlerter),
 
+  // CORE
+  ClearRepoCache(ClearRepoCache),
+
   // SLEEP
   Sleep(Sleep),
 }
 
+/// Sleeps for the specified time.
 #[typeshare]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Parser)]
 pub struct Sleep {
   #[serde(default)]
   pub duration_ms: I64,
 }
+
+/// Clears all repos from the Core repo cache. Admin only.
+#[typeshare]
+#[derive(
+  Serialize,
+  Deserialize,
+  Debug,
+  Clone,
+  PartialEq,
+  Resolve,
+  EmptyTraits,
+  Parser,
+)]
+#[empty_traits(KomodoExecuteRequest)]
+#[response(Update)]
+#[error(serror::Error)]
+pub struct ClearRepoCache {}
 
 #[typeshare]
 pub type BatchExecutionResponse = Vec<BatchExecutionResponseItem>;

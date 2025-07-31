@@ -212,6 +212,9 @@ pub async fn run(execution: Execution) -> anyhow::Result<()> {
     Execution::TestAlerter(data) => {
       println!("{}: {data:?}", "Data".dimmed())
     }
+    Execution::ClearRepoCache(data) => {
+      println!("{}: {data:?}", "Data".dimmed())
+    }
     Execution::Sleep(data) => {
       println!("{}: {data:?}", "Data".dimmed())
     }
@@ -465,6 +468,10 @@ pub async fn run(execution: Execution) -> anyhow::Result<()> {
       .await
       .map(ExecutionResult::Batch),
     Execution::TestAlerter(request) => komodo_client()
+      .execute(request)
+      .await
+      .map(|u| ExecutionResult::Single(u.into())),
+    Execution::ClearRepoCache(request) => komodo_client()
       .execute(request)
       .await
       .map(|u| ExecutionResult::Single(u.into())),

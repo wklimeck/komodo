@@ -499,6 +499,11 @@ pub async fn init_execution_update(
         resource::get::<Alerter>(&data.alerter).await?.id,
       ),
     ),
+
+    // Maintenance
+    ExecuteRequest::ClearRepoCache(_data) => {
+      (Operation::ClearRepoCache, ResourceTarget::system())
+    }
   };
 
   let mut update = make_update(target, operation, user);
