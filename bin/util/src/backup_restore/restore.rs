@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
 use anyhow::Context;
 use async_compression::tokio::bufread::GzipDecoder;
@@ -15,56 +15,24 @@ use tokio::io::BufReader;
 
 #[derive(Deserialize)]
 struct Env {
-  /// The root folder to store timestamped backup folders in.
-  #[serde(default = "default_backup_folder")]
-  komodo_backup_folder: PathBuf,
-
   /// A specific dated folder to restore, relative to `KOMODO_BACKUP_FOLDER`.
   /// If not provided, will use the most recent folder.
   komodo_restore_folder: Option<PathBuf>,
-
-  komodo_database_uri: Option<String>,
-  komodo_database_uri_file: Option<PathBuf>,
-
-  komodo_database_address: Option<String>,
-
-  komodo_database_username: Option<String>,
-  komodo_database_username_file: Option<PathBuf>,
-
-  komodo_database_password: Option<String>,
-  komodo_database_password_file: Option<PathBuf>,
-
-  #[serde(default = "default_app_name")]
-  komodo_database_app_name: String,
-
-  #[serde(default = "default_db_name")]
-  komodo_database_db_name: String,
-}
-
-fn default_app_name() -> String {
-  String::from("komodo-restore")
-}
-
-fn default_db_name() -> String {
-  String::from("komodo")
-}
-
-fn default_backup_folder() -> PathBuf {
-  // SAFE: /backup is a valid path.
-  PathBuf::from_str("/backup").unwrap()
 }
 
 pub async fn main() -> anyhow::Result<()> {
-  let env = envy::from_env::<Env>()?;
+  let env = envy::from_env::<super::Env>()?;
+  let specific_env = envy::from_env::<Env>()?;
 
-  let restore_folder =
-    if let Some(restore_folder) = env.komodo_restore_folder {
-      env.komodo_backup_folder.join(&restore_folder)
-    } else {
-      latest_restore_folder(&env).await?
-    }
-    .components()
-    .collect::<PathBuf>();
+  let restore_folder = if let Some(restore_folder) =
+    specific_env.komodo_restore_folder
+  {
+    env.komodo_backup_folder.join(&restore_folder)
+  } else {
+    latest_restore_folder(&env).await?
+  }
+  .components()
+  .collect::<PathBuf>();
 
   info!("Restore folder: {restore_folder:?}");
 
@@ -245,7 +213,9 @@ pub async fn main() -> anyhow::Result<()> {
   Ok(())
 }
 
-async fn latest_restore_folder(env: &Env) -> anyhow::Result<PathBuf> {
+async fn latest_restore_folder(
+  env: &super::Env,
+) -> anyhow::Result<PathBuf> {
   let mut max = PathBuf::new();
   let mut backups_dir =
     tokio::fs::read_dir(&env.komodo_backup_folder)

@@ -3,9 +3,8 @@ extern crate tracing;
 
 use serde::Deserialize;
 
-mod backup_database;
+mod backup_restore;
 mod copy_database;
-mod restore_database;
 
 #[derive(Deserialize, Debug, Default)]
 enum Mode {
@@ -31,8 +30,8 @@ async fn app() -> anyhow::Result<()> {
 
   match env.mode {
     Mode::CopyDatabase => copy_database::main().await,
-    Mode::BackupDatabase => backup_database::main().await,
-    Mode::RestoreDatabase => restore_database::main().await,
+    Mode::BackupDatabase => backup_restore::backup::main().await,
+    Mode::RestoreDatabase => backup_restore::restore::main().await,
   }
 }
 

@@ -1,88 +1,15 @@
-use std::{path::PathBuf, str::FromStr, time::Duration};
-
 use anyhow::Context;
 use async_compression::tokio::write::GzipEncoder;
-// use async_compression::tokio::write::GzipEncoder;
 use chrono::Local;
-use environment_file::maybe_read_item_from_file;
 use futures_util::{
   SinkExt, StreamExt, TryStreamExt, stream::FuturesUnordered,
 };
-use mungos::{
-  init::MongoBuilder,
-  mongodb::bson::{Document, RawDocumentBuf},
-};
-use serde::Deserialize;
+use mungos::mongodb::bson::{Document, RawDocumentBuf};
 use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio_util::codec::{FramedWrite, LinesCodec};
 
-#[derive(Deserialize)]
-struct Env {
-  /// The root folder to store timestamped backup folders in.
-  #[serde(default = "default_backup_folder")]
-  komodo_backup_folder: PathBuf,
-  /// Give the source database some time to initialize.
-  /// Default: 0
-  #[serde(default)]
-  startup_sleep_seconds: u64,
-
-  #[serde(alias = "komodo_mongo_uri")]
-  komodo_database_uri: Option<String>,
-
-  #[serde(alias = "komodo_mongo_uri_file")]
-  komodo_database_uri_file: Option<PathBuf>,
-
-  #[serde(alias = "komodo_mongo_address")]
-  komodo_database_address: Option<String>,
-
-  #[serde(alias = "komodo_mongo_username")]
-  komodo_database_username: Option<String>,
-
-  #[serde(alias = "komodo_mongo_username_file")]
-  komodo_database_username_file: Option<PathBuf>,
-
-  #[serde(alias = "komodo_mongo_password")]
-  komodo_database_password: Option<String>,
-
-  #[serde(alias = "komodo_mongo_password_file")]
-  komodo_database_password_file: Option<PathBuf>,
-
-  #[serde(
-    default = "default_app_name",
-    alias = "komodo_mongo_app_name"
-  )]
-  komodo_database_app_name: String,
-
-  #[serde(
-    default = "default_db_name",
-    alias = "komodo_mongo_db_name"
-  )]
-  komodo_database_db_name: String,
-}
-
-fn default_app_name() -> String {
-  String::from("komodo-backup")
-}
-
-fn default_db_name() -> String {
-  String::from("komodo")
-}
-
-fn default_backup_folder() -> PathBuf {
-  // SAFE: /backup is a valid path.
-  PathBuf::from_str("/backup").unwrap()
-}
-
 pub async fn main() -> anyhow::Result<()> {
-  let env = envy::from_env::<Env>()?;
-
-  if env.startup_sleep_seconds > 0 {
-    info!("Sleeping for {} seconds...", env.startup_sleep_seconds);
-    tokio::time::sleep(Duration::from_secs(
-      env.startup_sleep_seconds,
-    ))
-    .await;
-  }
+  let env = envy::from_env::<super::Env>()?;
 
   let now_backup_folder = env
     .komodo_backup_folder
@@ -94,39 +21,14 @@ pub async fn main() -> anyhow::Result<()> {
 
   info!("Backing up to {now_backup_folder:?}");
 
-  let mut db_builder = MongoBuilder::default();
-  if let Some(uri) = maybe_read_item_from_file(
-    env.komodo_database_uri_file,
-    env.komodo_database_uri,
-  ) {
-    db_builder = db_builder.uri(uri);
-  }
-  if let Some(address) = env.komodo_database_address {
-    db_builder = db_builder.address(address);
-  }
-  if let Some(username) = maybe_read_item_from_file(
-    env.komodo_database_username_file,
-    env.komodo_database_username,
-  ) {
-    db_builder = db_builder.username(username);
-  }
-  if let Some(password) = maybe_read_item_from_file(
-    env.komodo_database_password_file,
-    env.komodo_database_password,
-  ) {
-    db_builder = db_builder.password(password);
-  }
-  let source_db = db_builder
-    .app_name(env.komodo_database_app_name)
-    .build()
-    .await
-    .context("Failed to initialize source database")?
-    .database(&env.komodo_database_db_name);
+  let source_db = super::database(&env).await?;
 
   let mut handles = source_db
     .list_collection_names()
     .await
-    .context("Failed to list collections on source db")?.into_iter().map(|collection| {
+    .context("Failed to list collections on source db")?
+    .into_iter()
+    .map(|collection| {
       let source = source_db.collection::<RawDocumentBuf>(&collection);
       let file_path = if collection == "Stats" {
         env.komodo_backup_folder.join("Stats.jsonl.gz")
