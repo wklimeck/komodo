@@ -1,15 +1,11 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use async_compression::tokio::bufread::GzipDecoder;
-use environment_file::maybe_read_item_from_file;
 use futures_util::{
   StreamExt, TryStreamExt, stream::FuturesUnordered,
 };
-use mungos::{
-  init::MongoBuilder,
-  mongodb::{bson::Document, options::InsertManyOptions},
-};
+use mungos::mongodb::{bson::Document, options::InsertManyOptions};
 use serde::Deserialize;
 use tokio::io::BufReader;
 
@@ -24,6 +20,7 @@ pub async fn main() -> anyhow::Result<()> {
   let env = envy::from_env::<super::Env>()?;
   let specific_env = envy::from_env::<Env>()?;
 
+  // Get the specific dated folder to restore contents of
   let restore_folder = if let Some(restore_folder) =
     specific_env.komodo_restore_folder
   {
@@ -36,82 +33,10 @@ pub async fn main() -> anyhow::Result<()> {
 
   info!("Restore folder: {restore_folder:?}");
 
-  let mut restore_dir = tokio::fs::read_dir(&restore_folder)
-    .await
-    .with_context(|| {
-      format!("Failed to read restore directory {restore_folder:?}")
-    })?;
+  let restore_files =
+    get_restore_files(&env, &restore_folder).await?;
 
-  let mut restore_files: Vec<(String, PathBuf)> = vec![(
-    String::from("Stats"),
-    env
-      .komodo_backup_folder
-      .join("Stats.jsonl.gz")
-      .components()
-      .collect(),
-  )];
-
-  loop {
-    match restore_dir
-      .next_entry()
-      .await
-      .context("Failed to read restore dir entry")
-    {
-      Ok(Some(file)) => {
-        let path = file.path();
-        let Some(file_name) = path.file_name() else {
-          continue;
-        };
-        let Some(file_name) = file_name.to_str() else {
-          continue;
-        };
-        let Some(collection) = file_name.strip_suffix(".jsonl.gz")
-        else {
-          continue;
-        };
-        restore_files.push((
-          collection.to_string(),
-          path.components().collect(),
-        ));
-      }
-      Ok(None) => break,
-      Err(e) => {
-        warn!("{e:#}");
-        continue;
-      }
-    }
-  }
-
-  // info!("Restoring: {restore_files:#?}");
-
-  let mut db_builder = MongoBuilder::default();
-  if let Some(uri) = maybe_read_item_from_file(
-    env.komodo_database_uri_file,
-    env.komodo_database_uri,
-  ) {
-    db_builder = db_builder.uri(uri);
-  }
-  if let Some(address) = env.komodo_database_address {
-    db_builder = db_builder.address(address);
-  }
-  if let Some(username) = maybe_read_item_from_file(
-    env.komodo_database_username_file,
-    env.komodo_database_username,
-  ) {
-    db_builder = db_builder.username(username);
-  }
-  if let Some(password) = maybe_read_item_from_file(
-    env.komodo_database_password_file,
-    env.komodo_database_password,
-  ) {
-    db_builder = db_builder.password(password);
-  }
-  let target_db = db_builder
-    .app_name(env.komodo_database_app_name)
-    .build()
-    .await
-    .context("Failed to initialize target database")?
-    .database(&env.komodo_database_db_name);
+  let target_db = super::database(&env).await?;
 
   let mut handles = restore_files
     .into_iter()
@@ -198,9 +123,7 @@ pub async fn main() -> anyhow::Result<()> {
 
   loop {
     match handles.next().await {
-      Some((_collection, Ok(()))) => {
-        // info!("[{collection}]: finished");
-      }
+      Some((_collection, Ok(()))) => {}
       Some((collection, Err(e))) => {
         error!("[{collection}]: {e:#}");
       }
@@ -241,4 +164,56 @@ async fn latest_restore_folder(
     }
   }
   Ok(max.components().collect())
+}
+
+async fn get_restore_files(
+  env: &super::Env,
+  restore_folder: &Path,
+) -> anyhow::Result<Vec<(String, PathBuf)>> {
+  let mut restore_dir =
+    tokio::fs::read_dir(restore_folder).await.with_context(|| {
+      format!("Failed to read restore directory {restore_folder:?}")
+    })?;
+
+  let mut restore_files: Vec<(String, PathBuf)> = vec![(
+    String::from("Stats"),
+    env
+      .komodo_backup_folder
+      .join("Stats.jsonl.gz")
+      .components()
+      .collect(),
+  )];
+
+  loop {
+    match restore_dir
+      .next_entry()
+      .await
+      .context("Failed to read restore dir entry")
+    {
+      Ok(Some(file)) => {
+        let path = file.path();
+        let Some(file_name) = path.file_name() else {
+          continue;
+        };
+        let Some(file_name) = file_name.to_str() else {
+          continue;
+        };
+        let Some(collection) = file_name.strip_suffix(".jsonl.gz")
+        else {
+          continue;
+        };
+        restore_files.push((
+          collection.to_string(),
+          path.components().collect(),
+        ));
+      }
+      Ok(None) => break,
+      Err(e) => {
+        warn!("{e:#}");
+        continue;
+      }
+    }
+  }
+
+  Ok(restore_files)
 }
