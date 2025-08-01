@@ -22,10 +22,16 @@ RUN sh ./debian-deps.sh && rm ./debian-deps.sh
 WORKDIR /app
 
 # Copy both binaries initially, but only keep appropriate one for the TARGETPLATFORM.
-COPY --from=x86_64 /core /app/arch/linux/amd64
-COPY --from=aarch64 /core /app/arch/linux/arm64
+COPY --from=x86_64 /core /app/core/linux/amd64
+COPY --from=aarch64 /core /app/core/linux/arm64
 ARG TARGETPLATFORM
-RUN mv /app/arch/${TARGETPLATFORM} /usr/local/bin/core && rm -r /app/arch
+RUN mv /app/core/${TARGETPLATFORM} /usr/local/bin/core && rm -r /app/core
+
+# Same for util
+COPY --from=x86_64 /util /app/util/linux/amd64
+COPY --from=aarch64 /util /app/util/linux/arm64
+ARG TARGETPLATFORM
+RUN mv /app/util/${TARGETPLATFORM} /usr/local/bin/util && rm -r /app/util
 
 # Copy default config / static frontend / deno binary
 COPY ./config/core.config.toml /config/config.toml

@@ -31,9 +31,9 @@ pub async fn main() -> anyhow::Result<()> {
     .map(|collection| {
       let source = source_db.collection::<RawDocumentBuf>(&collection);
       let file_path = if collection == "Stats" {
-        env.komodo_backup_folder.join("Stats.jsonl.gz")
+        env.komodo_backup_folder.join("Stats.gz")
       } else {
-        now_backup_folder.join(format!("{collection}.jsonl.gz"))
+        now_backup_folder.join(format!("{collection}.gz"))
       };
       tokio::spawn(async move {
         let res = async {

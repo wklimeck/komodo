@@ -179,7 +179,7 @@ async fn get_restore_files(
     String::from("Stats"),
     env
       .komodo_backup_folder
-      .join("Stats.jsonl.gz")
+      .join("Stats.gz")
       .components()
       .collect(),
   )];
@@ -198,7 +198,7 @@ async fn get_restore_files(
         let Some(file_name) = file_name.to_str() else {
           continue;
         };
-        let Some(collection) = file_name.strip_suffix(".jsonl.gz")
+        let Some(collection) = file_name.strip_suffix(".gz")
         else {
           continue;
         };

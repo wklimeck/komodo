@@ -11,7 +11,8 @@ COPY ./client/periphery ./client/periphery
 COPY ./bin/core ./bin/core
 
 # Compile app
-RUN cargo build -p komodo_core --release
+RUN cargo build -p komodo_core --release && \
+  cargo build -p komodo_util --release
 
 # Build Frontend
 FROM node:20.12-alpine AS frontend-builder
@@ -35,6 +36,7 @@ WORKDIR /app
 COPY ./config/core.config.toml /config/config.toml
 COPY --from=frontend-builder /builder/frontend/dist /app/frontend
 COPY --from=core-builder /builder/target/release/core /usr/local/bin/core
+COPY --from=core-builder /builder/target/release/util /usr/local/bin/util
 COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 
 # Set $DENO_DIR and preload external Deno deps
