@@ -10,6 +10,7 @@ mod action;
 mod alerter;
 mod build;
 mod deployment;
+mod maintenance;
 mod procedure;
 mod repo;
 mod server;
@@ -20,6 +21,7 @@ pub use action::*;
 pub use alerter::*;
 pub use build::*;
 pub use deployment::*;
+pub use maintenance::*;
 pub use procedure::*;
 pub use repo::*;
 pub use server::*;
@@ -153,23 +155,6 @@ pub struct Sleep {
   #[serde(default)]
   pub duration_ms: I64,
 }
-
-/// Clears all repos from the Core repo cache. Admin only.
-#[typeshare]
-#[derive(
-  Serialize,
-  Deserialize,
-  Debug,
-  Clone,
-  PartialEq,
-  Resolve,
-  EmptyTraits,
-  Parser,
-)]
-#[empty_traits(KomodoExecuteRequest)]
-#[response(Update)]
-#[error(serror::Error)]
-pub struct ClearRepoCache {}
 
 #[typeshare]
 pub type BatchExecutionResponse = Vec<BatchExecutionResponseItem>;

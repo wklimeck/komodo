@@ -12,12 +12,19 @@ name = "util"
 path = "src/main.rs"
 
 [dependencies]
+# Local
+environment_file.workspace = true
+# External
 tracing-subscriber.workspace = true
+async-compression.workspace = true
 futures-util.workspace = true
+tokio-util.workspace = true
+serde_json.workspace = true
 dotenvy.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
 mungos.workspace = true
+chrono.workspace = true
 tokio.workspace = true
 serde.workspace = true
 envy.workspace = true

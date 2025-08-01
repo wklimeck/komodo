@@ -1,4 +1,3 @@
-use std::net::{SocketAddr, IpAddr};
 use anyhow::{Context, anyhow};
 use axum::{
   Router,
@@ -12,6 +11,7 @@ use axum::{
 use derive_variants::ExtractVariant;
 use resolver_api::Resolve;
 use serror::{AddStatusCode, AddStatusCodeError, Json};
+use std::net::{IpAddr, SocketAddr};
 use uuid::Uuid;
 
 use crate::config::periphery_config;
@@ -124,23 +124,22 @@ async fn guard_request_by_ip(
     .status_code(StatusCode::UNAUTHORIZED)?;
   let ip = socket_addr.ip();
 
-  let ip_match = periphery_config()
-    .allowed_ips
-    .iter()
-    .any(|net| {
-        net.contains(ip) ||
-        match ip {
-            IpAddr::V4(ipv4) => net.contains(IpAddr::V6(ipv4.to_ipv6_mapped())),
-            IpAddr::V6(_) => net.contains(ip.to_canonical()),
+  let ip_match = periphery_config().allowed_ips.iter().any(|net| {
+    net.contains(ip)
+      || match ip {
+        IpAddr::V4(ipv4) => {
+          net.contains(IpAddr::V6(ipv4.to_ipv6_mapped()))
         }
-    });
+        IpAddr::V6(_) => net.contains(ip.to_canonical()),
+      }
+  });
 
   if ip_match {
-      Ok(next.run(req).await)
+    Ok(next.run(req).await)
   } else {
-      Err(
-          anyhow!("requesting ip {ip} not allowed")
-              .status_code(StatusCode::UNAUTHORIZED),
-      )
+    Err(
+      anyhow!("requesting ip {ip} not allowed")
+        .status_code(StatusCode::UNAUTHORIZED),
+    )
   }
 }

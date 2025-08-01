@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use anyhow::Context;
-use futures_util::{TryStreamExt, future::join_all};
+use futures_util::{
+  StreamExt, TryStreamExt, stream::FuturesUnordered,
+};
 use mungos::{
   init::MongoBuilder,
   mongodb::{
@@ -26,6 +28,7 @@ struct Env {
   #[serde(default = "default_db_name")]
   target_db_name: String,
   /// Give the target database some time to initialize.
+  /// Default: 5
   #[serde(default = "default_startup_sleep_seconds")]
   startup_sleep_seconds: u64,
 }
@@ -60,70 +63,75 @@ pub async fn main() -> anyhow::Result<()> {
     .context("Invalid SOURCE_URI")?
     .database(&env.target_db_name);
 
-  let mut handles = Vec::new();
-
-  for collection in source_db
+  let mut handles = source_db
     .list_collection_names()
     .await
-    .context("Failed to list collections on source db")?
-  {
-    let source = source_db.collection::<RawDocumentBuf>(&collection);
-    let target = target_db.collection::<RawDocumentBuf>(&collection);
+    .context("Failed to list collections on source db")?.into_iter().map(|collection| {
+      let source = source_db.collection::<RawDocumentBuf>(&collection);
+      let target = target_db.collection::<RawDocumentBuf>(&collection);
 
-    handles.push(tokio::spawn(async move {
-      let res = async {
-        let mut buffer = Vec::<RawDocumentBuf>::new();
-        let mut count = 0;
-        let mut cursor = source
-          .find(Document::new())
-          .await
-          .context("Failed to query source collection")?;
-        while let Some(doc) = cursor
-          .try_next()
-          .await
-          .context("Failed to get next document")?
-        {
-          count += 1;
-          buffer.push(doc);
-          if buffer.len() >= 20_000 {
-            if let Err(e) = target
+      tokio::spawn(async move {
+        let res = async {
+          let mut buffer = Vec::<RawDocumentBuf>::new();
+          let mut count = 0;
+          let mut cursor = source
+            .find(Document::new())
+            .await
+            .context("Failed to query source collection")?;
+          while let Some(doc) = cursor
+            .try_next()
+            .await
+            .context("Failed to get next document")?
+          {
+            count += 1;
+            buffer.push(doc);
+            if buffer.len() >= 20_000 {
+              if let Err(e) = target
+                .insert_many(&buffer)
+                .with_options(
+                  InsertManyOptions::builder().ordered(false).build(),
+                )
+                .await
+              {
+                error!("Failed to flush document batch in {collection} collection | {e:#}");
+              };
+              buffer.clear();
+            }
+          }
+          if !buffer.is_empty() {
+            target
               .insert_many(&buffer)
               .with_options(
                 InsertManyOptions::builder().ordered(false).build(),
               )
               .await
-            {
-              error!("Failed to flush document batch in {collection} collection | {e:#}");
-            };
-            buffer.clear();
+              .context("Failed to flush documents")?;
+          }
+          anyhow::Ok(count)
+        }
+        .await;
+        match res {
+          Ok(count) => {
+            if count > 0 {
+              info!("Finished copying {collection} collection | Copied {count}");
+            }
+          }
+          Err(e) => {
+            error!("Failed to copy {collection} collection | {e:#}")
           }
         }
-        if !buffer.is_empty() {
-          target
-            .insert_many(&buffer)
-            .with_options(
-              InsertManyOptions::builder().ordered(false).build(),
-            )
-            .await
-            .context("Failed to flush documents")?;
-        }
-        anyhow::Ok(count)
-      }
-      .await;
-      match res {
-        Ok(count) => {
-          if count > 0 {
-            info!("Finished copying {collection} collection | Copied {count}");
-          }
-        }
-        Err(e) => {
-          error!("Failed to copy {collection} collection | {e:#}")
-        }
-      }
-    }));
-  }
+      })
+    }).collect::<FuturesUnordered<_>>();
 
-  join_all(handles).await;
+  loop {
+    match handles.next().await {
+      Some(Ok(())) => {}
+      Some(Err(e)) => {
+        error!("{e:#}");
+      }
+      None => break,
+    }
+  }
 
   info!("Finished copying database ✅");
 
