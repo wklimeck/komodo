@@ -36,7 +36,7 @@ WORKDIR /app
 COPY ./config/core.config.toml /config/config.toml
 COPY --from=frontend-builder /builder/frontend/dist /app/frontend
 COPY --from=core-builder /builder/target/release/core /usr/local/bin/core
-COPY --from=core-builder /builder/target/release/util /usr/local/bin/util
+COPY --from=core-builder /builder/target/release/komodo-util /usr/local/bin/komodo-util
 COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 
 # Set $DENO_DIR and preload external Deno deps

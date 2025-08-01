@@ -23,7 +23,7 @@ FROM scratch
 
 COPY --from=builder /builder/target/release/core /core
 COPY --from=builder /builder/target/release/periphery /periphery
-COPY --from=builder /builder/target/release/util /util
+COPY --from=builder /builder/target/release/komodo-util /komodo-util
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Binaries"

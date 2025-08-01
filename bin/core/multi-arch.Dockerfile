@@ -28,10 +28,10 @@ ARG TARGETPLATFORM
 RUN mv /app/core/${TARGETPLATFORM} /usr/local/bin/core && rm -r /app/core
 
 # Same for util
-COPY --from=x86_64 /util /app/util/linux/amd64
-COPY --from=aarch64 /util /app/util/linux/arm64
+COPY --from=x86_64 /komodo-util /app/komodo-util/linux/amd64
+COPY --from=aarch64 /komodo-util /app/komodo-util/linux/arm64
 ARG TARGETPLATFORM
-RUN mv /app/util/${TARGETPLATFORM} /usr/local/bin/util && rm -r /app/util
+RUN mv /app/komodo-util/${TARGETPLATFORM} /usr/local/bin/komodo-util && rm -r /app/komodo-util
 
 # Copy default config / static frontend / deno binary
 COPY ./config/core.config.toml /config/config.toml

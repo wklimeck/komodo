@@ -8,7 +8,7 @@ repository.workspace = true
 homepage.workspace = true
 
 [[bin]]
-name = "util"
+name = "komodo-util"
 path = "src/main.rs"
 
 [dependencies]

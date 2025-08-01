@@ -6,9 +6,8 @@ use serde::Deserialize;
 mod backup_restore;
 mod copy_database;
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Debug)]
 enum Mode {
-  #[default]
   BackupDatabase,
   RestoreDatabase,
   CopyDatabase,

@@ -13,9 +13,9 @@ RUN cargo build -p komodo_util --release
 # Copy binaries to distroless base
 FROM gcr.io/distroless/cc
 
-COPY --from=builder /builder/target/release/util /usr/local/bin/util
+COPY --from=builder /builder/target/release/komodo-util /usr/local/bin/komodo-util
 
-CMD [ "util" ]
+CMD [ "komodo-util" ]
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Util"

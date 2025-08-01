@@ -14,14 +14,14 @@ FROM debian:bullseye-slim
 WORKDIR /app
 
 ## Copy both binaries initially, but only keep appropriate one for the TARGETPLATFORM.
-COPY --from=x86_64 /util /app/arch/linux/amd64
-COPY --from=aarch64 /util /app/arch/linux/arm64
+COPY --from=x86_64 /komodo-util /app/arch/linux/amd64
+COPY --from=aarch64 /komodo-util /app/arch/linux/arm64
 
 ARG TARGETPLATFORM
-RUN mv /app/arch/${TARGETPLATFORM} /usr/local/bin/util && rm -r /app/arch
+RUN mv /app/arch/${TARGETPLATFORM} /usr/local/bin/komodo-util && rm -r /app/arch
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Util"
 LABEL org.opencontainers.image.licenses=GPL-3.0
 
-CMD [ "util" ]
+CMD [ "komodo-util" ]
