@@ -95,11 +95,11 @@ pub async fn main() -> anyhow::Result<()> {
         match res {
           Ok(count) => {
             if count > 0 {
-              info!("Finished backing up {collection} collection | Backed up {count}");
+              info!("[{collection}]: Backed up {count} items");
             }
           }
           Err(e) => {
-            error!("Failed to backup {collection} collection | {e:#}")
+            error!("[{collection}]: {e:#}");
           }
         }
       })

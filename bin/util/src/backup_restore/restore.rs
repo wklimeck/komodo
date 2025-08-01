@@ -108,11 +108,11 @@ pub async fn main() -> anyhow::Result<()> {
             match res {
               Ok(count) => {
                 if count > 0 {
-                  info!("Finished restoring {collection} collection | Restored {count}");
+                  info!("[{collection}]: Restored {count} items");
                 }
               }
               Err(e) => {
-                error!("Failed to restore {collection} collection | {e:#}")
+                error!("[{collection}]: {e:#}");
               }
             }
           })
