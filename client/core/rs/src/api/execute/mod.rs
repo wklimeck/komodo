@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
-use derive_empty_traits::EmptyTraits;
 use derive_variants::EnumVariants;
-use resolver_api::{HasResponse, Resolve};
+use resolver_api::HasResponse;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use typeshare::typeshare;
