@@ -8,6 +8,7 @@ use futures_util::{
 use mungos::mongodb::{bson::Document, options::InsertManyOptions};
 use serde::Deserialize;
 use tokio::io::BufReader;
+use tokio_util::codec::{FramedRead, LinesCodec};
 
 #[derive(Deserialize)]
 struct Env {
@@ -57,25 +58,24 @@ pub async fn main() -> anyhow::Result<()> {
                 .await
                 .with_context(|| format!("Failed to open file {restore_file:?}"))?;
 
-              let mut reader = tokio_util::codec::FramedRead::new(
+              let mut reader = FramedRead::new(
                 GzipDecoder::new(BufReader::new(file)),
-                tokio_util::codec::LinesCodec::new()
+                LinesCodec::new()
               );
 
               while let Some(line) = reader.try_next()
                 .await
                 .context("Failed to get next line")?
               {
-                let line = line.trim();
                 if line.is_empty() {
                   continue;
                 }
-                let doc = match serde_json::from_str::<Document>(line)
-                  .context("Failed to deserialize line to document")
+                let doc = match serde_json::from_str::<Document>(&line)
+                  .context("Failed to deserialize line")
                 {
                   Ok(doc) => doc,
                   Err(e) => {
-                    warn!("{e:#} | {line}");
+                    warn!("{e:#}");
                     continue;
                   }
                 };
@@ -198,8 +198,7 @@ async fn get_restore_files(
         let Some(file_name) = file_name.to_str() else {
           continue;
         };
-        let Some(collection) = file_name.strip_suffix(".gz")
-        else {
+        let Some(collection) = file_name.strip_suffix(".gz") else {
           continue;
         };
         restore_files.push((

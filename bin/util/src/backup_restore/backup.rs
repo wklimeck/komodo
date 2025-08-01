@@ -58,14 +58,14 @@ pub async fn main() -> anyhow::Result<()> {
             .context("Failed to get next document")?
           {
             count += 1;
-            let json = match serde_json::to_string(&doc).context("Failed to serialize document to json") {
-              Ok(json) => json,
+            let str = match serde_json::to_string(&doc).context("Failed to serialize document") {
+              Ok(str) => str,
               Err(e) => {
                 warn!("{e:#}");
                 continue
               }
             };
-            if let Err(e) = writer.send(json)
+            if let Err(e) = writer.send(str)
               .await
               .context("Failed to write document to file")
             {
