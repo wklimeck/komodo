@@ -11,7 +11,7 @@ use komodo_client::entities::{
   update::Update,
   user::User,
 };
-use mungos::mongodb::{Collection, bson::doc};
+use database::mungos::mongodb::{Collection, bson::doc};
 
 use crate::{
   config::core_config,

@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 
 use anyhow::{Context, anyhow};
+use database::mongo_indexed::doc;
+use database::mungos::find::find_collect;
 use futures::{FutureExt, future::BoxFuture};
 use indexmap::IndexSet;
 use komodo_client::{
@@ -11,8 +13,6 @@ use komodo_client::{
     user::User,
   },
 };
-use mongo_indexed::doc;
-use mungos::find::find_collect;
 use resolver_api::Resolve;
 
 use crate::{

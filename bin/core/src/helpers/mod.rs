@@ -13,8 +13,8 @@ use komodo_client::entities::{
   stack::Stack,
   user::User,
 };
-use mongo_indexed::Document;
-use mungos::mongodb::bson::{Bson, doc};
+use database::mongo_indexed::Document;
+use database::mungos::mongodb::bson::{Bson, doc};
 use periphery_client::PeripheryClient;
 use rand::Rng;
 

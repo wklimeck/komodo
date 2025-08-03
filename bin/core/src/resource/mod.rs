@@ -4,6 +4,15 @@ use std::{
 };
 
 use anyhow::{Context, anyhow};
+use database::mungos::{
+  by_id::{delete_one_by_id, update_one_by_id},
+  find::find_collect,
+  mongodb::{
+    Collection,
+    bson::{Document, doc, oid::ObjectId, to_document},
+    options::FindOptions,
+  },
+};
 use formatting::format_serror;
 use futures::future::join_all;
 use indexmap::IndexSet;
@@ -23,15 +32,6 @@ use komodo_client::{
     user::{User, system_user},
   },
   parsers::parse_string_list,
-};
-use mungos::{
-  by_id::{delete_one_by_id, update_one_by_id},
-  find::find_collect,
-  mongodb::{
-    Collection,
-    bson::{Document, doc, oid::ObjectId, to_document},
-    options::FindOptions,
-  },
 };
 use partial_derive2::{Diff, MaybeNone, PartialDiff};
 use resolver_api::Resolve;
@@ -181,7 +181,8 @@ pub trait KomodoResource {
   fn update_document(
     _original: Resource<Self::Config, Self::Info>,
     config: Self::PartialConfig,
-  ) -> Result<Document, mungos::mongodb::bson::ser::Error> {
+  ) -> Result<Document, database::mungos::mongodb::bson::ser::Error>
+  {
     to_document(&config)
   }
 
@@ -762,7 +763,7 @@ pub async fn rename<T: KomodoResource>(
   update_one_by_id(
     T::coll(),
     &resource.id,
-    mungos::update::Update::Set(
+    database::mungos::update::Update::Set(
       doc! { "name": &name, "updated_at": komodo_timestamp() },
     ),
     None,

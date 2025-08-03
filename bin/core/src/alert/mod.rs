@@ -11,7 +11,7 @@ use komodo_client::entities::{
   komodo_timestamp,
   stack::StackState,
 };
-use mungos::{find::find_collect, mongodb::bson::doc};
+use database::mungos::{find::find_collect, mongodb::bson::doc};
 use tracing::Instrument;
 
 use crate::helpers::query::get_variables_and_secrets;

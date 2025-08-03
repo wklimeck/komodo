@@ -7,6 +7,9 @@ use std::{
 
 use anyhow::Context;
 use command::run_komodo_command;
+use database::mungos::{
+  by_id::update_one_by_id, mongodb::bson::to_document,
+};
 use interpolate::Interpolator;
 use komodo_client::{
   api::{
@@ -23,7 +26,6 @@ use komodo_client::{
     user::action_user,
   },
 };
-use mungos::{by_id::update_one_by_id, mongodb::bson::to_document};
 use resolver_api::Resolve;
 use tokio::fs;
 
@@ -179,7 +181,7 @@ impl Resolve<ExecuteArgs> for RunAction {
       let _ = update_one_by_id(
         &db_client().updates,
         &update.id,
-        mungos::update::Update::Set(update_doc),
+        database::mungos::update::Update::Set(update_doc),
         None,
       )
       .await;

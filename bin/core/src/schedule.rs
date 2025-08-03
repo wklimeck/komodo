@@ -6,6 +6,7 @@ use std::{
 use anyhow::{Context, anyhow};
 use async_timing_util::Timelength;
 use chrono::Local;
+use database::mungos::find::find_collect;
 use formatting::format_serror;
 use komodo_client::{
   api::execute::{RunAction, RunProcedure},
@@ -18,7 +19,6 @@ use komodo_client::{
     user::{action_user, procedure_user},
   },
 };
-use mungos::find::find_collect;
 use resolver_api::Resolve;
 
 use crate::{

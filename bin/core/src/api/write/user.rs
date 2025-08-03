@@ -9,7 +9,7 @@ use komodo_client::{
   },
   entities::{NoData, user::UserConfig},
 };
-use mungos::mongodb::bson::{doc, oid::ObjectId};
+use database::mungos::mongodb::bson::{doc, oid::ObjectId};
 use resolver_api::Resolve;
 
 use crate::{

@@ -17,7 +17,7 @@ use komodo_client::{
     user::procedure_user,
   },
 };
-use mungos::by_id::find_one_by_id;
+use database::mungos::by_id::find_one_by_id;
 use resolver_api::Resolve;
 use tokio::sync::Mutex;
 

@@ -18,8 +18,8 @@ use komodo_client::{
     user::{User, sync_user},
   },
 };
-use mongo_indexed::doc;
-use mungos::mongodb::Collection;
+use database::mongo_indexed::doc;
+use database::mungos::mongodb::Collection;
 use resolver_api::Resolve;
 
 use crate::{

@@ -27,7 +27,7 @@ use komodo_client::{
     user_group::UserGroup,
   },
 };
-use mungos::find::find_collect;
+use database::mungos::find::find_collect;
 use resolver_api::Resolve;
 use serde::Serialize;
 

@@ -4,8 +4,8 @@ use axum::{
   Router, extract::Query, response::Redirect, routing::get,
 };
 use komodo_client::entities::user::{User, UserConfig};
-use mongo_indexed::Document;
-use mungos::mongodb::bson::doc;
+use database::mongo_indexed::Document;
+use database::mungos::mongodb::bson::doc;
 use reqwest::StatusCode;
 use serde::Deserialize;
 use serror::AddStatusCode;

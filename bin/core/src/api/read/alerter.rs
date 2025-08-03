@@ -1,4 +1,5 @@
 use anyhow::Context;
+use database::mungos::mongodb::bson::doc;
 use komodo_client::{
   api::read::*,
   entities::{
@@ -6,8 +7,7 @@ use komodo_client::{
     permission::PermissionLevel,
   },
 };
-use mongo_indexed::Document;
-use mungos::mongodb::bson::doc;
+use database::mongo_indexed::Document;
 use resolver_api::Resolve;
 
 use crate::{

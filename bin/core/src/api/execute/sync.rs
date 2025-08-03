@@ -1,29 +1,17 @@
 use std::{collections::HashMap, str::FromStr};
 
 use anyhow::{Context, anyhow};
+use database::mungos::{
+  by_id::update_one_by_id,
+  mongodb::bson::{doc, oid::ObjectId},
+};
 use formatting::{Color, colored, format_serror};
 use komodo_client::{
   api::{execute::RunSync, write::RefreshResourceSyncPending},
   entities::{
-    self, ResourceTargetVariant,
-    action::Action,
-    alerter::Alerter,
-    build::Build,
-    builder::Builder,
-    deployment::Deployment,
-    komodo_timestamp,
-    permission::PermissionLevel,
-    procedure::Procedure,
-    repo::Repo,
-    server::Server,
-    stack::Stack,
-    sync::ResourceSync,
-    update::{Log, Update},
-    user::sync_user,
+    self, action::Action, alerter::Alerter, build::Build, builder::Builder, deployment::Deployment, komodo_timestamp, permission::PermissionLevel, procedure::Procedure, repo::Repo, server::Server, stack::Stack, sync::ResourceSync, update::{Log, Update}, user::sync_user, ResourceTargetVariant
   },
 };
-use mongo_indexed::doc;
-use mungos::{by_id::update_one_by_id, mongodb::bson::oid::ObjectId};
 use resolver_api::Resolve;
 
 use crate::{

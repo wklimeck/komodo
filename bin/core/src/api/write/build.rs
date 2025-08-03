@@ -16,8 +16,8 @@ use komodo_client::{
     update::Update,
   },
 };
-use mongo_indexed::doc;
-use mungos::mongodb::bson::to_document;
+use database::mongo_indexed::doc;
+use database::mungos::mongodb::bson::to_document;
 use octorust::types::{
   ReposCreateWebhookRequest, ReposCreateWebhookRequestConfig,
 };

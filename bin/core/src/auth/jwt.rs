@@ -8,7 +8,7 @@ use jsonwebtoken::{
   DecodingKey, EncodingKey, Header, Validation, decode, encode,
 };
 use komodo_client::entities::config::core::CoreConfig;
-use mungos::mongodb::bson::doc;
+use database::mungos::mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 

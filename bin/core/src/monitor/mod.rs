@@ -12,7 +12,7 @@ use komodo_client::entities::{
   stack::{ComposeProject, StackService, StackState},
   stats::SystemStats,
 };
-use mungos::{find::find_collect, mongodb::bson::doc};
+use database::mungos::{find::find_collect, mongodb::bson::doc};
 use periphery_client::api::{self, git::GetLatestCommit};
 use serror::Serror;
 

@@ -6,7 +6,7 @@ use komodo_client::entities::{
   ResourceTargetVariant, tag::Tag, toml::ResourceToml, update::Log,
   user::sync_user,
 };
-use mungos::find::find_collect;
+use database::mungos::find::find_collect;
 use partial_derive2::MaybeNone;
 
 use crate::{api::write::WriteArgs, resource::ResourceMetaUpdate};

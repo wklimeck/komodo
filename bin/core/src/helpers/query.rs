@@ -27,7 +27,7 @@ use komodo_client::entities::{
   user_group::UserGroup,
   variable::Variable,
 };
-use mungos::{
+use database::mungos::{
   find::find_collect,
   mongodb::{
     bson::{Document, doc, oid::ObjectId},

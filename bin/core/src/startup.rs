@@ -1,5 +1,9 @@
 use std::str::FromStr;
 
+use database::mungos::{
+  find::find_collect,
+  mongodb::bson::{Document, doc, oid::ObjectId, to_document},
+};
 use futures::future::join_all;
 use komodo_client::{
   api::execute::RunAction,
@@ -14,10 +18,6 @@ use komodo_client::{
     update::Log,
     user::{action_user, system_user},
   },
-};
-use mungos::{
-  find::find_collect,
-  mongodb::bson::{Document, doc, oid::ObjectId, to_document},
 };
 use resolver_api::Resolve;
 
@@ -43,19 +43,20 @@ pub async fn on_startup() {
 }
 
 pub async fn run_startup_actions() {
-  let startup_actions = match mungos::find::find_collect::<Action>(
-    &db_client().actions,
-    doc! { "config.run_at_startup": true },
-    None,
-  )
-  .await
-  {
-    Ok(actions) => actions,
-    Err(e) => {
-      error!("Failed to fetch actions for startup | {e:#?}");
-      return;
-    }
-  };
+  let startup_actions =
+    match database::mungos::find::find_collect::<Action>(
+      &db_client().actions,
+      doc! { "config.run_at_startup": true },
+      None,
+    )
+    .await
+    {
+      Ok(actions) => actions,
+      Err(e) => {
+        error!("Failed to fetch actions for startup | {e:#?}");
+        return;
+      }
+    };
 
   for action in startup_actions {
     let id = action.id.clone();

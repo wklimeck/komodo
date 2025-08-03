@@ -8,6 +8,10 @@ use anyhow::{Context, anyhow};
 use async_timing_util::{
   FIFTEEN_SECONDS_MS, get_timelength_in_ms, unix_timestamp_ms,
 };
+use database::mungos::{
+  find::find_collect,
+  mongodb::{bson::doc, options::FindOptions},
+};
 use komodo_client::{
   api::read::*,
   entities::{
@@ -31,10 +35,6 @@ use komodo_client::{
     stats::{SystemInformation, SystemProcess},
     update::Log,
   },
-};
-use mungos::{
-  find::find_collect,
-  mongodb::{bson::doc, options::FindOptions},
 };
 use periphery_client::api::{
   self as periphery,

@@ -1,6 +1,14 @@
 use std::{future::IntoFuture, time::Duration};
 
 use anyhow::{Context, anyhow};
+use database::mungos::{
+  by_id::update_one_by_id,
+  find::find_collect,
+  mongodb::{
+    bson::{doc, to_bson, to_document},
+    options::FindOneOptions,
+  },
+};
 use formatting::format_serror;
 use futures::future::join_all;
 use interpolate::Interpolator;
@@ -20,14 +28,6 @@ use komodo_client::{
     repo::Repo,
     update::{Log, Update},
     user::auto_redeploy_user,
-  },
-};
-use mungos::{
-  by_id::update_one_by_id,
-  find::find_collect,
-  mongodb::{
-    bson::{doc, to_bson, to_document},
-    options::FindOneOptions,
   },
 };
 use periphery_client::api;
@@ -352,7 +352,7 @@ impl Resolve<ExecuteArgs> for RunBuild {
       let _ = update_one_by_id(
         &db.updates,
         &update.id,
-        mungos::update::Update::Set(update_doc),
+        database::mungos::update::Update::Set(update_doc),
         None,
       )
       .await;
@@ -408,7 +408,7 @@ async fn handle_early_return(
     let _ = update_one_by_id(
       &db_client().updates,
       &update.id,
-      mungos::update::Update::Set(update_doc),
+      database::mungos::update::Update::Set(update_doc),
       None,
     )
     .await;

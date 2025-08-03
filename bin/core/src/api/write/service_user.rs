@@ -8,7 +8,7 @@ use komodo_client::{
     user::{User, UserConfig},
   },
 };
-use mungos::{
+use database::mungos::{
   by_id::find_one_by_id,
   mongodb::bson::{doc, oid::ObjectId},
 };

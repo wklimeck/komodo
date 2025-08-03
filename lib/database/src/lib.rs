@@ -26,6 +26,10 @@ use mungos::{
   init::MongoBuilder,
   mongodb::{Collection, Database},
 };
+use tracing::error;
+
+pub use mongo_indexed;
+pub use mungos;
 
 #[derive(Debug)]
 pub struct DbClient {

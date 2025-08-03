@@ -10,7 +10,7 @@ use komodo_client::entities::{
   komodo_timestamp,
   user::{User, UserConfig},
 };
-use mungos::mongodb::bson::{Document, doc};
+use database::mungos::mongodb::bson::{Document, doc};
 use openidconnect::{
   AccessTokenHash, AuthorizationCode, CsrfToken,
   EmptyAdditionalClaims, Nonce, OAuth2TokenResponse,

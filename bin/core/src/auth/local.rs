@@ -9,8 +9,8 @@ use komodo_client::{
   },
   entities::user::{User, UserConfig},
 };
-use mongo_indexed::Document;
-use mungos::mongodb::bson::{doc, oid::ObjectId};
+use database::mongo_indexed::Document;
+use database::mungos::mongodb::bson::{doc, oid::ObjectId};
 use resolver_api::Resolve;
 
 use crate::{

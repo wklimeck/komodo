@@ -21,7 +21,7 @@ use komodo_client::{
     user::{User, build_user},
   },
 };
-use mungos::{
+use database::mungos::{
   find::find_collect,
   mongodb::{Collection, bson::doc, options::FindOptions},
 };

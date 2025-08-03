@@ -32,7 +32,7 @@ use komodo_client::{
     user::sync_user,
   },
 };
-use mungos::{
+use database::mungos::{
   by_id::update_one_by_id,
   mongodb::bson::{doc, to_document},
 };

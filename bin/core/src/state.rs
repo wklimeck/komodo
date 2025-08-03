@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::Context;
 use arc_swap::ArcSwap;
+use database::DbClient;
 use komodo_client::entities::{
   action::ActionState,
   build::BuildState,
@@ -21,7 +22,6 @@ use octorust::auth::{
 use crate::{
   auth::jwt::JwtClient,
   config::core_config,
-  db::DbClient,
   helpers::{
     action_state::ActionStates, all_resources::AllResourcesById,
     cache::Cache,

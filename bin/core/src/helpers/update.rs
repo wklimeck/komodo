@@ -14,7 +14,7 @@ use komodo_client::entities::{
   update::{Update, UpdateListItem},
   user::User,
 };
-use mungos::{
+use database::mungos::{
   by_id::{find_one_by_id, update_one_by_id},
   mongodb::bson::to_document,
 };
@@ -77,7 +77,7 @@ pub async fn add_update_without_send(
 
 #[instrument(level = "debug")]
 pub async fn update_update(update: Update) -> anyhow::Result<()> {
-  update_one_by_id(&db_client().updates, &update.id, mungos::update::Update::Set(to_document(&update)?), None)
+  update_one_by_id(&db_client().updates, &update.id, database::mungos::update::Update::Set(to_document(&update)?), None)
     .await
     .context("failed to update the update on db. the update build process was deleted")?;
   let update = update_list_item(update).await?;

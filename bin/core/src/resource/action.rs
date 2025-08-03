@@ -12,7 +12,7 @@ use komodo_client::entities::{
   update::Update,
   user::User,
 };
-use mungos::{
+use database::mungos::{
   find::find_collect,
   mongodb::{Collection, bson::doc, options::FindOneOptions},
 };

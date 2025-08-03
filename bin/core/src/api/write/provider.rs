@@ -6,7 +6,7 @@ use komodo_client::{
     provider::{DockerRegistryAccount, GitProviderAccount},
   },
 };
-use mungos::{
+use database::mungos::{
   by_id::{delete_one_by_id, find_one_by_id, update_one_by_id},
   mongodb::bson::{doc, to_document},
 };

@@ -6,7 +6,7 @@ use komodo_client::entities::{
   tag::Tag,
   toml::{ResourceToml, ResourcesToml},
 };
-use mungos::mongodb::bson::oid::ObjectId;
+use database::mungos::mongodb::bson::oid::ObjectId;
 use toml::ToToml;
 
 use crate::resource::KomodoResource;

@@ -16,7 +16,7 @@ use komodo_client::{
     user::stack_user,
   },
 };
-use mungos::mongodb::bson::{doc, to_document};
+use database::mungos::mongodb::bson::{doc, to_document};
 use octorust::types::{
   ReposCreateWebhookRequest, ReposCreateWebhookRequestConfig,
 };

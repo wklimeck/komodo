@@ -7,7 +7,7 @@ use komodo_client::entities::{
   tag::Tag,
   toml::ResourceToml,
 };
-use mungos::find::find_collect;
+use database::mungos::find::find_collect;
 use partial_derive2::MaybeNone;
 
 use super::ResourceSyncTrait;

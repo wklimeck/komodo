@@ -18,7 +18,6 @@ mod api;
 mod auth;
 mod cloud;
 mod config;
-mod db;
 mod helpers;
 mod listener;
 mod monitor;

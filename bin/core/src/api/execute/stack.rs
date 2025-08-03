@@ -1,4 +1,5 @@
 use anyhow::Context;
+use database::mungos::mongodb::bson::{doc, to_document};
 use formatting::format_serror;
 use interpolate::Interpolator;
 use komodo_client::{
@@ -11,7 +12,6 @@ use komodo_client::{
     update::{Log, Update},
   },
 };
-use mungos::mongodb::bson::{doc, to_document};
 use periphery_client::api::compose::*;
 use resolver_api::Resolve;
 

@@ -8,7 +8,7 @@ use komodo_client::{
   },
   entities::user::{build_user, repo_user, stack_user, sync_user},
 };
-use mungos::find::find_collect;
+use database::mungos::find::find_collect;
 use resolver_api::Resolve;
 
 use crate::{

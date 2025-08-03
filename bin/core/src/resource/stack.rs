@@ -19,7 +19,7 @@ use komodo_client::{
     user::{User, stack_user},
   },
 };
-use mungos::mongodb::Collection;
+use database::mungos::mongodb::Collection;
 use periphery_client::api::compose::ComposeExecution;
 use resolver_api::Resolve;
 

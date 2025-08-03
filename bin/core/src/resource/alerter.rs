@@ -9,7 +9,7 @@ use komodo_client::entities::{
   update::Update,
   user::User,
 };
-use mungos::mongodb::Collection;
+use database::mungos::mongodb::Collection;
 
 use crate::state::db_client;
 

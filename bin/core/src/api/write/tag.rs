@@ -17,7 +17,7 @@ use komodo_client::{
     tag::{Tag, TagColor},
   },
 };
-use mungos::{
+use database::mungos::{
   by_id::{delete_one_by_id, update_one_by_id},
   mongodb::bson::{doc, oid::ObjectId},
 };

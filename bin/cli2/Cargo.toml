@@ -1,0 +1,30 @@
+[package]
+name = "cli2"
+description = "Command line tool for Komodo"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[[bin]]
+name = "komodo"
+path = "src/main.rs"
+
+[dependencies]
+# local
+komodo_client.workspace = true
+database.workspace = true
+logger.workspace = true
+# mogh
+merge_config_files.workspace = true
+# external
+tracing.workspace = true
+colored.workspace = true
+dotenvy.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+serde.workspace = true
+clap.workspace = true
+envy.workspace = true
