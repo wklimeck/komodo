@@ -3953,6 +3953,17 @@ export interface AwsBuilderConfig {
     /** Which secrets are available on the AMI. */
     secrets?: string[];
 }
+/**
+ * Backs up the database to compressed jsonl files. Admin only.
+ *
+ * Mount a folder to `/backup`, and Core will use it to create
+ * timestamped database dumps, which can be restored using
+ * `ghcr.io/moghtech/komodo-util`.
+ *
+ * TODO: Link to docs
+ */
+export interface BackupDatabase {
+}
 /** Builds multiple Repos in parallel that match pattern. Response: [BatchExecutionResponse]. */
 export interface BatchBuildRepo {
     /**
@@ -5543,6 +5554,8 @@ export interface GetCoreInfoResponse {
     github_webhook_owners: string[];
     /** Whether to disable websocket automatic reconnect. */
     disable_websocket_reconnect: boolean;
+    /** Whether to enable fancy toml highlighting. */
+    enable_fancy_toml: boolean;
     /** TZ identifier Core is using, if manually set. */
     timezone: string;
 }

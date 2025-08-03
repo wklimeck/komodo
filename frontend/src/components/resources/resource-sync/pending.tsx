@@ -162,7 +162,7 @@ export const ResourceSyncPending = ({
               {update.data.type === "Create" && (
                 <MonacoEditor
                   value={update.data.data.proposed}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly
                 />
               )}
@@ -172,7 +172,7 @@ export const ResourceSyncPending = ({
                     <MonacoDiffEditor
                       original={update.data.data.current}
                       modified={update.data.data.proposed}
-                      language="toml"
+                      language="fancy_toml"
                       readOnly
                     />
                   )}
@@ -180,7 +180,7 @@ export const ResourceSyncPending = ({
                     <MonacoDiffEditor
                       original={update.data.data.proposed}
                       modified={update.data.data.current}
-                      language="toml"
+                      language="fancy_toml"
                       readOnly
                     />
                   )}
@@ -189,7 +189,7 @@ export const ResourceSyncPending = ({
               {update.data.type === "Delete" && (
                 <MonacoEditor
                   value={update.data.data.current}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly
                 />
               )}
@@ -218,7 +218,7 @@ export const ResourceSyncPending = ({
               {data.type === "Create" && (
                 <MonacoEditor
                   value={data.data.proposed}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly
                 />
               )}
@@ -228,7 +228,7 @@ export const ResourceSyncPending = ({
                     <MonacoDiffEditor
                       original={data.data.current}
                       modified={data.data.proposed}
-                      language="toml"
+                      language="fancy_toml"
                       readOnly
                     />
                   )}
@@ -236,7 +236,7 @@ export const ResourceSyncPending = ({
                     <MonacoDiffEditor
                       original={data.data.proposed}
                       modified={data.data.current}
-                      language="toml"
+                      language="fancy_toml"
                       readOnly
                     />
                   )}
@@ -245,7 +245,7 @@ export const ResourceSyncPending = ({
               {data.type === "Delete" && (
                 <MonacoEditor
                   value={data.data.current}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly
                 />
               )}
@@ -274,7 +274,7 @@ export const ResourceSyncPending = ({
               {data.type === "Create" && (
                 <MonacoEditor
                   value={data.data.proposed}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly
                 />
               )}
@@ -284,7 +284,7 @@ export const ResourceSyncPending = ({
                     <MonacoDiffEditor
                       original={data.data.current}
                       modified={data.data.proposed}
-                      language="toml"
+                      language="fancy_toml"
                       readOnly
                     />
                   )}
@@ -292,7 +292,7 @@ export const ResourceSyncPending = ({
                     <MonacoDiffEditor
                       original={data.data.proposed}
                       modified={data.data.current}
-                      language="toml"
+                      language="fancy_toml"
                       readOnly
                     />
                   )}
@@ -301,7 +301,7 @@ export const ResourceSyncPending = ({
               {data.type === "Delete" && (
                 <MonacoEditor
                   value={data.data.current}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly
                 />
               )}

@@ -556,7 +556,7 @@ export const ResourceSyncConfig = ({
                     "# Initialize the sync to import your current resources.\n"
                   }
                   onValueChange={(file_contents) => set({ file_contents })}
-                  language="toml"
+                  language="fancy_toml"
                   readOnly={disabled}
                 />
               );
@@ -582,7 +582,7 @@ export const ResourceSyncConfig = ({
         await mutateAsync({ id, config: update });
       }}
       components={components}
-      file_contents_language="toml"
+      file_contents_language="fancy_toml"
     />
   );
 };

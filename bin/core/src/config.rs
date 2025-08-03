@@ -181,6 +181,8 @@ pub fn core_config() -> &'static CoreConfig {
         .unwrap_or(config.disable_user_registration),
       disable_non_admin_create: env.komodo_disable_non_admin_create
         .unwrap_or(config.disable_non_admin_create),
+      enable_fancy_toml: env.komodo_enable_fancy_toml
+        .unwrap_or(config.enable_fancy_toml),
       lock_login_credentials_for: env.komodo_lock_login_credentials_for
         .unwrap_or(config.lock_login_credentials_for),
       local_auth: env.komodo_local_auth

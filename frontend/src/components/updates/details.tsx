@@ -213,7 +213,7 @@ const UpdateDetailsContent = ({
               <MonacoDiffEditor
                 original={update.prev_toml}
                 modified={update.current_toml}
-                language="toml"
+                language="fancy_toml"
                 readOnly
               />
             </CardContent>

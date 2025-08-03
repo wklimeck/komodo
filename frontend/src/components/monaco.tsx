@@ -7,13 +7,14 @@ import * as prettier from "prettier/standalone";
 import * as pluginTypescript from "prettier/plugins/typescript";
 import * as pluginEsTree from "prettier/plugins/estree";
 import * as pluginYaml from "prettier/plugins/yaml";
-import { useWindowDimensions } from "@lib/hooks";
+import { useRead, useWindowDimensions } from "@lib/hooks";
 
 const MIN_EDITOR_HEIGHT = 56;
 
 export type MonacoLanguage =
   | "yaml"
   | "toml"
+  | "fancy_toml"
   | "json"
   | "key_value"
   | "string_list"
@@ -27,7 +28,7 @@ export type MonacoLanguage =
 export const MonacoEditor = ({
   value,
   onValueChange,
-  language,
+  language: _language,
   readOnly,
   minHeight,
   className,
@@ -39,6 +40,11 @@ export const MonacoEditor = ({
   minHeight?: number;
   className?: string;
 }) => {
+  const enable_fancy_toml =
+    useRead("GetCoreInfo", {}).data?.enable_fancy_toml ?? false;
+  const language = (
+    _language === "fancy_toml" && !enable_fancy_toml ? "toml" : _language
+  ) as MonacoLanguage;
   const dimensions = useWindowDimensions();
   const [editor, setEditor] =
     useState<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -153,7 +159,7 @@ export const MonacoDiffEditor = ({
   original,
   modified,
   onModifiedValueChange,
-  language,
+  language: _language,
   readOnly,
   containerClassName,
   hideUnchangedRegions = true,
@@ -166,6 +172,12 @@ export const MonacoDiffEditor = ({
   containerClassName?: string;
   hideUnchangedRegions?: boolean;
 }) => {
+  const enable_fancy_toml =
+    useRead("GetCoreInfo", {}).data?.enable_fancy_toml ?? false;
+  const language = (
+    _language === "fancy_toml" && !enable_fancy_toml ? "toml" : _language
+  ) as MonacoLanguage;
+
   const [editor, setEditor] =
     useState<monaco.editor.IStandaloneDiffEditor | null>(null);
 

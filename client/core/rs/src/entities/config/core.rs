@@ -113,6 +113,8 @@ pub struct Env {
   pub komodo_disable_non_admin_create: Option<bool>,
   /// Override `disable_websocket_reconnect`
   pub komodo_disable_websocket_reconnect: Option<bool>,
+  /// Override `enable_fancy_toml`
+  pub komodo_enable_fancy_toml: Option<bool>,
 
   /// Override `local_auth`
   pub komodo_local_auth: Option<bool>,
@@ -288,6 +290,10 @@ pub struct CoreConfig {
   /// Disable the UI websocket from automatically reconnecting.
   #[serde(default)]
   pub disable_websocket_reconnect: bool,
+
+  /// Enable the fancy TOML syntax highlighting
+  #[serde(default)]
+  pub enable_fancy_toml: bool,
 
   /// If defined, ensure an enabled first server exists at this address.
   /// Example: `http://periphery:8120`
@@ -617,6 +623,7 @@ impl CoreConfig {
       ui_write_disabled: config.ui_write_disabled,
       disable_confirm_dialog: config.disable_confirm_dialog,
       disable_websocket_reconnect: config.disable_websocket_reconnect,
+      enable_fancy_toml: config.enable_fancy_toml,
       enable_new_users: config.enable_new_users,
       disable_user_registration: config.disable_user_registration,
       disable_non_admin_create: config.disable_non_admin_create,
