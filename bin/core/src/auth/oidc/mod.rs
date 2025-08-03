@@ -31,17 +31,15 @@ use super::RedirectQuery;
 
 pub mod client;
 
-static APP_USER_AGENT: &str = concat!(
-    "Komodo/",
-    env!("CARGO_PKG_VERSION"),
-);
+static APP_USER_AGENT: &str =
+  concat!("Komodo/", env!("CARGO_PKG_VERSION"),);
 
 fn reqwest_client() -> &'static reqwest::Client {
   static REQWEST: OnceLock<reqwest::Client> = OnceLock::new();
   REQWEST.get_or_init(|| {
     reqwest::Client::builder()
       .redirect(reqwest::redirect::Policy::none())
-			.user_agent(APP_USER_AGENT)
+      .user_agent(APP_USER_AGENT)
       .build()
       .expect("Invalid OIDC reqwest client")
   })

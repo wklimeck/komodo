@@ -29,7 +29,8 @@ pub async fn main() -> anyhow::Result<()> {
     .context("Failed to list collections on source db")?
     .into_iter()
     .map(|collection| {
-      let source = source_db.collection::<RawDocumentBuf>(&collection);
+      let source =
+        source_db.collection::<RawDocumentBuf>(&collection);
       let file_path = if collection == "Stats" {
         env.komodo_backup_folder.join("Stats.gz")
       } else {
@@ -39,14 +40,16 @@ pub async fn main() -> anyhow::Result<()> {
         let res = async {
           let mut count = 0;
           let _ = tokio::fs::remove_file(&file_path).await;
-          let file = tokio::fs::File::create(&file_path)
-            .await
-            .with_context(|| format!("Failed to create file at {file_path:?}"))?;
+          let file =
+            tokio::fs::File::create(&file_path).await.with_context(
+              || format!("Failed to create file at {file_path:?}"),
+            )?;
           let mut writer = FramedWrite::new(
             BufWriter::new(GzipEncoder::with_quality(
-              file, async_compression::Level::Best
+              file,
+              async_compression::Level::Best,
             )),
-            LinesCodec::new()
+            LinesCodec::new(),
           );
           let mut cursor = source
             .find(Document::new())
@@ -58,14 +61,17 @@ pub async fn main() -> anyhow::Result<()> {
             .context("Failed to get next document")?
           {
             count += 1;
-            let str = match serde_json::to_string(&doc).context("Failed to serialize document") {
+            let str = match serde_json::to_string(&doc)
+              .context("Failed to serialize document")
+            {
               Ok(str) => str,
               Err(e) => {
                 warn!("{e:#}");
-                continue
+                continue;
               }
             };
-            if let Err(e) = writer.send(str)
+            if let Err(e) = writer
+              .send(str)
               .await
               .context("Failed to write document to file")
             {
@@ -103,7 +109,8 @@ pub async fn main() -> anyhow::Result<()> {
           }
         }
       })
-    }).collect::<FuturesUnordered<_>>();
+    })
+    .collect::<FuturesUnordered<_>>();
 
   loop {
     match handles.next().await {
