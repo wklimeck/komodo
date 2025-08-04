@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::{path::PathBuf, sync::OnceLock};
 
 use clap::Parser;
 use environment_file::maybe_read_list_from_file;
@@ -21,8 +21,16 @@ pub fn periphery_config() -> &'static PeripheryConfig {
       PeripheryConfig::default()
     } else {
       parse_config_paths::<PeripheryConfig>(
-        config_paths,
-        args.config_keyword.unwrap_or(env.periphery_config_keywords),
+        &config_paths
+          .iter()
+          .map(PathBuf::as_path)
+          .collect::<Vec<_>>(),
+        &args
+          .config_keyword
+          .unwrap_or(env.periphery_config_keywords)
+          .iter()
+          .map(String::as_str)
+          .collect::<Vec<_>>(),
         args
           .merge_nested_config
           .unwrap_or(env.periphery_merge_nested_config),

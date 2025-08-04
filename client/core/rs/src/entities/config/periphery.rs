@@ -52,10 +52,11 @@ pub struct CliArgs {
   /// Sets the path of a config file or directory to use.
   /// Can use multiple times
   #[arg(short, long)]
-  pub config_path: Option<Vec<String>>,
+  pub config_path: Option<Vec<PathBuf>>,
 
   /// Sets the keywords to match directory periphery config file names on.
-  /// Can use multiple times.
+  /// Supports wildcard syntax.
+  /// Can use multiple times to match multiple patterns independently.
   #[arg(long)]
   pub config_keyword: Option<Vec<String>>,
 
@@ -91,7 +92,7 @@ pub struct Env {
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
   #[serde(default, alias = "periphery_config_path")]
-  pub periphery_config_paths: Vec<String>,
+  pub periphery_config_paths: Vec<PathBuf>,
   /// If specifying folders, use this to narrow down which
   /// files will be matched to parse into the final [PeripheryConfig].
   /// Only files inside the folders which have names containing all keywords

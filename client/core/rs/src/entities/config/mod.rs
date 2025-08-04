@@ -1,8 +1,15 @@
+use std::path::PathBuf;
+
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
+pub mod cli;
 pub mod core;
 pub mod periphery;
+
+fn default_config_path() -> PathBuf {
+  PathBuf::from("/config/config.toml")
+}
 
 #[typeshare]
 #[derive(

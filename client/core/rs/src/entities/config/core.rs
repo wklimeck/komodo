@@ -11,7 +11,7 @@
 
 use std::{collections::HashMap, path::PathBuf, str::FromStr};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::entities::{
   Timelength,
@@ -31,12 +31,12 @@ use super::{DockerRegistry, GitProvider, empty_or_redacted};
 /// To configure the core api, you can either mount your own custom configuration file to
 /// `/config/config.toml` inside the container,
 /// or simply override whichever fields you need using the environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Env {
   /// Specify a custom config path for the core config toml.
   /// Default: `/config/config.toml`
-  #[serde(default = "default_config_path")]
-  pub komodo_config_path: String,
+  #[serde(default = "super::default_config_path")]
+  pub komodo_config_path: PathBuf,
 
   /// Override `title`
   pub komodo_title: Option<String>,
@@ -226,10 +226,6 @@ pub struct Env {
   pub komodo_ssl_cert_file: Option<PathBuf>,
 }
 
-fn default_config_path() -> String {
-  "/config/config.toml".to_string()
-}
-
 /// # Core Configuration File
 ///
 /// The Core API initializes it's configuration by reading the environment,
@@ -243,7 +239,7 @@ fn default_config_path() -> String {
 /// or simply override whichever fields you need using the environment.
 ///
 /// Refer to the [example file](https://github.com/moghtech/komodo/blob/main/config/core.config.toml) for a full example.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CoreConfig {
   // ===========
   // = General =
@@ -305,7 +301,7 @@ pub struct CoreConfig {
   pub frontend_path: String,
 
   /// Configure database connection
-  #[serde(alias = "mongo")]
+  #[serde(default, alias = "mongo")]
   pub database: DatabaseConfig,
 
   // ================
@@ -703,7 +699,7 @@ impl CoreConfig {
 }
 
 /// Generic Oauth credentials
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct OauthCredentials {
   /// Whether this oauth method is available for usage.
   #[serde(default)]
@@ -723,7 +719,7 @@ pub struct OauthCredentials {
 /// Must provide ONE of:
 /// 1. `uri`
 /// 2. `address` + `username` + `password`
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DatabaseConfig {
   /// Full mongo uri string, eg. `mongodb://username:password@your.mongo.int:27017`
   #[serde(default)]
@@ -772,7 +768,7 @@ impl Default for DatabaseConfig {
 }
 
 /// Provide AWS credentials for Komodo to use.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct AwsCredentials {
   /// The aws ACCESS_KEY_ID
   pub access_key_id: String,
@@ -781,7 +777,7 @@ pub struct AwsCredentials {
 }
 
 /// Provide configuration for a Github Webhook app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct GithubWebhookAppConfig {
   /// Github app id
   pub app_id: i64,
@@ -807,7 +803,7 @@ impl Default for GithubWebhookAppConfig {
 }
 
 /// Provide configuration for a Github Webhook app installation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct GithubWebhookAppInstallationConfig {
   /// The installation ID
   pub id: i64,

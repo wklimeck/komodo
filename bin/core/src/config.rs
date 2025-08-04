@@ -26,9 +26,9 @@ pub fn core_config() -> &'static CoreConfig {
       };
     let config_path = &env.komodo_config_path;
     let config =
-      parse_config_file::<CoreConfig>(config_path.as_str())
+      parse_config_file::<CoreConfig>(config_path)
         .unwrap_or_else(|e| {
-          panic!("failed at parsing config at {config_path} | {e:#}")
+          panic!("failed at parsing config at {config_path:?} | {e:#}")
         });
     let installations = match (maybe_read_list_from_file(env.komodo_github_webhook_app_installations_ids_file,env.komodo_github_webhook_app_installations_ids), env.komodo_github_webhook_app_installations_namespaces) {
       (Some(ids), Some(namespaces)) => {

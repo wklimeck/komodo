@@ -24,7 +24,7 @@ RUN sh ./debian-deps.sh && rm ./debian-deps.sh
 COPY ./config/core.config.toml /config/config.toml
 COPY --from=frontend-builder /builder/frontend/dist /app/frontend
 COPY --from=binaries /core /usr/local/bin/core
-COPY --from=binaries /komodo-util /usr/local/bin/komodo-util
+COPY --from=binaries /komodo /usr/local/bin/komodo
 COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 
 # Set $DENO_DIR and preload external Deno deps

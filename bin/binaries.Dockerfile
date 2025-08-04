@@ -10,20 +10,20 @@ COPY ./client/core/rs ./client/core/rs
 COPY ./client/periphery ./client/periphery
 COPY ./bin/core ./bin/core
 COPY ./bin/periphery ./bin/periphery
-COPY ./bin/util ./bin/util
+COPY ./bin/cli ./bin/cli
 
 # Compile bin
 RUN \
   cargo build -p komodo_core --release && \
   cargo build -p komodo_periphery --release && \
-  cargo build -p komodo_util --release
+  cargo build -p komodo_cli --release
 
 # Copy just the binaries to scratch image
 FROM scratch
 
 COPY --from=builder /builder/target/release/core /core
 COPY --from=builder /builder/target/release/periphery /periphery
-COPY --from=builder /builder/target/release/komodo-util /komodo-util
+COPY --from=builder /builder/target/release/komodo /komodo
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Binaries"

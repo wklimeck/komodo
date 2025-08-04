@@ -21,17 +21,17 @@ RUN sh ./debian-deps.sh && rm ./debian-deps.sh
 
 WORKDIR /app
 
+ARG TARGETPLATFORM
+
 # Copy both binaries initially, but only keep appropriate one for the TARGETPLATFORM.
 COPY --from=x86_64 /core /app/core/linux/amd64
 COPY --from=aarch64 /core /app/core/linux/arm64
-ARG TARGETPLATFORM
 RUN mv /app/core/${TARGETPLATFORM} /usr/local/bin/core && rm -r /app/core
 
 # Same for util
-COPY --from=x86_64 /komodo-util /app/komodo-util/linux/amd64
-COPY --from=aarch64 /komodo-util /app/komodo-util/linux/arm64
-ARG TARGETPLATFORM
-RUN mv /app/komodo-util/${TARGETPLATFORM} /usr/local/bin/komodo-util && rm -r /app/komodo-util
+COPY --from=x86_64 /komodo /app/komodo/linux/amd64
+COPY --from=aarch64 /komodo /app/komodo/linux/arm64
+RUN mv /app/komodo/${TARGETPLATFORM} /usr/local/bin/komodo && rm -r /app/komodo
 
 # Copy default config / static frontend / deno binary
 COPY ./config/core.config.toml /config/config.toml

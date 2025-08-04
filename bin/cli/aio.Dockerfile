@@ -5,18 +5,18 @@ COPY Cargo.toml Cargo.lock ./
 COPY ./lib ./lib
 COPY ./client/core/rs ./client/core/rs
 COPY ./client/periphery ./client/periphery
-COPY ./bin/util ./bin/util
+COPY ./bin/cli ./bin/cli
 
 # Compile bin
-RUN cargo build -p komodo_util --release
+RUN cargo build -p komodo_cli --release
 
 # Copy binaries to distroless base
 FROM gcr.io/distroless/cc
 
-COPY --from=builder /builder/target/release/komodo-util /usr/local/bin/komodo-util
+COPY --from=builder /builder/target/release/komodo /usr/local/bin/komodo
 
-CMD [ "komodo-util" ]
+CMD [ "komodo" ]
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
-LABEL org.opencontainers.image.description="Komodo Util"
+LABEL org.opencontainers.image.description="Komodo CLI"
 LABEL org.opencontainers.image.licenses=GPL-3.0

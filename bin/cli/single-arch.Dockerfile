@@ -7,10 +7,10 @@ FROM ${BINARIES_IMAGE} AS binaries
 
 FROM gcr.io/distroless/cc
 
-COPY --from=binaries /komodo-util /usr/local/bin/komodo-util
+COPY --from=binaries /komodo /usr/local/bin/komodo
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
-LABEL org.opencontainers.image.description="Komodo Util"
+LABEL org.opencontainers.image.description="Komodo CLI"
 LABEL org.opencontainers.image.licenses=GPL-3.0
 
-CMD [ "komodo-util" ]
+CMD [ "komodo" ]

@@ -1,18 +1,24 @@
+use std::path::Path;
+
 use anyhow::Context;
 use async_compression::tokio::write::GzipEncoder;
 use chrono::Local;
 use futures_util::{
   SinkExt, StreamExt, TryStreamExt, stream::FuturesUnordered,
 };
-use mungos::mongodb::bson::{Document, RawDocumentBuf};
+use mungos::mongodb::{
+  Database,
+  bson::{Document, RawDocumentBuf},
+};
 use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio_util::codec::{FramedWrite, LinesCodec};
+use tracing::{error, info, warn};
 
-pub async fn main() -> anyhow::Result<()> {
-  let env = envy::from_env::<super::Env>()?;
-
-  let now_backup_folder = env
-    .komodo_backup_folder
+pub async fn backup(
+  db: &Database,
+  backup_folder: &Path,
+) -> anyhow::Result<()> {
+  let now_backup_folder = backup_folder
     .join(Local::now().format("%Y-%m-%d_%H-%M-%S").to_string());
 
   tokio::fs::create_dir_all(&now_backup_folder)
@@ -21,18 +27,15 @@ pub async fn main() -> anyhow::Result<()> {
 
   info!("Backing up to {now_backup_folder:?}");
 
-  let source_db = super::database(&env).await?;
-
-  let mut handles = source_db
+  let mut handles = db
     .list_collection_names()
     .await
     .context("Failed to list collections on source db")?
     .into_iter()
     .map(|collection| {
-      let source =
-        source_db.collection::<RawDocumentBuf>(&collection);
+      let source = db.collection::<RawDocumentBuf>(&collection);
       let file_path = if collection == "Stats" {
-        env.komodo_backup_folder.join("Stats.gz")
+        backup_folder.join("Stats.gz")
       } else {
         now_backup_folder.join(format!("{collection}.gz"))
       };

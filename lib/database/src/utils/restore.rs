@@ -5,29 +5,23 @@ use async_compression::tokio::bufread::GzipDecoder;
 use futures_util::{
   StreamExt, TryStreamExt, stream::FuturesUnordered,
 };
-use mungos::mongodb::{bson::Document, options::InsertManyOptions};
-use serde::Deserialize;
+use mungos::mongodb::{
+  Database, bson::Document, options::InsertManyOptions,
+};
 use tokio::io::BufReader;
 use tokio_util::codec::{FramedRead, LinesCodec};
+use tracing::{error, info, warn};
 
-#[derive(Deserialize)]
-struct Env {
-  /// A specific dated folder to restore, relative to `KOMODO_BACKUP_FOLDER`.
-  /// If not provided, will use the most recent folder.
-  komodo_restore_folder: Option<PathBuf>,
-}
-
-pub async fn main() -> anyhow::Result<()> {
-  let env = envy::from_env::<super::Env>()?;
-  let specific_env = envy::from_env::<Env>()?;
-
+pub async fn restore(
+  db: &Database,
+  backup_folder: &Path,
+  restore_folder: Option<&Path>,
+) -> anyhow::Result<()> {
   // Get the specific dated folder to restore contents of
-  let restore_folder = if let Some(restore_folder) =
-    specific_env.komodo_restore_folder
-  {
-    env.komodo_backup_folder.join(&restore_folder)
+  let restore_folder = if let Some(restore_folder) = restore_folder {
+    backup_folder.join(&restore_folder)
   } else {
-    latest_restore_folder(&env).await?
+    latest_restore_folder(backup_folder).await?
   }
   .components()
   .collect::<PathBuf>();
@@ -35,15 +29,13 @@ pub async fn main() -> anyhow::Result<()> {
   info!("Restore folder: {restore_folder:?}");
 
   let restore_files =
-    get_restore_files(&env, &restore_folder).await?;
-
-  let target_db = super::database(&env).await?;
+    get_restore_files(backup_folder, &restore_folder).await?;
 
   let mut handles = restore_files
     .into_iter()
     .map(|(collection, restore_file)| {
       let target =
-        target_db.collection::<Document>(&collection);
+        db.collection::<Document>(&collection);
 
       async {
         let col = collection.clone();
@@ -137,18 +129,17 @@ pub async fn main() -> anyhow::Result<()> {
 }
 
 async fn latest_restore_folder(
-  env: &super::Env,
+  backup_folder: &Path,
 ) -> anyhow::Result<PathBuf> {
   let mut max = PathBuf::new();
-  let mut backups_dir =
-    tokio::fs::read_dir(&env.komodo_backup_folder)
-      .await
-      .context("Failed to read restore directory")?;
+  let mut backups_dir = tokio::fs::read_dir(backup_folder)
+    .await
+    .context("Failed to read backup directory")?;
   loop {
     match backups_dir
       .next_entry()
       .await
-      .context("Failed to read dir entry")
+      .context("Failed to read backup dir entry")
     {
       Ok(Some(entry)) => {
         let path = entry.path();
@@ -167,7 +158,7 @@ async fn latest_restore_folder(
 }
 
 async fn get_restore_files(
-  env: &super::Env,
+  backup_folder: &Path,
   restore_folder: &Path,
 ) -> anyhow::Result<Vec<(String, PathBuf)>> {
   let mut restore_dir =
@@ -177,11 +168,7 @@ async fn get_restore_files(
 
   let mut restore_files: Vec<(String, PathBuf)> = vec![(
     String::from("Stats"),
-    env
-      .komodo_backup_folder
-      .join("Stats.gz")
-      .components()
-      .collect(),
+    backup_folder.join("Stats.gz").components().collect(),
   )];
 
   loop {

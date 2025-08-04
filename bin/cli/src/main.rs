@@ -2,31 +2,49 @@
 extern crate tracing;
 
 use colored::Colorize;
-use komodo_client::api::read::GetVersion;
+use komodo_client::entities::config::cli;
 
-mod args;
-mod exec;
-mod helpers;
-mod state;
+mod command;
+mod config;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-  tracing_subscriber::fmt().with_target(false).init();
+async fn app() -> anyhow::Result<()> {
+  dotenvy::dotenv().ok();
+  logger::init(&config::cli_config().logging)?;
 
   info!(
     "Komodo CLI version: {}",
     env!("CARGO_PKG_VERSION").blue().bold()
   );
 
-  let version =
-    state::komodo_client().read(GetVersion {}).await?.version;
-  info!("Komodo Core version: {}", version.blue().bold());
-
-  match &state::cli_args().command {
-    args::Command::Execute { execution } => {
-      exec::run(execution.to_owned()).await?
+  match config::cli_args().command.clone() {
+    cli::Command::Execute { execution } => {
+      command::execute(execution).await
+    }
+    cli::Command::Database {
+      command: cli::DatabaseCommand::Backup,
+    } => {
+      todo!()
+    }
+    cli::Command::Database {
+      command: cli::DatabaseCommand::Restore { time },
+    } => {
+      todo!()
+    }
+    cli::Command::Database {
+      command: cli::DatabaseCommand::Copy { target_uri },
+    } => {
+      todo!()
     }
   }
+}
 
-  Ok(())
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+  let mut term_signal = tokio::signal::unix::signal(
+    tokio::signal::unix::SignalKind::terminate(),
+  )?;
+  tokio::select! {
+    res = tokio::spawn(app()) => res?,
+    _ = term_signal.recv() => Ok(()),
+  }
 }

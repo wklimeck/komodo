@@ -1,68 +1,18 @@
-use std::time::Duration;
-
 use anyhow::Context;
 use futures_util::{
   StreamExt, TryStreamExt, stream::FuturesUnordered,
 };
-use mungos::{
-  init::MongoBuilder,
-  mongodb::{
-    bson::{Document, RawDocumentBuf},
-    options::InsertManyOptions,
-  },
+use mungos::mongodb::{
+  Database,
+  bson::{Document, RawDocumentBuf},
+  options::InsertManyOptions,
 };
-use serde::Deserialize;
+use tracing::{error, info};
 
-#[derive(Deserialize)]
-struct Env {
-  /// Provide the source mongo uri to copy from
-  source_uri: String,
-  /// Provide the source db name to copy from.
-  /// Default: komodo
-  #[serde(default = "default_db_name")]
-  source_db_name: String,
-  /// Provide the source mongo uri to copy to
-  target_uri: String,
-  /// Provide the target db name to copy to.
-  /// Default: komodo
-  #[serde(default = "default_db_name")]
-  target_db_name: String,
-  /// Give the target database some time to initialize.
-  /// Default: 5
-  #[serde(default = "default_startup_sleep_seconds")]
-  startup_sleep_seconds: u64,
-}
-
-fn default_db_name() -> String {
-  String::from("komodo")
-}
-
-fn default_startup_sleep_seconds() -> u64 {
-  5
-}
-
-pub async fn main() -> anyhow::Result<()> {
-  let env = envy::from_env::<Env>()?;
-
-  info!("Sleeping for {} seconds...", env.startup_sleep_seconds);
-  tokio::time::sleep(Duration::from_secs(env.startup_sleep_seconds))
-    .await;
-
-  info!("Copying database...");
-
-  let source_db = MongoBuilder::default()
-    .uri(env.source_uri)
-    .build()
-    .await
-    .context("Invalid SOURCE_URI")?
-    .database(&env.source_db_name);
-  let target_db = MongoBuilder::default()
-    .uri(env.target_uri)
-    .build()
-    .await
-    .context("Invalid SOURCE_URI")?
-    .database(&env.target_db_name);
-
+pub async fn copy(
+  source_db: &Database,
+  target_db: &Database,
+) -> anyhow::Result<()> {
   let mut handles = source_db
     .list_collection_names()
     .await

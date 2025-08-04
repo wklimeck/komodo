@@ -31,6 +31,8 @@ use tracing::error;
 pub use mongo_indexed;
 pub use mungos;
 
+pub mod utils;
+
 #[derive(Debug)]
 pub struct DbClient {
   pub users: Collection<User>,

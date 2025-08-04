@@ -36,7 +36,7 @@ serror = { version = "0.5.0", default-features = false }
 slack = { version = "0.4.0", package = "slack_client_rs", default-features = false, features = ["rustls"] }
 derive_default_builder = "0.1.8"
 derive_empty_traits = "0.1.0"
-merge_config_files = "0.1.5"
+merge_config_files = "1.0.1"
 async_timing_util = "1.0.0"
 partial_derive2 = "0.4.3"
 derive_variants = "1.0.0"
@@ -48,8 +48,8 @@ svi = "1.2.0"
 
 # ASYNC
 reqwest = { version = "0.12.22", default-features = false, features = ["json", "stream", "rustls-tls-native-roots"] }
-tokio = { version = "1.47.0", features = ["full"] }
-tokio-util = { version = "0.7.15", features = ["io", "codec"] }
+tokio = { version = "1.47.1", features = ["full"] }
+tokio-util = { version = "0.7.16", features = ["io", "codec"] }
 tokio-stream = { version = "0.1.17", features = ["sync"] }
 pin-project-lite = "0.2.16"
 futures = "0.3.31"
@@ -107,7 +107,7 @@ hex = "0.4.3"
 
 # SYSTEM
 portable-pty = "0.9.0"
-bollard = "0.19.1"
+bollard = "0.19.2"
 sysinfo = "0.36.1"
 
 # CLOUD
