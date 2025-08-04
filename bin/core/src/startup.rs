@@ -64,7 +64,7 @@ pub async fn run_startup_actions() {
 
     let update = match init_execution_update(
       &ExecuteRequest::RunAction(RunAction { action: id.clone() }),
-      &user,
+      user,
     )
     .await
     {
