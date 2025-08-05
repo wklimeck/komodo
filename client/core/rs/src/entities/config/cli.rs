@@ -19,12 +19,12 @@ pub struct CliArgs {
   pub command: Command,
 
   /// Always continue on user confirmation prompts.
-  #[arg(long, short, default_value_t = false)]
+  #[arg(long, short = 'y', default_value_t = false)]
   pub yes: bool,
 
   /// Sets the path of a config file or directory to use.
   /// Can use multiple times
-  #[arg(short, long)]
+  #[arg(long, short = 'c')]
   pub config_path: Option<Vec<PathBuf>>,
 
   /// Sets the keywords to match directory cli config file names on.
@@ -60,13 +60,13 @@ pub enum Command {
     execution: Execution,
     /// Top priority Komodo host.
     /// Eg. "https://demo.komo.do"
-    #[arg(long, short)]
+    #[arg(long, short = 'h')]
     host: Option<String>,
     /// Top priority api key.
-    #[arg(long, short)]
+    #[arg(long, short = 'k')]
     key: Option<String>,
     /// Top priority api secret.
-    #[arg(long, short)]
+    #[arg(long, short = 's')]
     secret: Option<String>,
   },
 
@@ -84,19 +84,21 @@ pub enum DatabaseCommand {
   Backup {
     /// Optionally provide a specific backup folder.
     /// Default: `/backup`
-    folder: Option<PathBuf>,
+    #[arg(long, short = 'f')]
+    backup_folder: Option<PathBuf>,
   },
   /// Restores the database from backup files.
   Restore {
+    /// Optionally provide a specific backup folder.
+    /// Default: `/backup`
+    #[arg(long, short = 'f')]
+    backup_folder: Option<PathBuf>,
     /// Optionally provide a specific restore folder.
     /// If not provided, will use the most recent backup folder.
     ///
     /// Example: `2025-08-01_05-04-53`
-    folder: Option<PathBuf>,
-    /// Optionally provide a specific backup folder.
-    /// Default: `/backup`
-    #[arg(long, short)]
-    backup_folder: Option<PathBuf>,
+    #[arg(long, short = 'r')]
+    restore_folder: Option<PathBuf>,
   },
   /// Copy the database to another running database.
   Copy {
@@ -104,16 +106,16 @@ pub enum DatabaseCommand {
     #[arg(long)]
     uri: Option<String>,
     /// The target database address to copy to
-    #[arg(long, short)]
+    #[arg(long, short = 'a')]
     address: Option<String>,
     /// The target database username
-    #[arg(long, short)]
+    #[arg(long, short = 'u')]
     username: Option<String>,
     /// The target database password
-    #[arg(long, short)]
+    #[arg(long, short = 'p')]
     password: Option<String>,
     /// The target db name to copy to.
-    #[arg(long, short)]
+    #[arg(long, short = 'd')]
     db_name: Option<String>,
   },
 }
