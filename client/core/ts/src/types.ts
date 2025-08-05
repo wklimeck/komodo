@@ -5603,7 +5603,7 @@ export interface FullContainerStats {
 	precpu_stats?: ContainerCpuStats;
 	memory_stats?: ContainerMemoryStats;
 	/** Network statistics for the container per interface.  This field is omitted if the container has no networking enabled. */
-	networks?: ContainerNetworkStats;
+	networks?: Record<string, ContainerNetworkStats>;
 }
 
 /** Get a specific action. Response: [Action]. */
