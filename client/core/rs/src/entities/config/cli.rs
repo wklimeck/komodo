@@ -55,6 +55,7 @@ pub struct CliArgs {
 #[derive(Debug, Clone, Subcommand)]
 pub enum Command {
   /// Run Komodo executions
+  #[clap(alias = "x")]
   Execute {
     #[command(subcommand)]
     execution: Execution,
@@ -71,6 +72,7 @@ pub enum Command {
   },
 
   /// Database utilities
+  #[clap(alias = "db")]
   Database {
     #[command(subcommand)]
     command: DatabaseCommand,

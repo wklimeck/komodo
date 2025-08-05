@@ -7,7 +7,7 @@ pub async fn backup() -> anyhow::Result<()> {
 
   println!("");
   println!(
-    "🦎 {} Database {} Utility 🦎",
+    "🦎  {} Database {} Utility  🦎",
     "Komodo".bold(),
     "Backup".green().bold()
   );
@@ -30,7 +30,7 @@ pub async fn restore() -> anyhow::Result<()> {
 
   println!("");
   println!(
-    "🦎 {} Database {} Utility 🦎",
+    "🦎  {} Database {} Utility  🦎",
     "Komodo".bold(),
     "Restore".red().bold()
   );
@@ -62,7 +62,7 @@ pub async fn copy() -> anyhow::Result<()> {
 
   println!("");
   println!(
-    "🦎 {} Database {} Utility 🦎",
+    "🦎  {} Database {} Utility  🦎",
     "Komodo".bold(),
     "Copy".blue().bold()
   );
