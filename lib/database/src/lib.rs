@@ -1,3 +1,4 @@
+use anyhow::{Context, anyhow};
 use komodo_client::entities::{
   action::Action,
   alert::Alert,
@@ -26,7 +27,6 @@ use mungos::{
   init::MongoBuilder,
   mongodb::{Collection, Database},
 };
-use tracing::error;
 
 pub use mongo_indexed;
 pub use mungos;
@@ -34,7 +34,7 @@ pub use mungos;
 pub mod utils;
 
 #[derive(Debug)]
-pub struct DbClient {
+pub struct Client {
   pub users: Collection<User>,
   pub user_groups: Collection<UserGroup>,
   pub permissions: Collection<Permission>,
@@ -61,49 +61,16 @@ pub struct DbClient {
   pub db: Database,
 }
 
-impl DbClient {
+impl Client {
   pub async fn new(
-    DatabaseConfig {
-      uri,
-      address,
-      username,
-      password,
-      app_name,
-      db_name,
-    }: &DatabaseConfig,
-  ) -> anyhow::Result<DbClient> {
-    let mut client = MongoBuilder::default().app_name(app_name);
+    config: &DatabaseConfig,
+  ) -> anyhow::Result<Client> {
+    let db = init(config).await?;
+    Self::from_database(db).await
+  }
 
-    match (
-      !uri.is_empty(),
-      !address.is_empty(),
-      !username.is_empty(),
-      !password.is_empty(),
-    ) {
-      (true, _, _, _) => {
-        client = client.uri(uri);
-      }
-      (_, true, true, true) => {
-        client = client
-          .address(address)
-          .username(username)
-          .password(password);
-      }
-      (_, true, _, _) => {
-        client = client.address(address);
-      }
-      _ => {
-        error!(
-          "config.mongo not configured correctly. must pass either config.mongo.uri, or config.mongo.address + config.mongo.username? + config.mongo.password?"
-        );
-        std::process::exit(1)
-      }
-    }
-
-    let client = client.build().await?;
-    let db = client.database(db_name);
-
-    let client = DbClient {
+  pub async fn from_database(db: Database) -> anyhow::Result<Client> {
+    let client = Client {
       users: mongo_indexed::collection(&db, true).await?,
       user_groups: mongo_indexed::collection(&db, true).await?,
       permissions: mongo_indexed::collection(&db, true).await?,
@@ -132,6 +99,52 @@ impl DbClient {
     };
     Ok(client)
   }
+}
+
+/// Initializes unindexed database handle.
+pub async fn init(
+  DatabaseConfig {
+    uri,
+    address,
+    username,
+    password,
+    app_name,
+    db_name,
+  }: &DatabaseConfig,
+) -> anyhow::Result<Database> {
+  let mut client = MongoBuilder::default().app_name(app_name);
+
+  match (
+    !uri.is_empty(),
+    !address.is_empty(),
+    !username.is_empty(),
+    !password.is_empty(),
+  ) {
+    (true, _, _, _) => {
+      client = client.uri(uri);
+    }
+    (_, true, true, true) => {
+      client = client
+        .address(address)
+        .username(username)
+        .password(password);
+    }
+    (_, true, _, _) => {
+      client = client.address(address);
+    }
+    _ => {
+      return Err(anyhow!(
+        "'config.database' not configured correctly. must pass either 'config.database.uri', or 'config.database.address' + 'config.database.username' + 'config.database.password'"
+      ));
+    }
+  }
+
+  let client = client
+    .build()
+    .await
+    .context("Failed to initialize database connection.")?;
+
+  Ok(client.database(db_name))
 }
 
 async fn resource_collection<T: Send + Sync>(

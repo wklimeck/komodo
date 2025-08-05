@@ -6,8 +6,6 @@ use komodo_client::{
   entities::update::Update,
 };
 
-use crate::config::cli_args;
-
 enum ExecutionResult {
   Single(Box<Update>),
   Batch(BatchExecutionResponse),
@@ -217,9 +215,7 @@ pub async fn execute(execution: Execution) -> anyhow::Result<()> {
     }
   }
 
-  if !cli_args().yes {
-    super::wait_for_enter("run execution")?;
-  }
+  super::wait_for_enter("run execution")?;
 
   info!("Running Execution...");
 

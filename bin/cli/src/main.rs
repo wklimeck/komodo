@@ -16,25 +16,19 @@ async fn app() -> anyhow::Result<()> {
     env!("CARGO_PKG_VERSION").blue().bold()
   );
 
-  match config::cli_args().command.clone() {
-    cli::Command::Execute { execution } => {
-      command::execute(execution).await
+  match &config::cli_args().command {
+    cli::Command::Execute { execution, .. } => {
+      command::execute(execution.clone()).await
     }
     cli::Command::Database {
-      command: cli::DatabaseCommand::Backup,
-    } => {
-      todo!()
-    }
+      command: cli::DatabaseCommand::Backup { .. },
+    } => command::database::backup().await,
     cli::Command::Database {
-      command: cli::DatabaseCommand::Restore { time },
-    } => {
-      todo!()
-    }
+      command: cli::DatabaseCommand::Restore { .. },
+    } => command::database::restore().await,
     cli::Command::Database {
-      command: cli::DatabaseCommand::Copy { target_uri },
-    } => {
-      todo!()
-    }
+      command: cli::DatabaseCommand::Copy { .. },
+    } => command::database::copy().await,
   }
 }
 

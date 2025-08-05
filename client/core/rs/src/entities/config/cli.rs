@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::{Parser, Subcommand};
 use serde::Deserialize;
@@ -45,17 +45,6 @@ pub struct CliArgs {
   #[arg(long)]
   pub extend_config_arrays: Option<bool>,
 
-  /// Top priority Komodo host.
-  /// Eg. "https://demo.komo.do"
-  #[arg(long)]
-  pub host: Option<String>,
-  /// Top priority api key.
-  #[arg(long)]
-  pub key: Option<String>,
-  /// Top priority api secret.
-  #[arg(long)]
-  pub secret: Option<String>,
-
   /// Configure the logging level: error, warn, info, debug, trace.
   /// Default: info
   /// If passed, will override any other log_level set.
@@ -69,6 +58,16 @@ pub enum Command {
   Execute {
     #[command(subcommand)]
     execution: Execution,
+    /// Top priority Komodo host.
+    /// Eg. "https://demo.komo.do"
+    #[arg(long, short)]
+    host: Option<String>,
+    /// Top priority api key.
+    #[arg(long, short)]
+    key: Option<String>,
+    /// Top priority api secret.
+    #[arg(long, short)]
+    secret: Option<String>,
   },
 
   /// Database utilities
@@ -82,19 +81,41 @@ pub enum Command {
 pub enum DatabaseCommand {
   /// Triggers database backup to compressed files
   /// organized by time the backup was taken.
-  Backup,
+  Backup {
+    /// Optionally provide a specific backup folder.
+    /// Default: `/backup`
+    folder: Option<PathBuf>,
+  },
   /// Restores the database from backup files.
   Restore {
-    /// Optionally provide a specific restore folder time.
+    /// Optionally provide a specific restore folder.
     /// If not provided, will use the most recent backup folder.
+    ///
     /// Example: `2025-08-01_05-04-53`
-    time: Option<String>,
+    folder: Option<PathBuf>,
+    /// Optionally provide a specific backup folder.
+    /// Default: `/backup`
+    #[arg(long, short)]
+    backup_folder: Option<PathBuf>,
   },
   /// Copy the database to another running database.
   Copy {
-    /// Provide the target database uri to copy to.
-    target_uri: Option<String>,
-  }
+    /// The target database uri to copy to.
+    #[arg(long)]
+    uri: Option<String>,
+    /// The target database address to copy to
+    #[arg(long, short)]
+    address: Option<String>,
+    /// The target database username
+    #[arg(long, short)]
+    username: Option<String>,
+    /// The target database password
+    #[arg(long, short)]
+    password: Option<String>,
+    /// The target db name to copy to.
+    #[arg(long, short)]
+    db_name: Option<String>,
+  },
 }
 
 /// # Komodo CLI Environment Variables
@@ -138,6 +159,20 @@ pub struct Env {
   pub komodo_cli_key: Option<String>,
   /// Override `cli_secret`
   pub komodo_cli_secret: Option<String>,
+  /// Override `backup_folder`
+  pub komodo_cli_backup_folder: Option<PathBuf>,
+  /// Override `restore_folder`
+  pub komodo_cli_restore_folder: Option<PathBuf>,
+  /// Override `database_copy_uri`
+  pub komodo_cli_database_copy_uri: Option<String>,
+  /// Override `database_copy_address`
+  pub komodo_cli_database_copy_address: Option<String>,
+  /// Override `database_copy_username`
+  pub komodo_cli_database_copy_username: Option<String>,
+  /// Override `database_copy_password`
+  pub komodo_cli_database_copy_password: Option<String>,
+  /// Override `database_copy_db_name`
+  pub komodo_cli_database_copy_db_name: Option<String>,
 
   // LOGGING
   /// Override `logging.level`
@@ -208,6 +243,24 @@ pub struct CliConfig {
   pub cli_key: Option<String>,
   /// The api secret for the CLI to use
   pub cli_secret: Option<String>,
+  /// The root backup folder.
+  ///
+  /// Default: `/backup`.
+  ///
+  /// Backups will be created in timestamped folders eg
+  /// `/backup/2025-08-04_05_05_53`
+  #[serde(default = "default_backup_folder")]
+  pub backup_folder: PathBuf,
+  /// A specific restore folder,
+  /// either absolute or relative to the `backup_folder`.
+  ///
+  /// Default: None (restores most recent backup).
+  ///
+  /// Example: `2025-08-04_05_05_53`
+  pub restore_folder: Option<PathBuf>,
+  /// Configure copy database connection
+  #[serde(default)]
+  pub database_copy: DatabaseConfig,
 
   // ============
   // Same as Core
@@ -226,4 +279,9 @@ pub struct CliConfig {
   /// for easier human readability.
   #[serde(default)]
   pub pretty_startup_config: bool,
+}
+
+fn default_backup_folder() -> PathBuf {
+  // SAFE: /backup is a valid path.
+  PathBuf::from_str("/backup").unwrap()
 }

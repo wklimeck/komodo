@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::Context;
 use arc_swap::ArcSwap;
-use database::DbClient;
+use database::Client;
 use komodo_client::entities::{
   action::ActionState,
   build::BuildState,
@@ -32,16 +32,16 @@ use crate::{
   },
 };
 
-static DB_CLIENT: OnceLock<DbClient> = OnceLock::new();
+static DB_CLIENT: OnceLock<Client> = OnceLock::new();
 
-pub fn db_client() -> &'static DbClient {
+pub fn db_client() -> &'static Client {
   DB_CLIENT
     .get()
     .expect("db_client accessed before initialized")
 }
 
 pub async fn init_db_client() {
-  let client = DbClient::new(&core_config().database)
+  let client = Client::new(&core_config().database)
     .await
     .context("failed to initialize database client")
     .unwrap();

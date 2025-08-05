@@ -4,7 +4,7 @@ use clap::Parser;
 use environment_file::maybe_read_item_from_file;
 use komodo_client::entities::{
   config::{
-    cli::{CliArgs, CliConfig, Env},
+    cli::{CliArgs, CliConfig, Command, DatabaseCommand, Env},
     core::DatabaseConfig,
   },
   logger::{LogConfig, LogLevel},
@@ -51,23 +51,80 @@ pub fn cli_config() -> &'static CliConfig {
       .expect("failed at parsing config from paths")
     };
 
+    let (host, key, secret) = match &args.command {
+      Command::Execute {
+        host, key, secret, ..
+      } => (host.clone(), key.clone(), secret.clone()),
+      _ => (None, None, None),
+    };
+
+    let (backup_folder, restore_folder) = match &args.command {
+      Command::Database {
+        command: DatabaseCommand::Backup { folder },
+      } => (folder.clone(), None),
+      Command::Database {
+        command:
+          DatabaseCommand::Restore {
+            folder,
+            backup_folder,
+          },
+      } => (backup_folder.clone(), folder.clone()),
+      _ => (None, None),
+    };
+    let (uri, address, username, password, db_name) =
+      match &args.command {
+        Command::Database {
+          command:
+            DatabaseCommand::Copy {
+              uri,
+              address,
+              username,
+              password,
+              db_name,
+            },
+        } => (
+          uri.clone(),
+          address.clone(),
+          username.clone(),
+          password.clone(),
+          db_name.clone(),
+        ),
+        _ => (None, None, None, None, None),
+      };
+
     CliConfig {
-      host: args
-        .host
-        .clone()
+      host: host
         .or(env.komodo_cli_host)
         .or(env.komodo_host)
         .unwrap_or(config.host),
-      cli_key: args
-        .key
-        .clone()
-        .or(env.komodo_cli_key)
-        .or(config.cli_key),
-      cli_secret: args
-        .secret
-        .clone()
+      cli_key: key.or(env.komodo_cli_key).or(config.cli_key),
+      cli_secret: secret
         .or(env.komodo_cli_secret)
         .or(config.cli_secret),
+      backup_folder: backup_folder
+        .or(env.komodo_cli_backup_folder)
+        .unwrap_or(config.backup_folder),
+      restore_folder: restore_folder
+        .or(env.komodo_cli_restore_folder)
+        .or(config.restore_folder),
+      database_copy: DatabaseConfig {
+        uri: uri
+          .or(env.komodo_cli_database_copy_uri)
+          .unwrap_or(config.database_copy.uri),
+        address: address
+          .or(env.komodo_cli_database_copy_address)
+          .unwrap_or(config.database_copy.address),
+        username: username
+          .or(env.komodo_cli_database_copy_username)
+          .unwrap_or(config.database_copy.username),
+        password: password
+          .or(env.komodo_cli_database_copy_password)
+          .unwrap_or(config.database_copy.password),
+        db_name: db_name
+          .or(env.komodo_cli_database_copy_db_name)
+          .unwrap_or(config.database_copy.db_name),
+        app_name: String::from("komodo_cli"),
+      },
       database: DatabaseConfig {
         uri: maybe_read_item_from_file(
           env.komodo_database_uri_file,
@@ -87,10 +144,10 @@ pub fn cli_config() -> &'static CliConfig {
           env.komodo_database_password,
         )
         .unwrap_or(config.database.password),
-        app_name: String::from("komodo_cli"),
         db_name: env
           .komodo_database_db_name
           .unwrap_or(config.database.db_name),
+        app_name: String::from("komodo_cli"),
       },
       logging: LogConfig {
         level: args
