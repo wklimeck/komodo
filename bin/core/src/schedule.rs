@@ -6,6 +6,7 @@ use std::{
 use anyhow::{Context, anyhow};
 use async_timing_util::Timelength;
 use chrono::Local;
+use croner::parser::CronParser;
 use database::mungos::find::find_collect;
 use formatting::format_serror;
 use komodo_client::{
@@ -284,16 +285,24 @@ pub fn update_schedule(schedule: impl HasSchedule) {
   );
 }
 
+fn cron_parser() -> &'static CronParser {
+  static CRON_PARSER: OnceLock<CronParser> = OnceLock::new();
+  CRON_PARSER.get_or_init(|| {
+    CronParser::builder()
+      .seconds(croner::parser::Seconds::Required)
+      .dom_and_dow(true)
+      .build()
+  })
+}
+
 /// Finds the next run occurence in UTC ms.
 fn find_next_occurrence(
   schedule: impl HasSchedule,
 ) -> anyhow::Result<i64> {
   let cron = match schedule.format() {
-    ScheduleFormat::Cron => croner::Cron::new(schedule.schedule())
-      .with_seconds_required()
-      .with_dom_and_dow()
-      .parse()
-      .context("Failed to parse schedule CRON")?,
+    ScheduleFormat::Cron => cron_parser()
+      .parse(schedule.schedule())
+      .context("Invalid CRON schedule")?,
     ScheduleFormat::English => {
       let cron =
         english_to_cron::str_cron_syntax(schedule.schedule())
@@ -305,13 +314,9 @@ fn find_next_occurrence(
           .take(6)
           .collect::<Vec<_>>()
           .join(" ");
-      croner::Cron::new(&cron)
-        .with_seconds_required()
-        .with_dom_and_dow()
-        .parse()
-        .with_context(|| {
-          format!("Failed to parse schedule CRON: {cron}")
-        })?
+      cron_parser()
+        .parse(&cron)
+        .with_context(|| format!("English expression produced invalid CRON schedule | produced: {cron}"))?
     }
   };
   let next =
