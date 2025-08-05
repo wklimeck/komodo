@@ -71,7 +71,7 @@ strum = { version = "0.27.2", features = ["derive"] }
 serde_json = "1.0.142"
 serde_yaml = "0.9.34"
 serde_qs = "0.15.0"
-toml = "0.9.4"
+toml = "0.9.5"
 
 # ERROR
 anyhow = "1.0.98"
@@ -111,9 +111,9 @@ bollard = "0.19.2"
 sysinfo = "0.36.1"
 
 # CLOUD
-aws-config = "1.8.3"
-aws-sdk-ec2 = "1.154.0"
-aws-credential-types = "1.2.4"
+aws-config = "1.8.4"
+aws-sdk-ec2 = "1.155.0"
+aws-credential-types = "1.2.5"
 
 ## CRON
 english-to-cron = "0.1.6"
