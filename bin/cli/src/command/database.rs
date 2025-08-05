@@ -5,18 +5,16 @@ use crate::config::cli_config;
 pub async fn backup() -> anyhow::Result<()> {
   let config = cli_config();
 
-  println!("");
   println!(
-    "🦎  {} Database {} Utility  🦎",
+    "\n🦎  {} Database {} Utility  🦎",
     "Komodo".bold(),
     "Backup".green().bold()
   );
   println!(
-    "{}",
+    "\n{}",
     " - Backup all database contents to gzip compressed files.".dimmed()
   );
-  println!("");
-  println!(" {}: {:?}", " - Root Folder".dimmed(), config.backup_folder);
+  println!("{}: {:?}", " - Root Folder".dimmed(), config.backup_folder);
 
   crate::command::wait_for_enter("start backup")?;
 
@@ -28,20 +26,18 @@ pub async fn backup() -> anyhow::Result<()> {
 pub async fn restore() -> anyhow::Result<()> {
   let config = cli_config();
 
-  println!("");
   println!(
-    "🦎  {} Database {} Utility  🦎",
+    "\n🦎  {} Database {} Utility  🦎",
     "Komodo".bold(),
     "Restore".red().bold()
   );
   println!(
-    "{}",
+    "\n{}",
     " - Restores database contents from gzip compressed files.".dimmed()
   );
-  println!("");
   println!("{}: {:?}", " - Root Folder".dimmed(), config.backup_folder);
   if let Some(restore_folder) = &config.restore_folder {
-    println!("{restore_folder:?}: {:?}", " - Restore Folder".dimmed());
+    println!("{}: {restore_folder:?}", " - Restore Folder".dimmed());
   }
 
   crate::command::wait_for_enter("start restore")?;
