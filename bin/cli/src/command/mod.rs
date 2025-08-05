@@ -26,6 +26,7 @@ async fn komodo_client() -> anyhow::Result<KomodoClient> {
 
 fn wait_for_enter(press_enter_to: &str) -> anyhow::Result<()> {
   if cli_args().yes {
+    println!("");
     return Ok(());
   }
   println!(
