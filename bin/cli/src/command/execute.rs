@@ -11,7 +11,10 @@ enum ExecutionResult {
   Batch(BatchExecutionResponse),
 }
 
-pub async fn execute(execution: Execution) -> anyhow::Result<()> {
+pub async fn execute(
+  execution: Execution,
+  yes: bool,
+) -> anyhow::Result<()> {
   if matches!(execution, Execution::None(_)) {
     println!("Got 'none' execution. Doing nothing...");
     tokio::time::sleep(Duration::from_secs(3)).await;
@@ -215,7 +218,7 @@ pub async fn execute(execution: Execution) -> anyhow::Result<()> {
     }
   }
 
-  super::wait_for_enter("run execution")?;
+  super::wait_for_enter("run execution", yes)?;
 
   info!("Running Execution...");
 

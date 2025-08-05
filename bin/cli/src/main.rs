@@ -17,18 +17,18 @@ async fn app() -> anyhow::Result<()> {
   );
 
   match &config::cli_args().command {
-    cli::Command::Execute { execution, .. } => {
-      command::execute(execution.clone()).await
+    cli::Command::Execute { execution, yes, .. } => {
+      command::execute(execution.clone(), *yes).await
     }
     cli::Command::Database {
-      command: cli::DatabaseCommand::Backup { .. },
-    } => command::database::backup().await,
+      command: cli::DatabaseCommand::Backup { yes, .. },
+    } => command::database::backup(*yes).await,
     cli::Command::Database {
-      command: cli::DatabaseCommand::Restore { .. },
-    } => command::database::restore().await,
+      command: cli::DatabaseCommand::Restore { yes, .. },
+    } => command::database::restore(*yes).await,
     cli::Command::Database {
-      command: cli::DatabaseCommand::Copy { .. },
-    } => command::database::copy().await,
+      command: cli::DatabaseCommand::Copy { yes, .. },
+    } => command::database::copy(*yes).await,
   }
 }
 

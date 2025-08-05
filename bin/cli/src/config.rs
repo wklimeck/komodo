@@ -60,13 +60,14 @@ pub fn cli_config() -> &'static CliConfig {
 
     let (backup_folder, restore_folder) = match &args.command {
       Command::Database {
-        command: DatabaseCommand::Backup { backup_folder },
+        command: DatabaseCommand::Backup { backup_folder, .. },
       } => (backup_folder.clone(), None),
       Command::Database {
         command:
           DatabaseCommand::Restore {
             backup_folder,
             restore_folder,
+            ..
           },
       } => (backup_folder.clone(), restore_folder.clone()),
       _ => (None, None),
@@ -81,6 +82,7 @@ pub fn cli_config() -> &'static CliConfig {
               username,
               password,
               db_name,
+              ..
             },
         } => (
           uri.clone(),

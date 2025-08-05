@@ -4,7 +4,7 @@ use anyhow::{Context, anyhow};
 use colored::Colorize;
 use komodo_client::KomodoClient;
 
-use crate::config::{cli_args, cli_config};
+use crate::config::cli_config;
 
 pub mod database;
 
@@ -24,8 +24,11 @@ async fn komodo_client() -> anyhow::Result<KomodoClient> {
     .await
 }
 
-fn wait_for_enter(press_enter_to: &str) -> anyhow::Result<()> {
-  if cli_args().yes {
+fn wait_for_enter(
+  press_enter_to: &str,
+  skip: bool,
+) -> anyhow::Result<()> {
+  if skip {
     println!("");
     return Ok(());
   }

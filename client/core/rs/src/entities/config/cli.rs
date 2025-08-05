@@ -19,10 +19,6 @@ pub struct CliArgs {
   #[command(subcommand)]
   pub command: Command,
 
-  /// Always continue on user confirmation prompts.
-  #[arg(long, short = 'y', default_value_t = false)]
-  pub yes: bool,
-
   /// Sets the path of a config file or directory to use.
   /// Can use multiple times
   #[arg(long, short = 'c')]
@@ -70,6 +66,9 @@ pub enum Command {
     /// Top priority api secret.
     #[arg(long, short = 's')]
     secret: Option<String>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
   },
 
   /// Database utilities. (alias: `db`)
@@ -90,6 +89,9 @@ pub enum DatabaseCommand {
     /// Default: `/backup`
     #[arg(long, short = 'f')]
     backup_folder: Option<PathBuf>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
   },
   /// Restores the database from backup files. (alias: `rs`)
   #[clap(alias = "rs")]
@@ -104,6 +106,9 @@ pub enum DatabaseCommand {
     /// Example: `2025-08-01_05-04-53`
     #[arg(long, short = 'r')]
     restore_folder: Option<PathBuf>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
   },
   /// Copy the database to another running database. (alias: `cp`)
   #[clap(alias = "cp")]
@@ -123,6 +128,9 @@ pub enum DatabaseCommand {
     /// The target db name to copy to.
     #[arg(long, short = 'd')]
     db_name: Option<String>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
   },
 }
 
