@@ -9,7 +9,7 @@ repository.workspace = true
 homepage.workspace = true
 
 [[bin]]
-name = "komodo"
+name = "km"
 path = "src/main.rs"
 
 [dependencies]

@@ -11,6 +11,61 @@ fn default_config_path() -> PathBuf {
   PathBuf::from("/config/config.toml")
 }
 
+/// Provide database connection information.
+/// Komodo uses the MongoDB api driver for database communication,
+/// and FerretDB to support Postgres and Sqlite storage options.
+///
+/// Must provide ONE of:
+/// 1. `uri`
+/// 2. `address` + `username` + `password`
+#[derive(Debug, Clone, Deserialize)]
+pub struct DatabaseConfig {
+  /// Full mongo uri string, eg. `mongodb://username:password@your.mongo.int:27017`
+  #[serde(default)]
+  pub uri: String,
+  /// Just the address part of the mongo uri, eg `your.mongo.int:27017`
+  #[serde(default = "default_database_address")]
+  pub address: String,
+  /// Mongo user username
+  #[serde(default)]
+  pub username: String,
+  /// Mongo user password
+  #[serde(default)]
+  pub password: String,
+  /// Mongo app name. default: `komodo_core`
+  #[serde(default = "default_database_app_name")]
+  pub app_name: String,
+  /// Mongo db name. Which mongo database to create the collections in.
+  /// Default: `komodo`.
+  #[serde(default = "default_database_db_name")]
+  pub db_name: String,
+}
+
+fn default_database_address() -> String {
+  String::from("localhost:27017")
+}
+
+fn default_database_app_name() -> String {
+  "komodo_core".to_string()
+}
+
+fn default_database_db_name() -> String {
+  "komodo".to_string()
+}
+
+impl Default for DatabaseConfig {
+  fn default() -> Self {
+    Self {
+      uri: Default::default(),
+      address: default_database_address(),
+      username: Default::default(),
+      password: Default::default(),
+      app_name: default_database_app_name(),
+      db_name: default_database_db_name(),
+    }
+  }
+}
+
 #[typeshare]
 #[derive(
   Debug,

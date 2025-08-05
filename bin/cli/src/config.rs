@@ -4,8 +4,8 @@ use clap::Parser;
 use environment_file::maybe_read_item_from_file;
 use komodo_client::entities::{
   config::{
+    DatabaseConfig,
     cli::{CliArgs, CliConfig, Command, DatabaseCommand, Env},
-    core::DatabaseConfig,
   },
   logger::{LogConfig, LogLevel},
 };
@@ -149,24 +149,24 @@ pub fn cli_config() -> &'static CliConfig {
           .unwrap_or(config.database.db_name),
         app_name: String::from("komodo_cli"),
       },
-      logging: LogConfig {
+      cli_logging: LogConfig {
         level: args
           .log_level
           .map(LogLevel::from)
           .or(env.komodo_cli_logging_level)
-          .unwrap_or(config.logging.level),
+          .unwrap_or(config.cli_logging.level),
         stdio: env
           .komodo_cli_logging_stdio
-          .unwrap_or(config.logging.stdio),
+          .unwrap_or(config.cli_logging.stdio),
         pretty: env
           .komodo_cli_logging_pretty
-          .unwrap_or(config.logging.pretty),
+          .unwrap_or(config.cli_logging.pretty),
         otlp_endpoint: env
           .komodo_cli_logging_otlp_endpoint
-          .unwrap_or(config.logging.otlp_endpoint),
+          .unwrap_or(config.cli_logging.otlp_endpoint),
         opentelemetry_service_name: env
           .komodo_cli_logging_opentelemetry_service_name
-          .unwrap_or(config.logging.opentelemetry_service_name),
+          .unwrap_or(config.cli_logging.opentelemetry_service_name),
       },
       pretty_startup_config: env
         .komodo_cli_pretty_startup_config

@@ -13,10 +13,10 @@ pub async fn backup() -> anyhow::Result<()> {
   );
   println!(
     "{}",
-    "Backup all database contents to gzip compressed files.".dimmed()
+    " - Backup all database contents to gzip compressed files.".dimmed()
   );
   println!("");
-  println!("{}: {:?}", "Root Folder".dimmed(), config.backup_folder);
+  println!(" {}: {:?}", " - Root Folder".dimmed(), config.backup_folder);
 
   crate::command::wait_for_enter("start backup")?;
 
@@ -36,12 +36,12 @@ pub async fn restore() -> anyhow::Result<()> {
   );
   println!(
     "{}",
-    "Restores database contents from gzip compressed files.".dimmed()
+    " - Restores database contents from gzip compressed files.".dimmed()
   );
   println!("");
-  println!("{}: {:?}", "Root Folder".dimmed(), config.backup_folder);
+  println!("{}: {:?}", " - Root Folder".dimmed(), config.backup_folder);
   if let Some(restore_folder) = &config.restore_folder {
-    println!("{restore_folder:?}: {:?}", "Restore Folder".dimmed());
+    println!("{restore_folder:?}: {:?}", " - Restore Folder".dimmed());
   }
 
   crate::command::wait_for_enter("start restore")?;
@@ -68,7 +68,7 @@ pub async fn copy() -> anyhow::Result<()> {
   );
   println!(
     "{}",
-    "Copies database contents to another database.".dimmed()
+    " - Copies database contents to another database.".dimmed()
   );
 
   crate::command::wait_for_enter("start copy")?;

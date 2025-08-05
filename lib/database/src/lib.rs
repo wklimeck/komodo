@@ -6,7 +6,7 @@ use komodo_client::entities::{
   api_key::ApiKey,
   build::Build,
   builder::Builder,
-  config::core::DatabaseConfig,
+  config::DatabaseConfig,
   deployment::Deployment,
   permission::Permission,
   procedure::Procedure,

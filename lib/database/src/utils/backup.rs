@@ -18,6 +18,11 @@ pub async fn backup(
   db: &Database,
   backup_folder: &Path,
 ) -> anyhow::Result<()> {
+  let collections = db
+    .list_collection_names()
+    .await
+    .context("Failed to list collections on source db")?;
+
   let now_backup_folder = backup_folder
     .join(Local::now().format("%Y-%m-%d_%H-%M-%S").to_string());
 
@@ -25,12 +30,9 @@ pub async fn backup(
     .await
     .context("Failed to create backup folder")?;
 
-  info!("Backing up to {now_backup_folder:?}");
+  info!("Backing up to {now_backup_folder:?}...");
 
-  let mut handles = db
-    .list_collection_names()
-    .await
-    .context("Failed to list collections on source db")?
+  let mut handles = collections
     .into_iter()
     .map(|collection| {
       let source = db.collection::<RawDocumentBuf>(&collection);

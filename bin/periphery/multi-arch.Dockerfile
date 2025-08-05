@@ -27,8 +27,8 @@ RUN mv /app/arch/${TARGETPLATFORM} /usr/local/bin/periphery && rm -r /app/arch
 
 EXPOSE 8120
 
+CMD [ "periphery" ]
+
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Periphery"
 LABEL org.opencontainers.image.licenses=GPL-3.0
-
-CMD [ "periphery" ]

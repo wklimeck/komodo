@@ -37,7 +37,7 @@ WORKDIR /app
 COPY ./config/core.config.toml /config/config.toml
 COPY --from=frontend-builder /builder/frontend/dist /app/frontend
 COPY --from=core-builder /builder/target/release/core /usr/local/bin/core
-COPY --from=core-builder /builder/target/release/komodo /usr/local/bin/komodo
+COPY --from=core-builder /builder/target/release/km /usr/local/bin/km
 COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 
 # Set $DENO_DIR and preload external Deno deps
@@ -49,9 +49,9 @@ RUN mkdir /action-cache && \
 # Hint at the port
 EXPOSE 9120
 
+CMD [ "core" ]
+
 # Label for Ghcr
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Core"
 LABEL org.opencontainers.image.licenses=GPL-3.0
-
-ENTRYPOINT [ "core" ]

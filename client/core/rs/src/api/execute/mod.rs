@@ -60,14 +60,20 @@ pub enum Execution {
   None(NoData),
 
   // ACTION
+  /// Run the target action. (alias: `action`)
+  #[clap(alias = "action")]
   RunAction(RunAction),
   BatchRunAction(BatchRunAction),
 
   // PROCEDURE
+  /// Run the target procedure. (alias: `procedure`)
+  #[clap(alias = "procedure")]
   RunProcedure(RunProcedure),
   BatchRunProcedure(BatchRunProcedure),
 
   // BUILD
+  /// Run the target build. (alias: `build`)
+  #[clap(alias = "build")]
   RunBuild(RunBuild),
   BatchRunBuild(BatchRunBuild),
   CancelBuild(CancelBuild),

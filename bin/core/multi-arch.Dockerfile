@@ -29,9 +29,9 @@ COPY --from=aarch64 /core /app/core/linux/arm64
 RUN mv /app/core/${TARGETPLATFORM} /usr/local/bin/core && rm -r /app/core
 
 # Same for util
-COPY --from=x86_64 /komodo /app/komodo/linux/amd64
-COPY --from=aarch64 /komodo /app/komodo/linux/arm64
-RUN mv /app/komodo/${TARGETPLATFORM} /usr/local/bin/komodo && rm -r /app/komodo
+COPY --from=x86_64 /km /app/km/linux/amd64
+COPY --from=aarch64 /km /app/km/linux/arm64
+RUN mv /app/km/${TARGETPLATFORM} /usr/local/bin/km && rm -r /app/km
 
 # Copy default config / static frontend / deno binary
 COPY ./config/core.config.toml /config/config.toml
@@ -47,9 +47,9 @@ RUN mkdir /action-cache && \
 # Hint at the port
 EXPOSE 9120
 
+CMD [ "core" ]
+
 # Label for Ghcr
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo
 LABEL org.opencontainers.image.description="Komodo Core"
 LABEL org.opencontainers.image.licenses=GPL-3.0
-
-CMD [ "core" ]

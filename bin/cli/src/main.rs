@@ -9,7 +9,7 @@ mod config;
 
 async fn app() -> anyhow::Result<()> {
   dotenvy::dotenv().ok();
-  logger::init(&config::cli_config().logging)?;
+  logger::init(&config::cli_config().cli_logging)?;
 
   info!(
     "Komodo CLI version: {}",

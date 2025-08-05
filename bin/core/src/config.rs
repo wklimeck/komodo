@@ -5,10 +5,12 @@ use environment_file::{
   maybe_read_item_from_file, maybe_read_list_from_file,
 };
 use komodo_client::entities::{
-  config::core::{
-    AwsCredentials, CoreConfig, DatabaseConfig, Env,
-    GithubWebhookAppConfig, GithubWebhookAppInstallationConfig,
-    OauthCredentials,
+  config::{
+    DatabaseConfig,
+    core::{
+      AwsCredentials, CoreConfig, Env, GithubWebhookAppConfig,
+      GithubWebhookAppInstallationConfig, OauthCredentials,
+    },
   },
   logger::LogConfig,
 };

@@ -6,11 +6,12 @@ use serde::Deserialize;
 use crate::{
   api::execute::Execution,
   entities::{
-    config::core::DatabaseConfig,
+    config::DatabaseConfig,
     logger::{LogConfig, LogLevel, StdioLogMode},
   },
 };
 
+/// 🦎  Komodo CLI  🦎
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 pub struct CliArgs {
@@ -54,7 +55,7 @@ pub struct CliArgs {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Command {
-  /// Run Komodo executions
+  /// Run Komodo executions. (alias: `x`)
   #[clap(alias = "x")]
   Execute {
     #[command(subcommand)]
@@ -71,7 +72,7 @@ pub enum Command {
     secret: Option<String>,
   },
 
-  /// Database utilities
+  /// Database utilities. (alias: `db`)
   #[clap(alias = "db")]
   Database {
     #[command(subcommand)]
@@ -82,14 +83,16 @@ pub enum Command {
 #[derive(Debug, Clone, Subcommand)]
 pub enum DatabaseCommand {
   /// Triggers database backup to compressed files
-  /// organized by time the backup was taken.
+  /// organized by time the backup was taken. (alias: `bk`)
+  #[clap(alias = "bk")]
   Backup {
     /// Optionally provide a specific backup folder.
     /// Default: `/backup`
     #[arg(long, short = 'f')]
     backup_folder: Option<PathBuf>,
   },
-  /// Restores the database from backup files.
+  /// Restores the database from backup files. (alias: `rs`)
+  #[clap(alias = "rs")]
   Restore {
     /// Optionally provide a specific backup folder.
     /// Default: `/backup`
@@ -102,7 +105,8 @@ pub enum DatabaseCommand {
     #[arg(long, short = 'r')]
     restore_folder: Option<PathBuf>,
   },
-  /// Copy the database to another running database.
+  /// Copy the database to another running database. (alias: `cp`)
+  #[clap(alias = "cp")]
   Copy {
     /// The target database uri to copy to.
     #[arg(long)]
@@ -238,15 +242,20 @@ fn default_extend_config_arrays() -> bool {
   true
 }
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CliConfig {
   // ============
   // Cli specific
   // ============
   /// The api key for the CLI to use
+  #[serde(alias = "key")]
   pub cli_key: Option<String>,
   /// The api secret for the CLI to use
+  #[serde(alias = "secret")]
   pub cli_secret: Option<String>,
+  /// Logging configuration
+  #[serde(default)]
+  pub cli_logging: LogConfig,
   /// The root backup folder.
   ///
   /// Default: `/backup`.
@@ -276,9 +285,6 @@ pub struct CliConfig {
   /// Configure database connection
   #[serde(default, alias = "mongo")]
   pub database: DatabaseConfig,
-  /// Logging configuration
-  #[serde(default)]
-  pub logging: LogConfig,
   /// Pretty-log (multi-line) the startup config
   /// for easier human readability.
   #[serde(default)]
@@ -288,4 +294,20 @@ pub struct CliConfig {
 fn default_backup_folder() -> PathBuf {
   // SAFE: /backup is a valid path.
   PathBuf::from_str("/backup").unwrap()
+}
+
+impl Default for CliConfig {
+  fn default() -> Self {
+    Self {
+      cli_key: Default::default(),
+      cli_secret: Default::default(),
+      cli_logging: Default::default(),
+      backup_folder: default_backup_folder(),
+      restore_folder: Default::default(),
+      database_copy: Default::default(),
+      host: Default::default(),
+      database: Default::default(),
+      pretty_startup_config: Default::default(),
+    }
+  }
 }
