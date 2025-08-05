@@ -566,40 +566,44 @@ export const usePermissions = ({ type, id }: Types.ResourceTarget) => {
     Types.PermissionLevel.Execute
   );
 
-  if (type === "Server") {
-    return {
-      canWrite,
-      canExecute,
-      canCreate:
-        user?.admin ||
-        (!disable_non_admin_create && user?.create_server_permissions),
-      specific,
-    };
-  }
-  if (type === "Build") {
-    return {
-      canWrite,
-      canExecute,
-      canCreate:
-        user?.admin ||
-        (!disable_non_admin_create && user?.create_build_permissions),
-      specific,
-    };
-  }
-  if (type === "Alerter" || type === "Builder") {
-    return {
-      canWrite,
-      canExecute,
-      canCreate: user?.admin,
-      specific,
-    };
-  }
+  const [
+    specificLogs,
+    specificInspect,
+    specificTerminal,
+    specificAttach,
+    specificProcesses,
+  ] = [
+    specific.includes(Types.SpecificPermission.Logs),
+    specific.includes(Types.SpecificPermission.Inspect),
+    specific.includes(Types.SpecificPermission.Terminal),
+    specific.includes(Types.SpecificPermission.Attach),
+    specific.includes(Types.SpecificPermission.Processes),
+  ];
+
+  const canCreate =
+    type === "Server"
+      ? user?.admin ||
+        (!disable_non_admin_create && user?.create_server_permissions)
+      : type === "Build"
+        ? user?.admin ||
+          (!disable_non_admin_create && user?.create_build_permissions)
+        : type === "Alerter" ||
+            type === "Builder" ||
+            type === "Procedure" ||
+            type === "Action"
+          ? user?.admin
+          : user?.admin || !disable_non_admin_create;
 
   return {
     canWrite,
     canExecute,
-    canCreate: user?.admin || !disable_non_admin_create,
+    canCreate,
     specific,
+    specificLogs,
+    specificInspect,
+    specificTerminal,
+    specificAttach,
+    specificProcesses,
   };
 };
 
