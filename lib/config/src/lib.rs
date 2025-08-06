@@ -45,6 +45,13 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       let mut ignores = HashSet::new();
       add_ignores(path, ignore_file_name, &mut ignores);
 
+      if !ignores.is_empty() {
+        println!(
+          "{}: Config Path {path:?} Ignores: {ignores:?}",
+          "INFO".green()
+        );
+      }
+
       let mut files = HashSet::new();
       add_files(&mut files, path, &wildcards, &ignores);
       let mut files = files.into_iter().collect::<Vec<_>>();
@@ -135,7 +142,12 @@ fn add_ignores(
       ignore
         .split('\n')
         .map(|line| line.trim())
-        .filter(|line| !line.is_empty())
+        // Ignore empty / commented out lines
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+        // Remove end of line comments
+        .map(|line| {
+          line.split_once('#').map(|res| res.0.trim()).unwrap_or(line)
+        })
         .flat_map(|line| folder.join(line).canonicalize()),
     );
   };
