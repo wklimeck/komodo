@@ -21,6 +21,7 @@ logger.workspace = true
 # mogh
 merge_config_files.workspace = true
 # external
+futures-util.workspace = true
 tracing.workspace = true
 colored.workspace = true
 dotenvy.workspace = true

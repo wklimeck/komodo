@@ -1,8 +1,11 @@
 use std::time::Duration;
 
 use colored::Colorize;
+use futures_util::{StreamExt, stream::FuturesUnordered};
 use komodo_client::{
-  api::execute::{BatchExecutionResponse, Execution},
+  api::execute::{
+    BatchExecutionResponse, BatchExecutionResponseItem, Execution,
+  },
   entities::update::Update,
 };
 
@@ -473,12 +476,37 @@ pub async fn execute(
 
   match res {
     Ok(ExecutionResult::Single(update)) => {
-      println!("\n{}: {update:#?}", "SUCCESS".green())
+      let update =
+        client.poll_update_until_complete(&update.id).await?;
+      println!("\n{}: {update:#?}", "FINISHED".green());
     }
-    Ok(ExecutionResult::Batch(update)) => {
-      println!("\n{}: {update:#?}", "SUCCESS".green())
+    Ok(ExecutionResult::Batch(updates)) => {
+      let mut handles = updates
+        .iter()
+        .map(|update| async move {
+          match update {
+            BatchExecutionResponseItem::Ok(update) => {
+              let update =
+                client.poll_update_until_complete(&update.id).await?;
+              println!("\n{}: {update:#?}", "FINISHED".green());
+            }
+            BatchExecutionResponseItem::Err(e) => {
+              println!("\n{}: {e:#?}", "ERROR".red());
+            }
+          }
+          anyhow::Ok(())
+        })
+        .collect::<FuturesUnordered<_>>();
+      while let Some(res) = handles.next().await {
+        match res {
+          Ok(()) => {}
+          Err(e) => {
+            println!("\n{}: {e:#?}", "ERROR".red());
+          }
+        }
+      }
     }
-    Err(e) => println!("{}\n\n{e:#?}", "ERROR".red()),
+    Err(e) => println!("\n{}{e:#?}", "ERROR".red()),
   }
 
   Ok(())

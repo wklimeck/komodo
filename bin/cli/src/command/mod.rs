@@ -3,6 +3,7 @@ use std::io::Read;
 use anyhow::{Context, anyhow};
 use colored::Colorize;
 use komodo_client::KomodoClient;
+use tokio::sync::OnceCell;
 
 use crate::config::cli_config;
 
@@ -12,15 +13,23 @@ mod execute;
 
 pub use execute::execute;
 
-async fn komodo_client() -> anyhow::Result<KomodoClient> {
-  let config = cli_config();
-  let (Some(key), Some(secret)) =
-    (&config.cli_key, &config.cli_secret)
-  else {
-    return Err(anyhow!("Must provide both cli_key and cli_secret"));
-  };
-  KomodoClient::new(&config.host, key, secret)
-    .with_healthcheck()
+async fn komodo_client() -> anyhow::Result<&'static KomodoClient> {
+  static KOMODO_CLIENT: OnceCell<KomodoClient> =
+    OnceCell::const_new();
+  KOMODO_CLIENT
+    .get_or_try_init(|| async {
+      let config = cli_config();
+      let (Some(key), Some(secret)) =
+        (&config.cli_key, &config.cli_secret)
+      else {
+        return Err(anyhow!(
+          "Must provide both cli_key and cli_secret"
+        ));
+      };
+      KomodoClient::new(&config.host, key, secret)
+        .with_healthcheck()
+        .await
+    })
     .await
 }
 

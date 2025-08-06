@@ -2578,6 +2578,7 @@ dependencies = [
  "dotenvy",
  "environment_file",
  "envy",
+ "futures-util",
  "komodo_client",
  "logger",
  "merge_config_files",
