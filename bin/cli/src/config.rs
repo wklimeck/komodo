@@ -1,6 +1,8 @@
 use std::{path::PathBuf, sync::OnceLock};
 
 use clap::Parser;
+use colored::Colorize;
+use config::parse_config_paths;
 use environment_file::maybe_read_item_from_file;
 use komodo_client::entities::{
   config::{
@@ -9,7 +11,6 @@ use komodo_client::entities::{
   },
   logger::{LogConfig, LogLevel},
 };
-use merge_config_files::parse_config_paths;
 
 pub fn cli_args() -> &'static CliArgs {
   static CLI_ARGS: OnceLock<CliArgs> = OnceLock::new();
@@ -26,21 +27,26 @@ pub fn cli_config() -> &'static CliConfig {
       .config_path
       .clone()
       .unwrap_or(env.komodo_cli_config_paths);
+
     let config = if config_paths.is_empty() {
       CliConfig::default()
     } else {
+      println!("{}: Config Paths: {config_paths:?}", "INFO".green());
+      let config_keywords = args
+        .config_keyword
+        .clone()
+        .unwrap_or(env.komodo_cli_config_keywords);
+      let config_keywords = config_keywords
+        .iter()
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+      println!("{}: Keywords: {config_keywords:?}", "INFO".green(),);
       parse_config_paths::<CliConfig>(
         &config_paths
           .iter()
           .map(PathBuf::as_path)
           .collect::<Vec<_>>(),
-        &args
-          .config_keyword
-          .clone()
-          .unwrap_or(env.komodo_cli_config_keywords)
-          .iter()
-          .map(String::as_str)
-          .collect::<Vec<_>>(),
+        &config_keywords,
         args
           .merge_nested_config
           .unwrap_or(env.komodo_cli_merge_nested_config),
@@ -109,22 +115,22 @@ pub fn cli_config() -> &'static CliConfig {
       restore_folder: restore_folder
         .or(env.komodo_cli_restore_folder)
         .or(config.restore_folder),
-      database_copy: DatabaseConfig {
+      database_target: DatabaseConfig {
         uri: uri
-          .or(env.komodo_cli_database_copy_uri)
-          .unwrap_or(config.database_copy.uri),
+          .or(env.komodo_cli_database_target_uri)
+          .unwrap_or(config.database_target.uri),
         address: address
-          .or(env.komodo_cli_database_copy_address)
-          .unwrap_or(config.database_copy.address),
+          .or(env.komodo_cli_database_target_address)
+          .unwrap_or(config.database_target.address),
         username: username
-          .or(env.komodo_cli_database_copy_username)
-          .unwrap_or(config.database_copy.username),
+          .or(env.komodo_cli_database_target_username)
+          .unwrap_or(config.database_target.username),
         password: password
-          .or(env.komodo_cli_database_copy_password)
-          .unwrap_or(config.database_copy.password),
+          .or(env.komodo_cli_database_target_password)
+          .unwrap_or(config.database_target.password),
         db_name: db_name
-          .or(env.komodo_cli_database_copy_db_name)
-          .unwrap_or(config.database_copy.db_name),
+          .or(env.komodo_cli_database_target_db_name)
+          .unwrap_or(config.database_target.db_name),
         app_name: String::from("komodo_cli"),
       },
       database: DatabaseConfig {
@@ -163,6 +169,7 @@ pub fn cli_config() -> &'static CliConfig {
         pretty: env
           .komodo_cli_logging_pretty
           .unwrap_or(config.cli_logging.pretty),
+        location: false,
         otlp_endpoint: env
           .komodo_cli_logging_otlp_endpoint
           .unwrap_or(config.cli_logging.otlp_endpoint),
@@ -170,9 +177,6 @@ pub fn cli_config() -> &'static CliConfig {
           .komodo_cli_logging_opentelemetry_service_name
           .unwrap_or(config.cli_logging.opentelemetry_service_name),
       },
-      pretty_startup_config: env
-        .komodo_cli_pretty_startup_config
-        .unwrap_or(config.pretty_startup_config),
     }
   })
 }

@@ -6,18 +6,18 @@ use std::{
 };
 
 use anyhow::Context;
+use database::mongo_indexed::Indexed;
+use database::mungos::{
+  bulk_update::{self, BulkUpdate},
+  find::find_collect,
+  mongodb::bson::{doc, oid::ObjectId, to_bson},
+};
 use derive_variants::ExtractVariant;
 use komodo_client::entities::{
   ResourceTarget,
   alert::{Alert, AlertData, AlertDataVariant, SeverityLevel},
   komodo_timestamp, optional_string,
   server::{Server, ServerState},
-};
-use database::mongo_indexed::Indexed;
-use database::mungos::{
-  bulk_update::{self, BulkUpdate},
-  find::find_collect,
-  mongodb::bson::{doc, oid::ObjectId, to_bson},
 };
 
 use crate::{

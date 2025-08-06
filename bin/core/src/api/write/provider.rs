@@ -1,14 +1,14 @@
 use anyhow::{Context, anyhow};
+use database::mungos::{
+  by_id::{delete_one_by_id, find_one_by_id, update_one_by_id},
+  mongodb::bson::{doc, to_document},
+};
 use komodo_client::{
   api::write::*,
   entities::{
     Operation, ResourceTarget,
     provider::{DockerRegistryAccount, GitProviderAccount},
   },
-};
-use database::mungos::{
-  by_id::{delete_one_by_id, find_one_by_id, update_one_by_id},
-  mongodb::bson::{doc, to_document},
 };
 use resolver_api::Resolve;
 

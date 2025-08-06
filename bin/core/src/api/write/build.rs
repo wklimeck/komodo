@@ -1,6 +1,8 @@
 use std::{path::PathBuf, str::FromStr, time::Duration};
 
 use anyhow::{Context, anyhow};
+use database::mongo_indexed::doc;
+use database::mungos::mongodb::bson::to_document;
 use formatting::format_serror;
 use komodo_client::{
   api::write::*,
@@ -16,8 +18,6 @@ use komodo_client::{
     update::Update,
   },
 };
-use database::mongo_indexed::doc;
-use database::mungos::mongodb::bson::to_document;
 use octorust::types::{
   ReposCreateWebhookRequest, ReposCreateWebhookRequestConfig,
 };

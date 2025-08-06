@@ -4,8 +4,8 @@ use axum::{
   extract::Request, http::HeaderMap, middleware::Next,
   response::Response,
 };
-use komodo_client::entities::{komodo_timestamp, user::User};
 use database::mungos::mongodb::bson::doc;
+use komodo_client::entities::{komodo_timestamp, user::User};
 use reqwest::StatusCode;
 use serde::Deserialize;
 use serror::AddStatusCode;

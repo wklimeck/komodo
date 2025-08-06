@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::{
   api::execute::Execution,
   entities::{
-    config::DatabaseConfig,
+    config::{DatabaseConfig, empty_or_redacted},
     logger::{LogConfig, LogLevel, StdioLogMode},
   },
 };
@@ -27,7 +27,7 @@ pub struct CliArgs {
   /// Sets the keywords to match directory cli config file names on.
   /// Supports wildcard syntax.
   /// Can use multiple times to match multiple patterns independently.
-  #[arg(long)]
+  #[arg(long, short = 'm')]
   pub config_keyword: Option<Vec<String>>,
 
   /// Merges nested configs, eg. secrets, providers.
@@ -51,6 +51,15 @@ pub struct CliArgs {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Command {
+  /// Print the CLI config being used. (alias: `cfg`)
+  #[clap(alias = "cfg")]
+  Config {
+    /// Whether to print unsanitized config,
+    /// including sensitive credentials.
+    #[arg(long, action)]
+    unsanitized: bool,
+  },
+
   /// Run Komodo executions. (alias: `x`)
   #[clap(alias = "x")]
   Execute {
@@ -82,8 +91,8 @@ pub enum Command {
 #[derive(Debug, Clone, Subcommand)]
 pub enum DatabaseCommand {
   /// Triggers database backup to compressed files
-  /// organized by time the backup was taken. (alias: `bk`)
-  #[clap(alias = "bk")]
+  /// organized by time the backup was taken. (alias: `bkp`)
+  #[clap(alias = "bkp")]
   Backup {
     /// Optionally provide a specific backup folder.
     /// Default: `/backup`
@@ -93,8 +102,8 @@ pub enum DatabaseCommand {
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
   },
-  /// Restores the database from backup files. (alias: `rs`)
-  #[clap(alias = "rs")]
+  /// Restores the database from backup files. (alias: `rst`)
+  #[clap(alias = "rst")]
   Restore {
     /// Optionally provide a specific backup folder.
     /// Default: `/backup`
@@ -144,10 +153,13 @@ pub struct Env {
   // ============
   /// Specify the config paths (files or folders) used to build up the
   /// final [CliConfig].
-  /// If not provided, will use Default config.
+  /// If not provided, will use "." (the current working directory).
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default, alias = "komodo_cli_config_path")]
+  #[serde(
+    default = "default_config_paths",
+    alias = "komodo_cli_config_path"
+  )]
   pub komodo_cli_config_paths: Vec<PathBuf>,
   /// If specifying folders, use this to narrow down which
   /// files will be matched to parse into the final [CliConfig].
@@ -155,7 +167,10 @@ pub struct Env {
   /// provided to `config_keywords` will be included.
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default, alias = "komodo_cli_config_keyword")]
+  #[serde(
+    default = "default_config_keywords",
+    alias = "komodo_cli_config_keyword"
+  )]
   pub komodo_cli_config_keywords: Vec<String>,
   /// Will merge nested config object (eg. secrets, providers) across multiple
   /// config files. Default: `false`
@@ -179,16 +194,21 @@ pub struct Env {
   pub komodo_cli_backup_folder: Option<PathBuf>,
   /// Override `restore_folder`
   pub komodo_cli_restore_folder: Option<PathBuf>,
-  /// Override `database_copy_uri`
-  pub komodo_cli_database_copy_uri: Option<String>,
-  /// Override `database_copy_address`
-  pub komodo_cli_database_copy_address: Option<String>,
-  /// Override `database_copy_username`
-  pub komodo_cli_database_copy_username: Option<String>,
-  /// Override `database_copy_password`
-  pub komodo_cli_database_copy_password: Option<String>,
-  /// Override `database_copy_db_name`
-  pub komodo_cli_database_copy_db_name: Option<String>,
+  /// Override `database_target_uri`
+  #[serde(alias = "komodo_cli_database_copy_uri")]
+  pub komodo_cli_database_target_uri: Option<String>,
+  /// Override `database_target_address`
+  #[serde(alias = "komodo_cli_database_copy_address")]
+  pub komodo_cli_database_target_address: Option<String>,
+  /// Override `database_target_username`
+  #[serde(alias = "komodo_cli_database_copy_username")]
+  pub komodo_cli_database_target_username: Option<String>,
+  /// Override `database_target_password`
+  #[serde(alias = "komodo_cli_database_copy_password")]
+  pub komodo_cli_database_target_password: Option<String>,
+  /// Override `database_target_db_name`
+  #[serde(alias = "komodo_cli_database_copy_db_name")]
+  pub komodo_cli_database_target_db_name: Option<String>,
 
   // LOGGING
   /// Override `logging.level`
@@ -242,6 +262,14 @@ pub struct Env {
   pub komodo_database_db_name: Option<String>,
 }
 
+fn default_config_paths() -> Vec<PathBuf> {
+  vec![PathBuf::from_str(".").unwrap()]
+}
+
+fn default_config_keywords() -> Vec<String> {
+  vec![String::from("*komodo.cli*.toml")]
+}
+
 fn default_merge_nested_config() -> bool {
   true
 }
@@ -252,18 +280,17 @@ fn default_extend_config_arrays() -> bool {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CliConfig {
-  // ============
-  // Cli specific
-  // ============
+  // Same as Core
+  /// The host Komodo url.
+  /// Eg. "https://demo.komo.do"
+  #[serde(default)]
+  pub host: String,
   /// The api key for the CLI to use
   #[serde(alias = "key")]
   pub cli_key: Option<String>,
   /// The api secret for the CLI to use
   #[serde(alias = "secret")]
   pub cli_secret: Option<String>,
-  /// Logging configuration
-  #[serde(default)]
-  pub cli_logging: LogConfig,
   /// The root backup folder.
   ///
   /// Default: `/backup`.
@@ -279,24 +306,16 @@ pub struct CliConfig {
   ///
   /// Example: `2025-08-04_05_05_53`
   pub restore_folder: Option<PathBuf>,
-  /// Configure copy database connection
-  #[serde(default)]
-  pub database_copy: DatabaseConfig,
-
-  // ============
   // Same as Core
-  // ============
-  /// The host Komodo url.
-  /// Eg. "https://demo.komo.do"
-  #[serde(default)]
-  pub host: String,
   /// Configure database connection
   #[serde(default, alias = "mongo")]
   pub database: DatabaseConfig,
-  /// Pretty-log (multi-line) the startup config
-  /// for easier human readability.
+  /// Configure restore / copy database connection
+  #[serde(default, alias = "database_copy")]
+  pub database_target: DatabaseConfig,
+  /// Logging configuration
   #[serde(default)]
-  pub pretty_startup_config: bool,
+  pub cli_logging: LogConfig,
 }
 
 fn default_backup_folder() -> PathBuf {
@@ -312,10 +331,30 @@ impl Default for CliConfig {
       cli_logging: Default::default(),
       backup_folder: default_backup_folder(),
       restore_folder: Default::default(),
-      database_copy: Default::default(),
+      database_target: Default::default(),
       host: Default::default(),
       database: Default::default(),
-      pretty_startup_config: Default::default(),
+    }
+  }
+}
+
+impl CliConfig {
+  pub fn sanitized(&self) -> CliConfig {
+    CliConfig {
+      cli_key: self
+        .cli_key
+        .as_ref()
+        .map(|cli_key| empty_or_redacted(cli_key)),
+      cli_secret: self
+        .cli_secret
+        .as_ref()
+        .map(|cli_secret| empty_or_redacted(cli_secret)),
+      cli_logging: self.cli_logging.clone(),
+      backup_folder: self.backup_folder.clone(),
+      restore_folder: self.restore_folder.clone(),
+      database_target: self.database_target.sanitized(),
+      host: self.host.clone(),
+      database: self.database.sanitized(),
     }
   }
 }

@@ -1,5 +1,6 @@
 use ::slack::types::Block;
 use anyhow::{Context, anyhow};
+use database::mungos::{find::find_collect, mongodb::bson::doc};
 use derive_variants::ExtractVariant;
 use futures::future::join_all;
 use interpolate::Interpolator;
@@ -11,7 +12,6 @@ use komodo_client::entities::{
   komodo_timestamp,
   stack::StackState,
 };
-use database::mungos::{find::find_collect, mongodb::bson::doc};
 use tracing::Instrument;
 
 use crate::helpers::query::get_variables_and_secrets;
@@ -244,35 +244,9 @@ fn resource_link(
   resource_type: ResourceTargetVariant,
   id: &str,
 ) -> String {
-  let path = match resource_type {
-    ResourceTargetVariant::System => unreachable!(),
-    ResourceTargetVariant::Build => format!("/builds/{id}"),
-    ResourceTargetVariant::Builder => {
-      format!("/builders/{id}")
-    }
-    ResourceTargetVariant::Deployment => {
-      format!("/deployments/{id}")
-    }
-    ResourceTargetVariant::Stack => {
-      format!("/stacks/{id}")
-    }
-    ResourceTargetVariant::Server => {
-      format!("/servers/{id}")
-    }
-    ResourceTargetVariant::Repo => format!("/repos/{id}"),
-    ResourceTargetVariant::Alerter => {
-      format!("/alerters/{id}")
-    }
-    ResourceTargetVariant::Procedure => {
-      format!("/procedures/{id}")
-    }
-    ResourceTargetVariant::Action => {
-      format!("/actions/{id}")
-    }
-    ResourceTargetVariant::ResourceSync => {
-      format!("/resource-syncs/{id}")
-    }
-  };
-
-  format!("{}{path}", core_config().host)
+  komodo_client::entities::resource_link(
+    &core_config().host,
+    resource_type,
+    id,
+  )
 }

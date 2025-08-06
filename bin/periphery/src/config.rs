@@ -1,12 +1,12 @@
 use std::{path::PathBuf, sync::OnceLock};
 
 use clap::Parser;
+use config::parse_config_paths;
 use environment_file::maybe_read_list_from_file;
 use komodo_client::entities::{
   config::periphery::{CliArgs, Env, PeripheryConfig},
   logger::{LogConfig, LogLevel},
 };
-use merge_config_files::parse_config_paths;
 
 pub fn periphery_config() -> &'static PeripheryConfig {
   static PERIPHERY_CONFIG: OnceLock<PeripheryConfig> =
@@ -77,6 +77,9 @@ pub fn periphery_config() -> &'static PeripheryConfig {
         pretty: env
           .periphery_logging_pretty
           .unwrap_or(config.logging.pretty),
+        location: env
+          .periphery_logging_location
+          .unwrap_or(config.logging.location),
         otlp_endpoint: env
           .periphery_logging_otlp_endpoint
           .unwrap_or(config.logging.otlp_endpoint),

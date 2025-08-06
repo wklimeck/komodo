@@ -10,8 +10,14 @@ pub struct LogConfig {
   #[serde(default)]
   pub stdio: StdioLogMode,
 
+  /// Use tracing-subscriber's pretty logging output option.
   #[serde(default)]
   pub pretty: bool,
+
+  /// Including information about the log location (ie the function which produced the log).
+  /// Tracing refers to this as the 'target'.
+  #[serde(default = "default_location")]
+  pub location: bool,
 
   /// Enable opentelemetry exporting
   #[serde(default)]
@@ -25,12 +31,17 @@ fn default_opentelemetry_service_name() -> String {
   String::from("Komodo")
 }
 
+fn default_location() -> bool {
+  true
+}
+
 impl Default for LogConfig {
   fn default() -> Self {
     Self {
       level: Default::default(),
       stdio: Default::default(),
       pretty: Default::default(),
+      location: default_location(),
       otlp_endpoint: Default::default(),
       opentelemetry_service_name: default_opentelemetry_service_name(
       ),

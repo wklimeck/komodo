@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use anyhow::{Context, anyhow};
 use async_timing_util::unix_timestamp_ms;
+use database::mongo_indexed::Document;
+use database::mungos::mongodb::bson::{doc, oid::ObjectId};
 use komodo_client::{
   api::auth::{
     CreateLocalUser, CreateLocalUserResponse, LoginLocalUser,
@@ -9,8 +11,6 @@ use komodo_client::{
   },
   entities::user::{User, UserConfig},
 };
-use database::mongo_indexed::Document;
-use database::mungos::mongodb::bson::{doc, oid::ObjectId};
 use resolver_api::Resolve;
 
 use crate::{

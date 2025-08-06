@@ -1,4 +1,5 @@
 use anyhow::{Context, anyhow};
+use database::mongo_indexed::doc;
 use database::mungos::{
   by_id::update_one_by_id, mongodb::bson::to_document,
 };
@@ -16,7 +17,6 @@ use komodo_client::{
     update::{Log, Update},
   },
 };
-use database::mongo_indexed::doc;
 use octorust::types::{
   ReposCreateWebhookRequest, ReposCreateWebhookRequestConfig,
 };

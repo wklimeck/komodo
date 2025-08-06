@@ -1,4 +1,5 @@
 use anyhow::Context;
+use database::mungos::mongodb::{Collection, bson::doc};
 use indexmap::IndexSet;
 use komodo_client::entities::{
   Operation, ResourceTarget, ResourceTargetVariant, komodo_timestamp,
@@ -11,7 +12,6 @@ use komodo_client::entities::{
   update::Update,
   user::User,
 };
-use database::mungos::mongodb::{Collection, bson::doc};
 
 use crate::{
   config::core_config,

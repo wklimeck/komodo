@@ -146,6 +146,8 @@ pub struct Env {
   pub periphery_logging_stdio: Option<StdioLogMode>,
   /// Override `logging.pretty`
   pub periphery_logging_pretty: Option<bool>,
+  /// Override `logging.location`
+  pub periphery_logging_location: Option<bool>,
   /// Override `logging.otlp_endpoint`
   pub periphery_logging_otlp_endpoint: Option<String>,
   /// Override `logging.opentelemetry_service_name`

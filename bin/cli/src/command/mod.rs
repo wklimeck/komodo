@@ -38,7 +38,7 @@ fn wait_for_enter(
   skip: bool,
 ) -> anyhow::Result<()> {
   if skip {
-    println!("");
+    println!();
     return Ok(());
   }
   println!(

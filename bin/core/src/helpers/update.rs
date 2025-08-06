@@ -1,4 +1,8 @@
 use anyhow::Context;
+use database::mungos::{
+  by_id::{find_one_by_id, update_one_by_id},
+  mongodb::bson::to_document,
+};
 use komodo_client::entities::{
   Operation, ResourceTarget,
   action::Action,
@@ -13,10 +17,6 @@ use komodo_client::entities::{
   sync::ResourceSync,
   update::{Update, UpdateListItem},
   user::User,
-};
-use database::mungos::{
-  by_id::{find_one_by_id, update_one_by_id},
-  mongodb::bson::to_document,
 };
 
 use crate::{

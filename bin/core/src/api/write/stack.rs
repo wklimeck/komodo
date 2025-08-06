@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, anyhow};
+use database::mungos::mongodb::bson::{doc, to_document};
 use formatting::format_serror;
 use komodo_client::{
   api::write::*,
@@ -16,7 +17,6 @@ use komodo_client::{
     user::stack_user,
   },
 };
-use database::mungos::mongodb::bson::{doc, to_document};
 use octorust::types::{
   ReposCreateWebhookRequest, ReposCreateWebhookRequestConfig,
 };

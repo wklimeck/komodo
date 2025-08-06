@@ -1,6 +1,10 @@
 use std::str::FromStr;
 
 use anyhow::{Context, anyhow};
+use database::mungos::{
+  by_id::{delete_one_by_id, update_one_by_id},
+  mongodb::bson::{doc, oid::ObjectId},
+};
 use komodo_client::{
   api::write::{CreateTag, DeleteTag, RenameTag, UpdateTagColor},
   entities::{
@@ -16,10 +20,6 @@ use komodo_client::{
     sync::ResourceSync,
     tag::{Tag, TagColor},
   },
-};
-use database::mungos::{
-  by_id::{delete_one_by_id, update_one_by_id},
-  mongodb::bson::{doc, oid::ObjectId},
 };
 use resolver_api::Resolve;
 

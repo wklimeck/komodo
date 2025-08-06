@@ -36,6 +36,9 @@ RUN mkdir /action-cache && \
 # Hint at the port
 EXPOSE 9120
 
+ENV KOMODO_CLI_CONFIG_PATHS="/config"
+ENV KOMODO_CLI_CONFIG_KEYWORDS="*.toml"
+
 CMD [ "core" ]
 
 # Label for Ghcr

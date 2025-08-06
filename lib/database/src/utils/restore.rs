@@ -19,7 +19,7 @@ pub async fn restore(
 ) -> anyhow::Result<()> {
   // Get the specific dated folder to restore contents of
   let restore_folder = if let Some(restore_folder) = restore_folder {
-    backup_folder.join(&restore_folder)
+    backup_folder.join(restore_folder)
   } else {
     latest_restore_folder(backup_folder).await?
   }

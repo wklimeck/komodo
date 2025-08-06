@@ -1,4 +1,5 @@
 use anyhow::Context;
+use database::mungos::mongodb::Collection;
 use formatting::format_serror;
 use indexmap::IndexSet;
 use komodo_client::entities::{
@@ -18,7 +19,6 @@ use komodo_client::entities::{
   update::Update,
   user::User,
 };
-use database::mungos::mongodb::Collection;
 use periphery_client::api::container::RemoveContainer;
 
 use crate::{

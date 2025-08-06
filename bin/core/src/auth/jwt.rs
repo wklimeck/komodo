@@ -4,11 +4,11 @@ use anyhow::{Context, anyhow};
 use async_timing_util::{
   Timelength, get_timelength_in_ms, unix_timestamp_ms,
 };
+use database::mungos::mongodb::bson::doc;
 use jsonwebtoken::{
   DecodingKey, EncodingKey, Header, Validation, decode, encode,
 };
 use komodo_client::entities::config::core::CoreConfig;
-use database::mungos::mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 

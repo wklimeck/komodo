@@ -13,15 +13,15 @@ use super::{BatchExecutionResponse, KomodoExecuteRequest};
 /// Runs the target build. Response: [Update].
 ///
 /// 1. Get a handle to the builder. If using AWS builder, this means starting a builder ec2 instance.
-/// 
+///
 /// 2. Clone the repo on the builder. If an `on_clone` commmand is given, it will be executed.
-/// 
+///
 /// 3. Execute `docker build {...params}`, where params are determined using the builds configuration.
-/// 
+///
 /// 4. If a docker registry is configured, the build will be pushed to the registry.
-/// 
+///
 /// 5. If using AWS builder, destroy the builder ec2 instance.
-/// 
+///
 /// 6. Deploy any Deployments with *Redeploy on Build* enabled.
 #[typeshare]
 #[derive(

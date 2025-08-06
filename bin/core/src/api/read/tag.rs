@@ -1,4 +1,5 @@
 use anyhow::Context;
+use database::mongo_indexed::doc;
 use database::mungos::{
   find::find_collect, mongodb::options::FindOptions,
 };
@@ -6,7 +7,6 @@ use komodo_client::{
   api::read::{GetTag, ListTags},
   entities::tag::Tag,
 };
-use database::mongo_indexed::doc;
 use resolver_api::Resolve;
 
 use crate::{helpers::query::get_tag, state::db_client};

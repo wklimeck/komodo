@@ -66,6 +66,19 @@ impl Default for DatabaseConfig {
   }
 }
 
+impl DatabaseConfig {
+  pub fn sanitized(&self) -> DatabaseConfig {
+    DatabaseConfig {
+      uri: empty_or_redacted(&self.uri),
+      address: self.address.clone(),
+      username: empty_or_redacted(&self.username),
+      password: empty_or_redacted(&self.password),
+      app_name: self.app_name.clone(),
+      db_name: self.db_name.clone(),
+    }
+  }
+}
+
 #[typeshare]
 #[derive(
   Debug,

@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{Context, anyhow};
+use database::mungos::mongodb::bson::{doc, oid::ObjectId};
 use komodo_client::{
   api::write::{
     DeleteUser, DeleteUserResponse, UpdateUserPassword,
@@ -9,7 +10,6 @@ use komodo_client::{
   },
   entities::{NoData, user::UserConfig},
 };
-use database::mungos::mongodb::bson::{doc, oid::ObjectId};
 use resolver_api::Resolve;
 
 use crate::{

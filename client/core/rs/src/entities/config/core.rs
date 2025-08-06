@@ -91,6 +91,8 @@ pub struct Env {
   pub komodo_logging_stdio: Option<StdioLogMode>,
   /// Override `logging.pretty`
   pub komodo_logging_pretty: Option<bool>,
+  /// Override `logging.location`
+  pub komodo_logging_location: Option<bool>,
   /// Override `logging.otlp_endpoint`
   pub komodo_logging_otlp_endpoint: Option<String>,
   /// Override `logging.opentelemetry_service_name`
@@ -652,14 +654,7 @@ impl CoreConfig {
       webhook_secret: empty_or_redacted(&config.webhook_secret),
       webhook_base_url: config.webhook_base_url,
       github_webhook_app: config.github_webhook_app,
-      database: DatabaseConfig {
-        uri: empty_or_redacted(&config.database.uri),
-        address: config.database.address,
-        username: empty_or_redacted(&config.database.username),
-        password: empty_or_redacted(&config.database.password),
-        app_name: config.database.app_name,
-        db_name: config.database.db_name,
-      },
+      database: config.database.sanitized(),
       aws: AwsCredentials {
         access_key_id: empty_or_redacted(&config.aws.access_key_id),
         secret_access_key: empty_or_redacted(

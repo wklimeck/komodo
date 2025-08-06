@@ -23,12 +23,12 @@ formatting.workspace = true
 database.workspace = true
 response.workspace = true
 command.workspace = true
+config.workspace = true
 logger.workspace = true
 cache.workspace = true
 git.workspace = true
 # mogh
 serror = { workspace = true, features = ["axum"] }
-merge_config_files.workspace = true
 async_timing_util.workspace = true
 partial_derive2.workspace = true
 derive_variants.workspace = true

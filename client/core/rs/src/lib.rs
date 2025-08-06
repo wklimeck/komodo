@@ -28,7 +28,7 @@
 //! let update = client.execute(RunBuild { build: "test-build".to_string() }).await?:
 //! ```
 
-use std::sync::OnceLock;
+use std::{sync::OnceLock, time::Duration};
 
 use anyhow::Context;
 use api::read::GetVersion;
@@ -189,6 +189,7 @@ impl KomodoClient {
       if update.status == entities::update::UpdateStatus::Complete {
         return Ok(update);
       }
+      tokio::time::sleep(Duration::from_millis(500)).await;
     }
   }
 

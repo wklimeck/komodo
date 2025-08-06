@@ -9,7 +9,21 @@ use formatting::{Color, colored, format_serror};
 use komodo_client::{
   api::{execute::RunSync, write::RefreshResourceSyncPending},
   entities::{
-    self, action::Action, alerter::Alerter, build::Build, builder::Builder, deployment::Deployment, komodo_timestamp, permission::PermissionLevel, procedure::Procedure, repo::Repo, server::Server, stack::Stack, sync::ResourceSync, update::{Log, Update}, user::sync_user, ResourceTargetVariant
+    self, ResourceTargetVariant,
+    action::Action,
+    alerter::Alerter,
+    build::Build,
+    builder::Builder,
+    deployment::Deployment,
+    komodo_timestamp,
+    permission::PermissionLevel,
+    procedure::Procedure,
+    repo::Repo,
+    server::Server,
+    stack::Stack,
+    sync::ResourceSync,
+    update::{Log, Update},
+    user::sync_user,
   },
 };
 use resolver_api::Resolve;

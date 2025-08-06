@@ -1,6 +1,10 @@
 use std::time::Duration;
 
 use anyhow::Context;
+use database::mungos::{
+  find::find_collect,
+  mongodb::{Collection, bson::doc, options::FindOneOptions},
+};
 use formatting::format_serror;
 use komodo_client::entities::{
   Operation, ResourceTarget, ResourceTargetVariant,
@@ -15,10 +19,6 @@ use komodo_client::entities::{
   to_path_compatible_name,
   update::Update,
   user::User,
-};
-use database::mungos::{
-  find::find_collect,
-  mongodb::{Collection, bson::doc, options::FindOneOptions},
 };
 use periphery_client::api::git::DeleteRepo;
 

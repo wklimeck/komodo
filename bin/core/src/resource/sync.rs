@@ -1,4 +1,6 @@
 use anyhow::Context;
+use database::mongo_indexed::doc;
+use database::mungos::mongodb::Collection;
 use formatting::format_serror;
 use komodo_client::{
   api::write::RefreshResourceSyncPending,
@@ -18,8 +20,6 @@ use komodo_client::{
     user::{User, sync_user},
   },
 };
-use database::mongo_indexed::doc;
-use database::mungos::mongodb::Collection;
 use resolver_api::Resolve;
 
 use crate::{

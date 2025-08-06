@@ -20,6 +20,9 @@ COPY --from=aarch64 /km /app/arch/linux/arm64
 ARG TARGETPLATFORM
 RUN mv /app/arch/${TARGETPLATFORM} /usr/local/bin/km && rm -r /app/arch
 
+ENV KOMODO_CLI_CONFIG_PATHS="/config"
+ENV KOMODO_CLI_CONFIG_KEYWORDS="*.toml"
+
 CMD [ "km" ]
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo

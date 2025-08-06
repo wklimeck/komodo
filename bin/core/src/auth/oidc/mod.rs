@@ -6,11 +6,11 @@ use axum::{
 };
 use client::oidc_client;
 use dashmap::DashMap;
+use database::mungos::mongodb::bson::{Document, doc};
 use komodo_client::entities::{
   komodo_timestamp,
   user::{User, UserConfig},
 };
-use database::mungos::mongodb::bson::{Document, doc};
 use openidconnect::{
   AccessTokenHash, AuthorizationCode, CsrfToken,
   EmptyAdditionalClaims, Nonce, OAuth2TokenResponse,

@@ -1410,3 +1410,40 @@ pub enum ScheduleFormat {
 
 /// Used with ExecuteTerminal to capture the exit code
 pub const KOMODO_EXIT_CODE: &str = "__KOMODO_EXIT_CODE:";
+
+pub fn resource_link(
+  host: &str,
+  resource_type: ResourceTargetVariant,
+  id: &str,
+) -> String {
+  let path = match resource_type {
+    ResourceTargetVariant::System => unreachable!(),
+    ResourceTargetVariant::Build => format!("/builds/{id}"),
+    ResourceTargetVariant::Builder => {
+      format!("/builders/{id}")
+    }
+    ResourceTargetVariant::Deployment => {
+      format!("/deployments/{id}")
+    }
+    ResourceTargetVariant::Stack => {
+      format!("/stacks/{id}")
+    }
+    ResourceTargetVariant::Server => {
+      format!("/servers/{id}")
+    }
+    ResourceTargetVariant::Repo => format!("/repos/{id}"),
+    ResourceTargetVariant::Alerter => {
+      format!("/alerters/{id}")
+    }
+    ResourceTargetVariant::Procedure => {
+      format!("/procedures/{id}")
+    }
+    ResourceTargetVariant::Action => {
+      format!("/actions/{id}")
+    }
+    ResourceTargetVariant::ResourceSync => {
+      format!("/resource-syncs/{id}")
+    }
+  };
+  format!("{host}{path}")
+}

@@ -1,6 +1,10 @@
 use std::time::Duration;
 
 use anyhow::Context;
+use database::mungos::{
+  find::find_collect,
+  mongodb::{Collection, bson::doc, options::FindOneOptions},
+};
 use komodo_client::entities::{
   NoData, Operation, ResourceTarget, ResourceTargetVariant,
   action::{
@@ -11,10 +15,6 @@ use komodo_client::entities::{
   resource::Resource,
   update::Update,
   user::User,
-};
-use database::mungos::{
-  find::find_collect,
-  mongodb::{Collection, bson::doc, options::FindOneOptions},
 };
 
 use crate::{

@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use async_timing_util::{Timelength, get_timelength_in_ms};
+use database::mungos::find::find_collect;
 use komodo_client::{
   api::write::{
     RefreshBuildCache, RefreshRepoCache, RefreshResourceSyncPending,
@@ -8,7 +9,6 @@ use komodo_client::{
   },
   entities::user::{build_user, repo_user, stack_user, sync_user},
 };
-use database::mungos::find::find_collect;
 use resolver_api::Resolve;
 
 use crate::{

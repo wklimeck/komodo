@@ -15,6 +15,9 @@ FROM gcr.io/distroless/cc
 
 COPY --from=builder /builder/target/release/km /usr/local/bin/km
 
+ENV KOMODO_CLI_CONFIG_PATHS="/config"
+ENV KOMODO_CLI_CONFIG_KEYWORDS="*.toml"
+
 CMD [ "km" ]
 
 LABEL org.opencontainers.image.source=https://github.com/moghtech/komodo

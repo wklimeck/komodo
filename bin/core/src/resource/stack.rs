@@ -1,4 +1,5 @@
 use anyhow::Context;
+use database::mungos::mongodb::Collection;
 use formatting::format_serror;
 use indexmap::IndexSet;
 use komodo_client::{
@@ -19,7 +20,6 @@ use komodo_client::{
     user::{User, stack_user},
   },
 };
-use database::mungos::mongodb::Collection;
 use periphery_client::api::compose::ComposeExecution;
 use resolver_api::Resolve;
 

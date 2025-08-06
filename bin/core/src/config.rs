@@ -1,6 +1,7 @@
 use std::sync::OnceLock;
 
 use anyhow::Context;
+use config::parse_config_file;
 use environment_file::{
   maybe_read_item_from_file, maybe_read_list_from_file,
 };
@@ -14,7 +15,6 @@ use komodo_client::entities::{
   },
   logger::LogConfig,
 };
-use merge_config_files::parse_config_file;
 
 pub fn core_config() -> &'static CoreConfig {
   static CORE_CONFIG: OnceLock<CoreConfig> = OnceLock::new();
@@ -196,7 +196,10 @@ pub fn core_config() -> &'static CoreConfig {
         stdio: env
           .komodo_logging_stdio
           .unwrap_or(config.logging.stdio),
-        pretty: env.komodo_logging_pretty.unwrap_or(config.logging.pretty),
+        pretty: env.komodo_logging_pretty
+          .unwrap_or(config.logging.pretty),
+        location: env.komodo_logging_location
+          .unwrap_or(config.logging.location),
         otlp_endpoint: env
           .komodo_logging_otlp_endpoint
           .unwrap_or(config.logging.otlp_endpoint),

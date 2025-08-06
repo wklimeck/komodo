@@ -1,6 +1,8 @@
 use std::{fmt::Write, time::Duration};
 
 use anyhow::{Context, anyhow};
+use database::mongo_indexed::Document;
+use database::mungos::mongodb::bson::{Bson, doc};
 use indexmap::IndexSet;
 use komodo_client::entities::{
   ResourceTarget,
@@ -13,8 +15,6 @@ use komodo_client::entities::{
   stack::Stack,
   user::User,
 };
-use database::mongo_indexed::Document;
-use database::mungos::mongodb::bson::{Bson, doc};
 use periphery_client::PeripheryClient;
 use rand::Rng;
 

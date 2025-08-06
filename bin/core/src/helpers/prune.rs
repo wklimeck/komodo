@@ -2,8 +2,8 @@ use anyhow::Context;
 use async_timing_util::{
   ONE_DAY_MS, Timelength, unix_timestamp_ms, wait_until_timelength,
 };
-use futures::future::join_all;
 use database::mungos::{find::find_collect, mongodb::bson::doc};
+use futures::future::join_all;
 use periphery_client::api::image::PruneImages;
 
 use crate::{config::core_config, state::db_client};

@@ -1,6 +1,10 @@
 use std::time::Duration;
 
 use anyhow::Context;
+use database::mungos::{
+  find::find_collect,
+  mongodb::{Collection, bson::doc, options::FindOptions},
+};
 use formatting::format_serror;
 use komodo_client::{
   api::write::RefreshBuildCache,
@@ -20,10 +24,6 @@ use komodo_client::{
     update::Update,
     user::{User, build_user},
   },
-};
-use database::mungos::{
-  find::find_collect,
-  mongodb::{Collection, bson::doc, options::FindOptions},
 };
 use resolver_api::Resolve;
 

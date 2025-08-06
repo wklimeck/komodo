@@ -6,8 +6,10 @@ use komodo_client::{
   api::execute::{
     BatchExecutionResponse, BatchExecutionResponseItem, Execution,
   },
-  entities::update::Update,
+  entities::{resource_link, update::Update},
 };
+
+use crate::config::cli_config;
 
 enum ExecutionResult {
   Single(Box<Update>),
@@ -476,9 +478,7 @@ pub async fn execute(
 
   match res {
     Ok(ExecutionResult::Single(update)) => {
-      let update =
-        client.poll_update_until_complete(&update.id).await?;
-      println!("\n{}: {update:#?}", "FINISHED".green());
+      poll_update_until_complete(&update.id).await
     }
     Ok(ExecutionResult::Batch(updates)) => {
       let mut handles = updates
@@ -486,28 +486,49 @@ pub async fn execute(
         .map(|update| async move {
           match update {
             BatchExecutionResponseItem::Ok(update) => {
-              let update =
-                client.poll_update_until_complete(&update.id).await?;
-              println!("\n{}: {update:#?}", "FINISHED".green());
+              poll_update_until_complete(&update.id).await
             }
             BatchExecutionResponseItem::Err(e) => {
-              println!("\n{}: {e:#?}", "ERROR".red());
+              error!("{e:#?}");
+              Ok(())
             }
           }
-          anyhow::Ok(())
         })
         .collect::<FuturesUnordered<_>>();
       while let Some(res) = handles.next().await {
         match res {
           Ok(()) => {}
           Err(e) => {
-            println!("\n{}: {e:#?}", "ERROR".red());
+            error!("{e:#?}");
           }
         }
       }
+      Ok(())
     }
-    Err(e) => println!("\n{}{e:#?}", "ERROR".red()),
+    Err(e) => {
+      error!("{e:#?}");
+      Ok(())
+    }
   }
+}
 
+async fn poll_update_until_complete(
+  update_id: &str,
+) -> anyhow::Result<()> {
+  let client = super::komodo_client().await?;
+  let update = client.poll_update_until_complete(update_id).await?;
+  info!(
+    "FINISHED: {}",
+    if update.success {
+      "SUCCESS".green()
+    } else {
+      "FAILED".red()
+    }
+  );
+  let (resource_type, id) = update.target.extract_variant_id();
+  println!(
+    "\nSee '{}' for details.",
+    resource_link(&cli_config().host, resource_type, id).bold()
+  );
   Ok(())
 }

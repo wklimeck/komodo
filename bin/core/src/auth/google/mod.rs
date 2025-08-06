@@ -3,9 +3,9 @@ use async_timing_util::unix_timestamp_ms;
 use axum::{
   Router, extract::Query, response::Redirect, routing::get,
 };
-use komodo_client::entities::user::{User, UserConfig};
 use database::mongo_indexed::Document;
 use database::mungos::mongodb::bson::doc;
+use komodo_client::entities::user::{User, UserConfig};
 use reqwest::StatusCode;
 use serde::Deserialize;
 use serror::AddStatusCode;

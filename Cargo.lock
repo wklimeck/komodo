@@ -1068,6 +1068,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "1.18.5-dev-16"
+dependencies = [
+ "colored",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "toml",
+ "wildcard",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2574,6 +2586,7 @@ dependencies = [
  "anyhow",
  "clap",
  "colored",
+ "config",
  "database",
  "dotenvy",
  "environment_file",
@@ -2581,7 +2594,6 @@ dependencies = [
  "futures-util",
  "komodo_client",
  "logger",
- "merge_config_files",
  "tokio",
  "tracing",
 ]
@@ -2638,6 +2650,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "command",
+ "config",
  "croner",
  "dashmap",
  "database",
@@ -2656,7 +2669,6 @@ dependencies = [
  "jsonwebtoken",
  "komodo_client",
  "logger",
- "merge_config_files",
  "nom_pem",
  "octorust",
  "openidconnect",
@@ -2702,6 +2714,7 @@ dependencies = [
  "cache",
  "clap",
  "command",
+ "config",
  "derive_variants",
  "dotenvy",
  "environment",
@@ -2713,7 +2726,6 @@ dependencies = [
  "interpolate",
  "komodo_client",
  "logger",
- "merge_config_files",
  "periphery_client",
  "pin-project-lite",
  "portable-pty",
@@ -2907,19 +2919,6 @@ name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
-
-[[package]]
-name = "merge_config_files"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c93bb2d5f422baa8e89e9ba979af63c06a9bd50a1c96e1a77a23e1a348cc0b94"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "toml",
- "wildcard",
-]
 
 [[package]]
 name = "mime"
