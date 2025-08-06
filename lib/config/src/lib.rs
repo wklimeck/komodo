@@ -33,20 +33,22 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       }
     }
   }
-  let mut files = Vec::with_capacity(paths.len());
+  let mut all_files = Vec::new();
   for &path in paths {
     let Ok(metadata) = std::fs::metadata(path) else {
       continue;
     };
     if metadata.is_dir() {
+      let mut files = Vec::new();
       extend_with_file_names_in_dir(&mut files, path, &wildcards);
+      files.sort();
+      all_files.extend(files);
     } else if metadata.is_file() {
-      files.push(path.to_path_buf());
+      all_files.push(path.to_path_buf());
     }
   }
-  files.sort();
-  println!("{}: Found files: {files:?}", "INFO".green());
-  parse_config_files(&files, merge_nested, extend_array)
+  println!("{}: Found files: {all_files:?}", "INFO".green());
+  parse_config_files(&all_files, merge_nested, extend_array)
 }
 
 fn ignore_dir(path: &Path) -> bool {
@@ -99,18 +101,18 @@ fn extend_with_file_names_in_dir(
 
 /// parses multiple config files
 pub fn parse_config_files<T: DeserializeOwned>(
-  paths: &[PathBuf],
+  files: &[PathBuf],
   merge_nested: bool,
   extend_array: bool,
 ) -> Result<T> {
   let mut target = serde_json::Map::new();
 
-  for path in paths {
-    let source = match parse_config_file(path) {
+  for file in files {
+    let source = match parse_config_file(file) {
       Ok(source) => source,
       Err(e) => {
         eprintln!(
-          "{}: Failed to parse config at {path:?} | {e}",
+          "{}: Failed to parse config at {file:?} | {e}",
           "WARN".yellow()
         );
         continue;
@@ -125,7 +127,7 @@ pub fn parse_config_files<T: DeserializeOwned>(
       Ok(target) => target,
       Err(e) => {
         eprint!(
-          "{}: Failed to merge config at {path:?} | {e}",
+          "{}: Failed to merge config at {file:?} | {e}",
           "WARN".yellow()
         );
         target
@@ -142,35 +144,38 @@ pub fn parse_config_files<T: DeserializeOwned>(
 
 /// parses a single config file
 pub fn parse_config_file<T: DeserializeOwned>(
-  path: &Path,
+  file: &Path,
 ) -> Result<T> {
-  let mut file = File::open(path).map_err(|e| Error::FileOpen {
-    e,
-    path: path.to_path_buf(),
-  })?;
-  let config = match path.extension().and_then(|e| e.to_str()) {
+  let mut file_handle =
+    File::open(file).map_err(|e| Error::FileOpen {
+      e,
+      path: file.to_path_buf(),
+    })?;
+  let config = match file.extension().and_then(|e| e.to_str()) {
     Some("toml") => {
       let mut contents = String::new();
-      file.read_to_string(&mut contents).map_err(|e| {
+      file_handle.read_to_string(&mut contents).map_err(|e| {
         Error::ReadFileContents {
           e,
-          path: path.to_path_buf(),
+          path: file.to_path_buf(),
         }
       })?;
       toml::from_str(&contents).map_err(|e| Error::ParseToml {
         e,
-        path: path.to_path_buf(),
+        path: file.to_path_buf(),
       })?
     }
     Some("json") => {
-      serde_json::from_reader(file).map_err(|e| Error::ParseJson {
-        e,
-        path: path.to_path_buf(),
+      serde_json::from_reader(file_handle).map_err(|e| {
+        Error::ParseJson {
+          e,
+          path: file.to_path_buf(),
+        }
       })?
     }
     Some(_) | None => {
       return Err(Error::UnsupportedFileType {
-        path: path.to_path_buf(),
+        path: file.to_path_buf(),
       });
     }
   };

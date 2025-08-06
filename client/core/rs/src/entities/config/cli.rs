@@ -265,11 +265,15 @@ pub struct Env {
 fn default_config_paths() -> Vec<PathBuf> {
   if let Ok(home) = std::env::var("HOME") {
     vec![
+      PathBuf::from_str("/etc/komodo").unwrap(),
       PathBuf::from_str(&home).unwrap().join(".config/komodo"),
       PathBuf::from_str(".").unwrap(),
     ]
   } else {
-    vec![PathBuf::from_str(".").unwrap()]
+    vec![
+      PathBuf::from_str("/etc/komodo").unwrap(),
+      PathBuf::from_str(".").unwrap(),
+    ]
   }
 }
 
