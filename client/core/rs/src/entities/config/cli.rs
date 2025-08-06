@@ -339,12 +339,16 @@ impl Default for CliConfig {
     Self {
       cli_key: Default::default(),
       cli_secret: Default::default(),
-      cli_logging: Default::default(),
+      cli_logging: LogConfig {
+        opentelemetry_service_name: String::from("Komodo-CLI"),
+        location: false,
+        ..Default::default()
+      },
       backups_folder: default_backups_folder(),
       restore_folder: Default::default(),
+      database: Default::default(),
       database_target: Default::default(),
       host: Default::default(),
-      database: Default::default(),
     }
   }
 }
