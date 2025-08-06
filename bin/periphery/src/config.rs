@@ -31,6 +31,7 @@ pub fn periphery_config() -> &'static PeripheryConfig {
           .iter()
           .map(String::as_str)
           .collect::<Vec<_>>(),
+        ".peripheryignore",
         args
           .merge_nested_config
           .unwrap_or(env.periphery_merge_nested_config),

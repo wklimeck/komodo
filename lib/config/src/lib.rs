@@ -1,4 +1,5 @@
 use std::{
+  collections::HashSet,
   fs::File,
   io::Read,
   path::{Path, PathBuf},
@@ -17,6 +18,7 @@ pub type Result<T> = ::core::result::Result<T, Error>;
 pub fn parse_config_paths<T: DeserializeOwned>(
   paths: &[&Path],
   match_wildcards: &[&str],
+  ignore_file_name: &str,
   merge_nested: bool,
   extend_array: bool,
 ) -> Result<T> {
@@ -39,8 +41,13 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       continue;
     };
     if metadata.is_dir() {
-      let mut files = Vec::new();
-      extend_with_file_names_in_dir(&mut files, path, &wildcards);
+      // Collect ignore paths
+      let mut ignores = HashSet::new();
+      add_ignores(path, ignore_file_name, &mut ignores);
+
+      let mut files = HashSet::new();
+      add_files(&mut files, path, &wildcards, &ignores);
+      let mut files = files.into_iter().collect::<Vec<_>>();
       files.sort();
       all_files.extend(files);
     } else if metadata.is_file() {
@@ -51,26 +58,32 @@ pub fn parse_config_paths<T: DeserializeOwned>(
   parse_config_files(&all_files, merge_nested, extend_array)
 }
 
-fn ignore_dir(path: &Path) -> bool {
+fn ignore_dir(path: &Path, ignores: &HashSet<PathBuf>) -> bool {
   const IGNORE: &[&str] = &["target", "node_modules", ".git"];
   IGNORE.iter().any(|ignore| path.ends_with(ignore))
+    || ignores.contains(path)
 }
 
-/// will sort file names alphabetically
-fn extend_with_file_names_in_dir(
-  files: &mut Vec<PathBuf>,
-  dir_path: &Path,
+fn add_files(
+  files: &mut HashSet<PathBuf>,
+  folder: &Path,
   wildcards: &[wildcard::Wildcard],
+  ignores: &HashSet<PathBuf>,
 ) {
-  let Ok(read_dir) = std::fs::read_dir(dir_path) else {
+  let Ok(folder) = folder.canonicalize() else {
     return;
   };
-  for dir_entry in read_dir {
-    let Ok(dir_entry) = dir_entry else {
-      continue;
-    };
+
+  if ignores.contains(&folder) {
+    return;
+  }
+
+  let Ok(read_dir) = std::fs::read_dir(folder) else {
+    return;
+  };
+  for dir_entry in read_dir.flatten() {
     let path = dir_entry.path();
-    if ignore_dir(&path) {
+    if ignore_dir(&path, ignores) {
       continue;
     }
     let Ok(metadata) = dir_entry.metadata() else {
@@ -82,20 +95,73 @@ fn extend_with_file_names_in_dir(
       let Some(file_name) = file_name.to_str() else {
         continue;
       };
-      if wildcards.is_empty()
-        || wildcards
+      // Ensure file name matches a wildcard keyword
+      if !wildcards.is_empty()
+        && !wildcards
           .iter()
           .any(|wc| wc.is_match(file_name.as_bytes()))
       {
-        files.push(path);
+        continue;
       }
+      let Ok(path) = path.canonicalize() else {
+        continue;
+      };
+      files.insert(path);
     } else if metadata.is_dir() {
-      extend_with_file_names_in_dir(
-        files,
-        &dir_entry.path(),
-        wildcards,
-      );
+      // RECURSIVE CASE
+      add_files(files, &dir_entry.path(), wildcards, ignores);
     }
+  }
+}
+
+fn add_ignores(
+  folder: &Path,
+  ignore_file_name: &str,
+  ignores: &mut HashSet<PathBuf>,
+) {
+  let Ok(folder) = folder.canonicalize() else {
+    return;
+  };
+
+  if ignores.contains(&folder) {
+    return;
+  }
+
+  // Add any ignores in this folder
+  if let Ok(ignore) =
+    std::fs::read_to_string(folder.join(ignore_file_name))
+  {
+    ignores.extend(
+      ignore
+        .split('\n')
+        .map(|line| line.trim())
+        .filter(|line| !line.is_empty())
+        .flat_map(|line| folder.join(line).canonicalize()),
+    );
+  };
+
+  if ignores.contains(&folder) {
+    return;
+  }
+
+  // Then check any sub directories
+  let Ok(entries) = std::fs::read_dir(folder) else {
+    return;
+  };
+  for entry in entries.flatten() {
+    let Ok(path) = entry.path().canonicalize() else {
+      continue;
+    };
+    if ignore_dir(&path, ignores) {
+      continue;
+    }
+    let Ok(metadata) = entry.metadata() else {
+      continue;
+    };
+    if !metadata.is_dir() {
+      continue;
+    }
+    add_ignores(&path, ignore_file_name, ignores);
   }
 }
 

@@ -47,6 +47,7 @@ pub fn cli_config() -> &'static CliConfig {
           .map(PathBuf::as_path)
           .collect::<Vec<_>>(),
         &config_keywords,
+        ".kmignore",
         args
           .merge_nested_config
           .unwrap_or(env.komodo_cli_merge_nested_config),
