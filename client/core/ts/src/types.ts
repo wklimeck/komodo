@@ -4065,7 +4065,7 @@ export interface AwsBuilderConfig {
 /**
  * Backs up the database to compressed jsonl files. Admin only.
  * 
- * Mount a folder to `/backup`, and Core will use it to create
+ * Mount a folder to `/backups`, and Core will use it to create
  * timestamped database dumps, which can be restored using
  * `ghcr.io/moghtech/komodo-util`.
  * 

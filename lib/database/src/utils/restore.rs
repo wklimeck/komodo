@@ -14,14 +14,14 @@ use tracing::{error, info, warn};
 
 pub async fn restore(
   db: &Database,
-  backup_folder: &Path,
+  backups_folder: &Path,
   restore_folder: Option<&Path>,
 ) -> anyhow::Result<()> {
   // Get the specific dated folder to restore contents of
   let restore_folder = if let Some(restore_folder) = restore_folder {
-    backup_folder.join(restore_folder)
+    backups_folder.join(restore_folder)
   } else {
-    latest_restore_folder(backup_folder).await?
+    latest_restore_folder(backups_folder).await?
   }
   .components()
   .collect::<PathBuf>();
@@ -29,7 +29,7 @@ pub async fn restore(
   info!("Restore folder: {restore_folder:?}");
 
   let restore_files =
-    get_restore_files(backup_folder, &restore_folder).await?;
+    get_restore_files(backups_folder, &restore_folder).await?;
 
   let mut handles = restore_files
     .into_iter()
@@ -129,10 +129,10 @@ pub async fn restore(
 }
 
 async fn latest_restore_folder(
-  backup_folder: &Path,
+  backups_folder: &Path,
 ) -> anyhow::Result<PathBuf> {
   let mut max = PathBuf::new();
-  let mut backups_dir = tokio::fs::read_dir(backup_folder)
+  let mut backups_dir = tokio::fs::read_dir(backups_folder)
     .await
     .context("Failed to read backup directory")?;
   loop {
@@ -158,7 +158,7 @@ async fn latest_restore_folder(
 }
 
 async fn get_restore_files(
-  backup_folder: &Path,
+  backups_folder: &Path,
   restore_folder: &Path,
 ) -> anyhow::Result<Vec<(String, PathBuf)>> {
   let mut restore_dir =
@@ -168,7 +168,7 @@ async fn get_restore_files(
 
   let mut restore_files: Vec<(String, PathBuf)> = vec![(
     String::from("Stats"),
-    backup_folder.join("Stats.gz").components().collect(),
+    backups_folder.join("Stats.gz").components().collect(),
   )];
 
   loop {

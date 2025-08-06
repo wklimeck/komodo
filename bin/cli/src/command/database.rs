@@ -39,15 +39,15 @@ pub async fn backup(yes: bool) -> anyhow::Result<()> {
   );
   println!(
     "{}: {:?}",
-    " - Root Backup Folder".dimmed(),
-    config.backup_folder
+    " - Backups Folder".dimmed(),
+    config.backups_folder
   );
 
   crate::command::wait_for_enter("start backup", yes)?;
 
   let db = database::init(&config.database).await?;
 
-  database::utils::backup(&db, &config.backup_folder).await
+  database::utils::backup(&db, &config.backups_folder).await
 }
 
 pub async fn restore(yes: bool) -> anyhow::Result<()> {
@@ -90,8 +90,8 @@ pub async fn restore(yes: bool) -> anyhow::Result<()> {
   );
   println!(
     "{}: {:?}",
-    " - Root Backup Folder".dimmed(),
-    config.backup_folder
+    " - Backups Folder".dimmed(),
+    config.backups_folder
   );
   if let Some(restore_folder) = &config.restore_folder {
     println!("{}: {restore_folder:?}", " - Restore Folder".dimmed());
@@ -104,7 +104,7 @@ pub async fn restore(yes: bool) -> anyhow::Result<()> {
 
   database::utils::restore(
     &db.db,
-    &config.backup_folder,
+    &config.backups_folder,
     config.restore_folder.as_deref(),
   )
   .await

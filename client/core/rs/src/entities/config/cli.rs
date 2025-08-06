@@ -94,10 +94,10 @@ pub enum DatabaseCommand {
   /// organized by time the backup was taken. (alias: `bkp`)
   #[clap(alias = "bkp")]
   Backup {
-    /// Optionally provide a specific backup folder.
-    /// Default: `/backup`
+    /// Optionally provide a specific backups folder.
+    /// Default: `/backups`
     #[arg(long, short = 'f')]
-    backup_folder: Option<PathBuf>,
+    backups_folder: Option<PathBuf>,
     /// Always continue on user confirmation prompts.
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
@@ -105,10 +105,10 @@ pub enum DatabaseCommand {
   /// Restores the database from backup files. (alias: `rst`)
   #[clap(alias = "rst")]
   Restore {
-    /// Optionally provide a specific backup folder.
-    /// Default: `/backup`
+    /// Optionally provide a specific backups folder.
+    /// Default: `/backups`
     #[arg(long, short = 'f')]
-    backup_folder: Option<PathBuf>,
+    backups_folder: Option<PathBuf>,
     /// Optionally provide a specific restore folder.
     /// If not provided, will use the most recent backup folder.
     ///
@@ -190,8 +190,8 @@ pub struct Env {
   pub komodo_cli_key: Option<String>,
   /// Override `cli_secret`
   pub komodo_cli_secret: Option<String>,
-  /// Override `backup_folder`
-  pub komodo_cli_backup_folder: Option<PathBuf>,
+  /// Override `backups_folder`
+  pub komodo_cli_backups_folder: Option<PathBuf>,
   /// Override `restore_folder`
   pub komodo_cli_restore_folder: Option<PathBuf>,
   /// Override `database_target_uri`
@@ -263,7 +263,14 @@ pub struct Env {
 }
 
 fn default_config_paths() -> Vec<PathBuf> {
-  vec![PathBuf::from_str(".").unwrap()]
+  if let Ok(home) = std::env::var("HOME") {
+    vec![
+      PathBuf::from_str(&home).unwrap().join(".config/komodo"),
+      PathBuf::from_str(".").unwrap(),
+    ]
+  } else {
+    vec![PathBuf::from_str(".").unwrap()]
+  }
 }
 
 fn default_config_keywords() -> Vec<String> {
@@ -291,16 +298,16 @@ pub struct CliConfig {
   /// The api secret for the CLI to use
   #[serde(alias = "secret")]
   pub cli_secret: Option<String>,
-  /// The root backup folder.
+  /// The root backups folder.
   ///
-  /// Default: `/backup`.
+  /// Default: `/backups`.
   ///
   /// Backups will be created in timestamped folders eg
-  /// `/backup/2025-08-04_05_05_53`
-  #[serde(default = "default_backup_folder")]
-  pub backup_folder: PathBuf,
+  /// `/backups/2025-08-04_05_05_53`
+  #[serde(default = "default_backups_folder")]
+  pub backups_folder: PathBuf,
   /// A specific restore folder,
-  /// either absolute or relative to the `backup_folder`.
+  /// either absolute or relative to the `backups_folder`.
   ///
   /// Default: None (restores most recent backup).
   ///
@@ -318,9 +325,9 @@ pub struct CliConfig {
   pub cli_logging: LogConfig,
 }
 
-fn default_backup_folder() -> PathBuf {
-  // SAFE: /backup is a valid path.
-  PathBuf::from_str("/backup").unwrap()
+fn default_backups_folder() -> PathBuf {
+  // SAFE: /backups is a valid path.
+  PathBuf::from_str("/backups").unwrap()
 }
 
 impl Default for CliConfig {
@@ -329,7 +336,7 @@ impl Default for CliConfig {
       cli_key: Default::default(),
       cli_secret: Default::default(),
       cli_logging: Default::default(),
-      backup_folder: default_backup_folder(),
+      backups_folder: default_backups_folder(),
       restore_folder: Default::default(),
       database_target: Default::default(),
       host: Default::default(),
@@ -350,7 +357,7 @@ impl CliConfig {
         .as_ref()
         .map(|cli_secret| empty_or_redacted(cli_secret)),
       cli_logging: self.cli_logging.clone(),
-      backup_folder: self.backup_folder.clone(),
+      backups_folder: self.backups_folder.clone(),
       restore_folder: self.restore_folder.clone(),
       database_target: self.database_target.sanitized(),
       host: self.host.clone(),

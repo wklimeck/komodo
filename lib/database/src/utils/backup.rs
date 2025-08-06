@@ -16,30 +16,30 @@ use tracing::{error, info, warn};
 
 pub async fn backup(
   db: &Database,
-  backup_folder: &Path,
+  backups_folder: &Path,
 ) -> anyhow::Result<()> {
   let collections = db
     .list_collection_names()
     .await
     .context("Failed to list collections on source db")?;
 
-  let now_backup_folder = backup_folder
+  let now_backups_folder = backups_folder
     .join(Local::now().format("%Y-%m-%d_%H-%M-%S").to_string());
 
-  tokio::fs::create_dir_all(&now_backup_folder)
+  tokio::fs::create_dir_all(&now_backups_folder)
     .await
     .context("Failed to create backup folder")?;
 
-  info!("Backing up to {now_backup_folder:?}...");
+  info!("Backing up to {now_backups_folder:?}...");
 
   let mut handles = collections
     .into_iter()
     .map(|collection| {
       let source = db.collection::<RawDocumentBuf>(&collection);
       let file_path = if collection == "Stats" {
-        backup_folder.join("Stats.gz")
+        backups_folder.join("Stats.gz")
       } else {
-        now_backup_folder.join(format!("{collection}.gz"))
+        now_backups_folder.join(format!("{collection}.gz"))
       };
       tokio::spawn(async move {
         let res = async {

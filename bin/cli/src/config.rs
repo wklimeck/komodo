@@ -64,18 +64,18 @@ pub fn cli_config() -> &'static CliConfig {
       _ => (None, None, None),
     };
 
-    let (backup_folder, restore_folder) = match &args.command {
+    let (backups_folder, restore_folder) = match &args.command {
       Command::Database {
-        command: DatabaseCommand::Backup { backup_folder, .. },
-      } => (backup_folder.clone(), None),
+        command: DatabaseCommand::Backup { backups_folder, .. },
+      } => (backups_folder.clone(), None),
       Command::Database {
         command:
           DatabaseCommand::Restore {
-            backup_folder,
+            backups_folder,
             restore_folder,
             ..
           },
-      } => (backup_folder.clone(), restore_folder.clone()),
+      } => (backups_folder.clone(), restore_folder.clone()),
       _ => (None, None),
     };
     let (uri, address, username, password, db_name) =
@@ -109,9 +109,9 @@ pub fn cli_config() -> &'static CliConfig {
       cli_secret: secret
         .or(env.komodo_cli_secret)
         .or(config.cli_secret),
-      backup_folder: backup_folder
-        .or(env.komodo_cli_backup_folder)
-        .unwrap_or(config.backup_folder),
+      backups_folder: backups_folder
+        .or(env.komodo_cli_backups_folder)
+        .unwrap_or(config.backups_folder),
       restore_folder: restore_folder
         .or(env.komodo_cli_restore_folder)
         .or(config.restore_folder),
