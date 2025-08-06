@@ -10,7 +10,7 @@ FROM gcr.io/distroless/cc
 COPY --from=binaries /km /usr/local/bin/km
 
 ENV KOMODO_CLI_CONFIG_PATHS="/config"
-ENV KOMODO_CLI_CONFIG_KEYWORDS="*.toml"
+ENV KOMODO_CLI_CONFIG_KEYWORDS="config.toml,*komodo.cli*.toml"
 
 CMD [ "km" ]
 

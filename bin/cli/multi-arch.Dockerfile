@@ -21,7 +21,7 @@ ARG TARGETPLATFORM
 RUN mv /app/arch/${TARGETPLATFORM} /usr/local/bin/km && rm -r /app/arch
 
 ENV KOMODO_CLI_CONFIG_PATHS="/config"
-ENV KOMODO_CLI_CONFIG_KEYWORDS="*.toml"
+ENV KOMODO_CLI_CONFIG_KEYWORDS="config.toml,*komodo.cli*.toml"
 
 CMD [ "km" ]
 

@@ -37,7 +37,7 @@ RUN mkdir /action-cache && \
 EXPOSE 9120
 
 ENV KOMODO_CLI_CONFIG_PATHS="/config"
-ENV KOMODO_CLI_CONFIG_KEYWORDS="*.toml"
+ENV KOMODO_CLI_CONFIG_KEYWORDS="config.toml,*komodo.cli*.toml"
 
 CMD [ "core" ]
 
