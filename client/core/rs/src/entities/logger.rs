@@ -1,6 +1,8 @@
+use std::sync::OnceLock;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LogConfig {
   /// The logging level. default: info
   #[serde(default)]
@@ -46,6 +48,17 @@ impl Default for LogConfig {
       opentelemetry_service_name: default_opentelemetry_service_name(
       ),
     }
+  }
+}
+
+fn default_log_config() -> &'static LogConfig {
+  static DEFAULT_LOG_CONFIG: OnceLock<LogConfig> = OnceLock::new();
+  DEFAULT_LOG_CONFIG.get_or_init(Default::default)
+}
+
+impl LogConfig {
+  pub fn is_default(&self) -> bool {
+    self == default_log_config()
   }
 }
 

@@ -473,13 +473,13 @@ pub struct CliConfig {
   // Same as Core
   /// The host Komodo url.
   /// Eg. "https://demo.komo.do"
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "String::is_empty")]
   pub host: String,
   /// The api key for the CLI to use
-  #[serde(alias = "key")]
+  #[serde(alias = "key", skip_serializing_if = "Option::is_none")]
   pub cli_key: Option<String>,
   /// The api secret for the CLI to use
-  #[serde(alias = "secret")]
+  #[serde(alias = "secret", skip_serializing_if = "Option::is_none")]
   pub cli_secret: Option<String>,
   /// The root backups folder.
   ///

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::OnceLock};
 
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -18,7 +18,7 @@ fn default_config_path() -> PathBuf {
 /// Must provide ONE of:
 /// 1. `uri`
 /// 2. `address` + `username` + `password`
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DatabaseConfig {
   /// Full mongo uri string, eg. `mongodb://username:password@your.mongo.int:27017`
   #[serde(default)]
@@ -66,6 +66,12 @@ impl Default for DatabaseConfig {
   }
 }
 
+fn default_database_config() -> &'static DatabaseConfig {
+  static DEFAULT_DATABASE_CONFIG: OnceLock<DatabaseConfig> =
+    OnceLock::new();
+  DEFAULT_DATABASE_CONFIG.get_or_init(Default::default)
+}
+
 impl DatabaseConfig {
   pub fn sanitized(&self) -> DatabaseConfig {
     DatabaseConfig {
@@ -76,6 +82,10 @@ impl DatabaseConfig {
       app_name: self.app_name.clone(),
       db_name: self.db_name.clone(),
     }
+  }
+
+  pub fn is_default(&self) -> bool {
+    self == default_database_config()
   }
 }
 
