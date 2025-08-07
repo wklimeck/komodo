@@ -77,6 +77,10 @@ docker compose -p komodo-dev -f dev.compose.yaml build"""
 description = "starts the rustdoc site (https://docs.rs/komodo_client/latest/komodo_client/) in dev mode"
 cmd = "cargo doc --no-deps -p komodo_client && http-server -p 8050 target/doc"
 
+[deploy-komodo]
+path = "deploy"
+cmd = "deno run --allow-all main.ts"
+
 [install-cli]
 description = "installs the komodo-cli, available on the command line as 'komodo'"
 cmd = "cargo install --path bin/cli"
