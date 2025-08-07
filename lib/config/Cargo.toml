@@ -10,6 +10,7 @@ homepage.workspace = true
 [dependencies]
 serde_json.workspace = true
 thiserror.workspace = true
+indexmap.workspace = true
 wildcard.workspace = true
 colored.workspace = true
 serde.workspace = true

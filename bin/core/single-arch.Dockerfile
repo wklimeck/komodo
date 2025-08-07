@@ -16,7 +16,7 @@ RUN cd frontend && yarn link komodo_client && yarn && yarn build
 
 FROM debian:bullseye-slim
 
-COPY ./bin/core/starship.toml /config/starship.toml
+COPY ./bin/core/starship.toml /starship.toml
 COPY ./bin/core/debian-deps.sh .
 RUN sh ./debian-deps.sh && rm ./debian-deps.sh
 	
@@ -36,8 +36,8 @@ RUN mkdir /action-cache && \
 # Hint at the port
 EXPOSE 9120
 
-ENV KOMODO_CLI_CONFIG_PATHS="/config"
-ENV KOMODO_CLI_CONFIG_KEYWORDS="config.toml,*komodo.cli*.toml"
+# This ensures any `komodo.cli.toml` takes precedence over the Core `/config/config.toml`
+ENV KOMODO_CLI_CONFIG_PATHS="/config/config.toml,/config"
 
 CMD [ "core" ]
 

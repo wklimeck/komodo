@@ -6,6 +6,7 @@ use std::{
 };
 
 use colored::Colorize;
+use indexmap::IndexSet;
 use serde::de::DeserializeOwned;
 
 mod error;
@@ -36,7 +37,7 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       }
     }
   }
-  let mut all_files = Vec::new();
+  let mut all_files = IndexSet::new();
   for &path in paths {
     let Ok(metadata) = std::fs::metadata(path) else {
       continue;
@@ -64,7 +65,7 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       files.sort();
       all_files.extend(files);
     } else if metadata.is_file() {
-      all_files.push(path.to_path_buf());
+      all_files.insert(path.to_path_buf());
     }
   }
   println!(
@@ -72,7 +73,11 @@ pub fn parse_config_paths<T: DeserializeOwned>(
     "INFO".green(),
     "Found Files".dimmed()
   );
-  parse_config_files(&all_files, merge_nested, extend_array)
+  parse_config_files(
+    &all_files.into_iter().collect::<Vec<_>>(),
+    merge_nested,
+    extend_array,
+  )
 }
 
 fn ignore_dir(path: &Path, ignores: &HashSet<PathBuf>) -> bool {
