@@ -60,8 +60,8 @@ pub enum Command {
     unsanitized: bool,
   },
 
-  /// Run Komodo executions. (alias: `x`)
-  #[clap(alias = "x")]
+  /// Run Komodo executions. (aliases: `x`, `run`)
+  #[clap(alias = "x", alias = "run")]
   Execute {
     #[command(subcommand)]
     execution: Execution,
@@ -80,11 +80,37 @@ pub enum Command {
     yes: bool,
   },
 
+  /// Update resource properties. (alias `set`)
+  #[clap(alias = "set")]
+  Update {
+    #[command(subcommand)]
+    command: UpdateCommand,
+  },
+
   /// Database utilities. (alias: `db`)
   #[clap(alias = "db")]
   Database {
     #[command(subcommand)]
     command: DatabaseCommand,
+  },
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum UpdateCommand {
+  /// Update a Variable's value. (alias: `var`)
+  #[clap(alias = "var")]
+  Variable {
+    /// The name of the variable.
+    name: String,
+    /// The value to set variable to.
+    value: String,
+    /// Whether the value should be set to secret.
+    /// If unset, will leave the variable secret setting as-is.
+    #[arg(long, short = 's')]
+    secret: Option<bool>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
   },
 }
 

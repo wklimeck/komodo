@@ -8,6 +8,7 @@ use tokio::sync::OnceCell;
 use crate::config::cli_config;
 
 pub mod database;
+pub mod update;
 
 mod execute;
 
