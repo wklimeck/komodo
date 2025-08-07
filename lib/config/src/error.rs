@@ -50,4 +50,7 @@ pub enum Error {
 
   #[error("failed to get metadata for path {path:?} | {e:?}")]
   ReadPathMetaData { path: PathBuf, e: std::io::Error },
+
+  #[error("parsed value is not object")]
+  ValueIsNotObject,
 }

@@ -7,7 +7,7 @@ use std::{
 
 use colored::Colorize;
 use indexmap::IndexSet;
-use serde::de::DeserializeOwned;
+use serde::{Serialize, de::DeserializeOwned};
 
 mod error;
 
@@ -275,11 +275,11 @@ pub fn parse_config_file<T: DeserializeOwned>(
   Ok(config)
 }
 
-/// object is serde_json::Map<String, serde_json::Value>
-/// source will overide target
-/// will recurse when field is object if merge_object = true, otherwise object will be replaced
-/// will extend when field is array if extend_array = true, otherwise array will be replaced
-/// will return error when types on source and target fields do not match
+/// - Object is serde_json::Map<String, serde_json::Value>.
+/// - Source will overide target.
+/// - Will recurse when field is object if merge_object = true, otherwise object will be replaced.
+/// - Will extend when field is array if extend_array = true, otherwise array will be replaced.
+/// - Will return error when types on source and target fields do not match.
 fn merge_objects(
   mut target: serde_json::Map<String, serde_json::Value>,
   source: serde_json::Map<String, serde_json::Value>,
@@ -341,4 +341,29 @@ fn merge_objects(
     }
   }
   Ok(target)
+}
+
+/// Source will overide target
+pub fn merge_config<T: Serialize + DeserializeOwned>(
+  target: T,
+  source: T,
+  merge_nested: bool,
+  extend_array: bool,
+) -> Result<T> {
+  let serde_json::Value::Object(target) =
+    serde_json::to_value(target)
+      .map_err(|e| Error::SerializeFinalJson { e })?
+  else {
+    return Err(Error::ValueIsNotObject);
+  };
+  let serde_json::Value::Object(source) =
+    serde_json::to_value(source)
+      .map_err(|e| Error::SerializeFinalJson { e })?
+  else {
+    return Err(Error::ValueIsNotObject);
+  };
+  let object =
+    merge_objects(target, source, merge_nested, extend_array)?;
+  serde_json::from_value(serde_json::Value::Object(object))
+    .map_err(|e| Error::ParseFinalJson { e })
 }

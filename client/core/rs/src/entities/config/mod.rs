@@ -18,7 +18,7 @@ fn default_config_path() -> PathBuf {
 /// Must provide ONE of:
 /// 1. `uri`
 /// 2. `address` + `username` + `password`
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseConfig {
   /// Full mongo uri string, eg. `mongodb://username:password@your.mongo.int:27017`
   #[serde(default)]

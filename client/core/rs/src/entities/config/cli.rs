@@ -1,10 +1,11 @@
 use std::{path::PathBuf, str::FromStr};
 
 use clap::{Parser, Subcommand};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
   api::execute::Execution,
+  deserializers::string_list_deserializer,
   entities::{
     config::{DatabaseConfig, empty_or_redacted},
     logger::{LogConfig, LogLevel, StdioLogMode},
@@ -19,7 +20,7 @@ pub struct CliArgs {
   #[command(subcommand)]
   pub command: Command,
 
-  /// Choose a custom [[profile]] set in the config file.
+  /// Choose a custom [[profile]] name / alias set in a `komodo.cli.toml` file.
   #[arg(long, short = 'p')]
   pub profile: Option<String>,
 
@@ -452,13 +453,23 @@ fn default_extend_config_arrays() -> bool {
   true
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CliConfig {
-  /// Optional. The profile name.
-  /// Configure profiles in the komodo.cli.toml,
+  /// Optional. The profile name. (alias: `name`)
+  /// Configure profiles with name in the komodo.cli.toml,
   /// and select them using `km -p profile-name ...`.
   #[serde(default, alias = "name")]
   pub config_profile: String,
+  /// Optional. The profile aliases. (aliases: `aliases`, `alias`)
+  /// Configure profiles with alias in the komodo.cli.toml,
+  /// and select them using `km -p alias ...`.
+  #[serde(
+    default,
+    alias = "aliases",
+    alias = "alias",
+    deserialize_with = "string_list_deserializer"
+  )]
+  pub config_aliases: Vec<String>,
   // Same as Core
   /// The host Komodo url.
   /// Eg. "https://demo.komo.do"
@@ -522,6 +533,7 @@ impl Default for CliConfig {
   fn default() -> Self {
     Self {
       config_profile: Default::default(),
+      config_aliases: Default::default(),
       cli_key: Default::default(),
       cli_secret: Default::default(),
       cli_logging: LogConfig {
@@ -544,6 +556,7 @@ impl CliConfig {
   pub fn sanitized(&self) -> CliConfig {
     CliConfig {
       config_profile: self.config_profile.clone(),
+      config_aliases: self.config_aliases.clone(),
       cli_key: self
         .cli_key
         .as_ref()

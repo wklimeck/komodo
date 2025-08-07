@@ -3,7 +3,7 @@ use std::{path::PathBuf, sync::OnceLock};
 use anyhow::Context;
 use clap::Parser;
 use colored::Colorize;
-use config::parse_config_paths;
+use config::{merge_config, parse_config_paths};
 use environment_file::maybe_read_item_from_file;
 use komodo_client::entities::{
   config::{
@@ -35,6 +35,12 @@ pub fn cli_config() -> &'static CliConfig {
           || level == tracing::Level::TRACE
       })
       .unwrap_or_default();
+    let merge_nested_config = args
+      .merge_nested_config
+      .unwrap_or(env.komodo_cli_merge_nested_config);
+    let extend_config_arrays = args
+      .extend_config_arrays
+      .unwrap_or(env.komodo_cli_extend_config_arrays);
 
     let config = if config_paths.is_empty() {
       CliConfig::default()
@@ -66,12 +72,8 @@ pub fn cli_config() -> &'static CliConfig {
           .collect::<Vec<_>>(),
         &config_keywords,
         ".kmignore",
-        args
-          .merge_nested_config
-          .unwrap_or(env.komodo_cli_merge_nested_config),
-        args
-          .extend_config_arrays
-          .unwrap_or(env.komodo_cli_extend_config_arrays),
+        merge_nested_config,
+        extend_config_arrays,
         debug,
       )
       .expect("failed at parsing config from paths")
@@ -120,27 +122,42 @@ pub fn cli_config() -> &'static CliConfig {
         _ => (None, None, None, None, None),
       };
 
-    let (config_profile, config) = if let Some(profile) =
-      &args.profile
+    let config = if let Some(profile) = &args.profile
       && !profile.is_empty()
     {
-      (
-        profile.to_string(),
-        config
-          .profiles
-          .into_iter()
-          .find(|p| &p.config_profile == profile)
-          .with_context(|| {
-            format!("Did not find config profile matching {profile}")
-          })
-          .unwrap(),
+      // Find the profile config,
+      // then merge it with the Default config.
+      let profile_config = config
+        .profiles
+        .clone()
+        .into_iter()
+        .find(|p| {
+          &p.config_profile == profile
+            || p.config_aliases.iter().any(|alias| alias == profile)
+        })
+        .with_context(|| {
+          format!("Did not find config profile matching {profile}")
+        })
+        .unwrap();
+      merge_config(
+        config,
+        profile_config.clone(),
+        merge_nested_config,
+        extend_config_arrays,
       )
+      .unwrap_or(profile_config)
     } else {
-      (String::from("Default"), config)
+      config
+    };
+    let config_profile = if config.config_profile.is_empty() {
+      String::from("Default")
+    } else {
+      config.config_profile
     };
 
     CliConfig {
       config_profile,
+      config_aliases: config.config_aliases,
       host: host
         .or(env.komodo_cli_host)
         .or(env.komodo_host)
