@@ -21,6 +21,7 @@ pub fn parse_config_paths<T: DeserializeOwned>(
   ignore_file_name: &str,
   merge_nested: bool,
   extend_array: bool,
+  debug_print: bool,
 ) -> Result<T> {
   let mut wildcards = Vec::with_capacity(match_wildcards.len());
   for &wc in match_wildcards {
@@ -45,10 +46,15 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       let mut ignores = HashSet::new();
       add_ignores(path, ignore_file_name, &mut ignores);
 
-      if !ignores.is_empty() {
+      if debug_print && !ignores.is_empty() {
         println!(
-          "{}: Config Path {path:?} Ignores: {ignores:?}",
-          "INFO".green()
+          "{}: {}: {ignores:?}",
+          "DEBUG".cyan(),
+          format!(
+            "{} {path:?} {}",
+            "Config Path".dimmed(),
+            "Ignores".dimmed()
+          ),
         );
       }
 
@@ -61,7 +67,11 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       all_files.push(path.to_path_buf());
     }
   }
-  println!("{}: Found files: {all_files:?}", "INFO".green());
+  println!(
+    "{}: {}: {all_files:?}",
+    "INFO".green(),
+    "Found Files".dimmed()
+  );
   parse_config_files(&all_files, merge_nested, extend_array)
 }
 

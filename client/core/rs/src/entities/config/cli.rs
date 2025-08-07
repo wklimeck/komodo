@@ -45,7 +45,7 @@ pub struct CliArgs {
   /// Configure the logging level: error, warn, info, debug, trace.
   /// Default: info
   /// If passed, will override any other log_level set.
-  #[arg(long)]
+  #[arg(long, short = 'l')]
   pub log_level: Option<tracing::Level>,
 }
 

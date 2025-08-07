@@ -27,11 +27,24 @@ pub fn cli_config() -> &'static CliConfig {
       .config_path
       .clone()
       .unwrap_or(env.komodo_cli_config_paths);
+    let debug = args
+      .log_level
+      .map(|level| {
+        level == tracing::Level::DEBUG
+          || level == tracing::Level::TRACE
+      })
+      .unwrap_or_default();
 
     let config = if config_paths.is_empty() {
       CliConfig::default()
     } else {
-      println!("{}: Config Paths: {config_paths:?}", "INFO".green());
+      if debug {
+        println!(
+          "{}: {}: {config_paths:?}",
+          "DEBUG".cyan(),
+          "Config Paths".dimmed(),
+        );
+      }
       let config_keywords = args
         .config_keyword
         .clone()
@@ -40,7 +53,11 @@ pub fn cli_config() -> &'static CliConfig {
         .iter()
         .map(String::as_str)
         .collect::<Vec<_>>();
-      println!("{}: Keywords: {config_keywords:?}", "INFO".green(),);
+      println!(
+        "{}: {}: {config_keywords:?}",
+        "INFO".green(),
+        "Config File Keywords".dimmed(),
+      );
       parse_config_paths::<CliConfig>(
         &config_paths
           .iter()
@@ -54,6 +71,7 @@ pub fn cli_config() -> &'static CliConfig {
         args
           .extend_config_arrays
           .unwrap_or(env.komodo_cli_extend_config_arrays),
+        debug,
       )
       .expect("failed at parsing config from paths")
     };

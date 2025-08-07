@@ -38,6 +38,13 @@ pub fn periphery_config() -> &'static PeripheryConfig {
         args
           .extend_config_arrays
           .unwrap_or(env.periphery_extend_config_arrays),
+        args
+          .log_level
+          .map(|level| {
+            level == tracing::Level::DEBUG
+              || level == tracing::Level::TRACE
+          })
+          .unwrap_or_default(),
       )
       .expect("failed at parsing config from paths")
     };

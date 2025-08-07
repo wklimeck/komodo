@@ -11,12 +11,12 @@ mod config;
 
 async fn app() -> anyhow::Result<()> {
   dotenvy::dotenv().ok();
-  logger::init(&config::cli_config().cli_logging)?;
-
-  info!(
-    "Komodo CLI version: {}",
+  println!(
+    "{}: Komodo CLI version: {}",
+    "INFO".green(),
     env!("CARGO_PKG_VERSION").blue().bold()
   );
+  logger::init(&config::cli_config().cli_logging)?;
 
   match &config::cli_args().command {
     cli::Command::Config { unsanitized } => {
