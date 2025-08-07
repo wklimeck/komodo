@@ -2,10 +2,12 @@ use anyhow::Context;
 use futures_util::{
   StreamExt, TryStreamExt, stream::FuturesUnordered,
 };
-use mungos::mongodb::{
-  Database,
-  bson::{Document, RawDocumentBuf},
-  options::InsertManyOptions,
+use mungos::{
+  bulk_update::{BulkUpdate, bulk_update_retry_too_big},
+  mongodb::{
+    Database,
+    bson::{Document, doc},
+  },
 };
 use tracing::{error, info};
 
@@ -17,31 +19,35 @@ pub async fn copy(
     .list_collection_names()
     .await
     .context("Failed to list collections on source db")?.into_iter().map(|collection| {
-      let source = source_db.collection::<RawDocumentBuf>(&collection);
-      let target = target_db.collection::<RawDocumentBuf>(&collection);
-
+      let source = source_db.collection::<Document>(&collection);
+      let target_db = target_db.clone();
       tokio::spawn(async move {
         let res = async {
-          let mut buffer = Vec::<RawDocumentBuf>::new();
+          let mut buffer = Vec::<BulkUpdate>::new();
+          // The update collection is bigger than others,
+          // can hit the max bson limit on the bulk upsert call without this.
+          let max_buffer = if collection == "Update" {
+            1_000
+          } else {
+            10_000
+          };
           let mut count = 0;
           let mut cursor = source
             .find(Document::new())
             .await
             .context("Failed to query source collection")?;
-          while let Some(doc) = cursor
+          while let Some(document) = cursor
             .try_next()
             .await
             .context("Failed to get next document")?
           {
+            let Some(id) = document.get("_id").and_then(|id| id.as_object_id()) else {
+              continue;
+            };
             count += 1;
-            buffer.push(doc);
-            if buffer.len() >= 20_000 {
-              if let Err(e) = target
-                .insert_many(&buffer)
-                .with_options(
-                  InsertManyOptions::builder().ordered(false).build(),
-                )
-                .await
+            buffer.push(BulkUpdate { query: doc! { "_id": id }, update: doc! { "$set": document } });
+            if buffer.len() >= max_buffer {
+              if let Err(e) = bulk_update_retry_too_big(&target_db, &collection, &buffer, true).await.context("Failed to flush documents")
               {
                 error!("Failed to flush document batch in {collection} collection | {e:#}");
               };
@@ -49,13 +55,8 @@ pub async fn copy(
             }
           }
           if !buffer.is_empty() {
-            target
-              .insert_many(&buffer)
-              .with_options(
-                InsertManyOptions::builder().ordered(false).build(),
-              )
-              .await
-              .context("Failed to flush documents")?;
+            bulk_update_retry_too_big(&target_db, &collection, &buffer, true).await.context("Failed to flush documents")?;
+
           }
           anyhow::Ok(count)
         }
