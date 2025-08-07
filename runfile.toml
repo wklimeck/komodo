@@ -78,8 +78,7 @@ description = "starts the rustdoc site (https://docs.rs/komodo_client/latest/kom
 cmd = "cargo doc --no-deps -p komodo_client && http-server -p 8050 target/doc"
 
 [deploy-komodo]
-path = "deploy"
-cmd = "deno run --allow-all main.ts"
+cmd = "deno run --allow-all deploy/komodo.ts"
 
 [install-cli]
 description = "installs the komodo-cli, available on the command line as 'komodo'"
