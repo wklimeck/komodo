@@ -516,15 +516,21 @@ async fn poll_update_until_complete(
   update_id: &str,
 ) -> anyhow::Result<()> {
   let client = super::komodo_client().await?;
+  let timer = tokio::time::Instant::now();
   let update = client.poll_update_until_complete(update_id).await?;
-  info!(
-    "FINISHED: {}",
-    if update.success {
-      "SUCCESS".green()
-    } else {
-      "FAILED".red()
-    }
-  );
+  if update.success {
+    info!(
+      "FINISHED in {}: {}",
+      format!("{:.1?}", timer.elapsed()).bold(),
+      "EXECUTION SUCCESSFUL".green(),
+    );
+  } else {
+    warn!(
+      "FINISHED in {}: {}",
+      format!("{:.1?}", timer.elapsed()).bold(),
+      "EXECUTION FAILED".red(),
+    );
+  }
   let (resource_type, id) = update.target.extract_variant_id();
   println!(
     "\nSee '{}' for details.",
