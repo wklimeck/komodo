@@ -20,18 +20,31 @@ await Deno.writeTextFile(
   )
 );
 
-const command = new Deno.Command("bash", {
-  args: [
-    "-c",
-    // Cargo check here to make sure lock file is updated before commit.
-    `cargo check && echo "" && \
-      git add --all && \
-      git commit --all --message "deploy ${version}-${tag}-${next_count}" && \
-      git push && echo "" \
-      km set var KOMODO_VERSION ${version} -y && \
-      km set var KOMODO_TAG ${tag}-${next_count} -y && \
-      km run -y action deploy-komodo`,
-  ],
-});
+// Cargo check first here to make sure lock file is updated before commit.
+const cmd = `
+cargo check
+echo ""
 
-command.spawn();
+git add --all
+git commit --all --message "deploy ${version}-${tag}-${next_count}"
+
+echo ""
+git push
+echo ""
+
+km set var KOMODO_VERSION ${version} -y
+echo ""
+
+km set var KOMODO_TAG ${tag}-${next_count} -y
+echo ""
+
+km run -y action deploy-komodo
+`
+  .split("\n")
+  .map((line) => line.trim())
+  .filter((line) => line.length > 0 && !line.startsWith("//"))
+  .join(" && ");
+
+new Deno.Command("bash", {
+  args: ["-c", cmd],
+}).spawn();
