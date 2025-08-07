@@ -1,5 +1,6 @@
 import { Layout } from "@components/layouts";
 import { useUser } from "@lib/hooks";
+import UpdatePage from "@pages/update";
 import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -46,13 +47,16 @@ export const Router = () => {
             <Route path="" element={<Home />} />
             <Route path="settings" element={<Settings />} />
             <Route path="tree" element={<Tree />} />
-            <Route path="alerts" element={<AlertsPage />} />
-            <Route path="updates" element={<UpdatesPage />} />
             <Route path="containers" element={<ContainersPage />} />
             <Route path="resources" element={<AllResources />} />
             <Route path="schedules" element={<SchedulesPage />} />
+            <Route path="alerts" element={<AlertsPage />} />
             <Route path="user-groups/:id" element={<UserGroupPage />} />
             <Route path="users/:id" element={<UserPage />} />
+            <Route path="updates">
+              <Route path="" element={<UpdatesPage />} />
+              <Route path=":id" element={<UpdatePage />} />
+            </Route>
             <Route path=":type">
               <Route path="" element={<Resources />} />
               <Route path=":id" element={<Resource />} />

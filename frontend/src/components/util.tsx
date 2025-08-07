@@ -359,16 +359,20 @@ export const UserSettings = () => (
 export const CopyButton = ({
   content,
   className,
+  icon = <Copy className="w-4 h-4" />,
+  label = "selection",
 }: {
   content: string | undefined;
   className?: string;
+  icon?: ReactNode;
+  label?: string;
 }) => {
   const { toast } = useToast();
   const [copied, set] = useState(false);
 
   useEffect(() => {
     if (copied) {
-      toast({ title: "Copied selection" });
+      toast({ title: "Copied " + label });
       const timeout = setTimeout(() => set(false), 3000);
       return () => {
         clearTimeout(timeout);
@@ -388,7 +392,7 @@ export const CopyButton = ({
       }}
       disabled={!content}
     >
-      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      {copied ? <Check className="w-4 h-4" /> : icon}
     </Button>
   );
 };
