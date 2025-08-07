@@ -204,10 +204,7 @@ pub fn parse_config_files<T: DeserializeOwned>(
     let source = match parse_config_file(file) {
       Ok(source) => source,
       Err(e) => {
-        eprintln!(
-          "{}: Failed to parse config at {file:?} | {e}",
-          "WARN".yellow()
-        );
+        eprintln!("{}: {e}", "WARN".yellow());
         continue;
       }
     };
@@ -219,10 +216,7 @@ pub fn parse_config_files<T: DeserializeOwned>(
     ) {
       Ok(target) => target,
       Err(e) => {
-        eprint!(
-          "{}: Failed to merge config at {file:?} | {e}",
-          "WARN".yellow()
-        );
+        eprint!("{}: {e}", "WARN".yellow());
         target
       }
     };
