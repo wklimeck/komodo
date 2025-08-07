@@ -208,6 +208,7 @@ async fn prune_inner() -> anyhow::Result<()> {
 
   // Early return if under the backup count threshold
   if backup_folders_len <= max_backups {
+    info!("No backups to prune");
     return Ok(());
   }
 

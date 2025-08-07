@@ -19,6 +19,10 @@ pub struct CliArgs {
   #[command(subcommand)]
   pub command: Command,
 
+  /// Choose a custom [[profile]] set in the config file.
+  #[arg(long, short = 'p')]
+  pub profile: Option<String>,
+
   /// Sets the path of a config file or directory to use.
   /// Can use multiple times
   #[arg(long, short = 'c')]
@@ -67,7 +71,7 @@ pub enum Command {
     execution: Execution,
     /// Top priority Komodo host.
     /// Eg. "https://demo.komo.do"
-    #[arg(long, short = 'h')]
+    #[arg(long, short = 'a')]
     host: Option<String>,
     /// Top priority api key.
     #[arg(long, short = 'k')]
@@ -80,7 +84,7 @@ pub enum Command {
     yes: bool,
   },
 
-  /// Update resource configuration. (alias `set`)
+  /// Update resource configuration. (alias: `set`)
   #[clap(alias = "set")]
   Update {
     #[command(subcommand)]
@@ -266,7 +270,7 @@ pub enum DatabaseCommand {
     yes: bool,
   },
   /// Prunes database backups if there are greater than
-  /// the configured `max_backups` (KOMODO_CLI_MAX_BACKUPS)
+  /// the configured `max_backups` (KOMODO_CLI_MAX_BACKUPS).
   Prune {
     /// Optionally provide a specific backups folder.
     /// Default: `/backups`
@@ -450,6 +454,11 @@ fn default_extend_config_arrays() -> bool {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CliConfig {
+  /// Optional. The profile name.
+  /// Configure profiles in the komodo.cli.toml,
+  /// and select them using `km -p profile-name ...`.
+  #[serde(default, alias = "name")]
+  pub config_profile: String,
   // Same as Core
   /// The host Komodo url.
   /// Eg. "https://demo.komo.do"
@@ -495,6 +504,9 @@ pub struct CliConfig {
   /// Logging configuration
   #[serde(default)]
   pub cli_logging: LogConfig,
+  /// Configure additional profiles.
+  #[serde(default, alias = "profile")]
+  pub profiles: Vec<CliConfig>,
 }
 
 fn default_backups_folder() -> PathBuf {
@@ -509,6 +521,7 @@ fn default_max_backups() -> u16 {
 impl Default for CliConfig {
   fn default() -> Self {
     Self {
+      config_profile: Default::default(),
       cli_key: Default::default(),
       cli_secret: Default::default(),
       cli_logging: LogConfig {
@@ -522,6 +535,7 @@ impl Default for CliConfig {
       database: Default::default(),
       database_target: Default::default(),
       host: Default::default(),
+      profiles: Default::default(),
     }
   }
 }
@@ -529,6 +543,7 @@ impl Default for CliConfig {
 impl CliConfig {
   pub fn sanitized(&self) -> CliConfig {
     CliConfig {
+      config_profile: self.config_profile.clone(),
       cli_key: self
         .cli_key
         .as_ref()
@@ -544,6 +559,11 @@ impl CliConfig {
       database_target: self.database_target.sanitized(),
       host: self.host.clone(),
       database: self.database.sanitized(),
+      profiles: self
+        .profiles
+        .iter()
+        .map(CliConfig::sanitized)
+        .collect(),
     }
   }
 }

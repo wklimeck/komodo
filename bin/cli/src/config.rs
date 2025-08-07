@@ -1,5 +1,6 @@
 use std::{path::PathBuf, sync::OnceLock};
 
+use anyhow::Context;
 use clap::Parser;
 use colored::Colorize;
 use config::parse_config_paths;
@@ -119,7 +120,27 @@ pub fn cli_config() -> &'static CliConfig {
         _ => (None, None, None, None, None),
       };
 
+    let (config_profile, config) = if let Some(profile) =
+      &args.profile
+      && !profile.is_empty()
+    {
+      (
+        profile.to_string(),
+        config
+          .profiles
+          .into_iter()
+          .find(|p| &p.config_profile == profile)
+          .with_context(|| {
+            format!("Did not find config profile matching {profile}")
+          })
+          .unwrap(),
+      )
+    } else {
+      (String::from("Default"), config)
+    };
+
     CliConfig {
+      config_profile,
       host: host
         .or(env.komodo_cli_host)
         .or(env.komodo_host)
@@ -199,6 +220,7 @@ pub fn cli_config() -> &'static CliConfig {
           .komodo_cli_logging_opentelemetry_service_name
           .unwrap_or(config.cli_logging.opentelemetry_service_name),
       },
+      profiles: config.profiles,
     }
   })
 }
