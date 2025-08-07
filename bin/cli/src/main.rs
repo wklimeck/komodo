@@ -28,29 +28,14 @@ async fn app() -> anyhow::Result<()> {
       Ok(())
     }
     cli::Command::Execute { execution, yes, .. } => {
-      command::execute(execution.clone(), *yes).await
+      command::execute::handle(execution, *yes).await
     }
-    cli::Command::Update {
-      command:
-        cli::UpdateCommand::Variable {
-          name,
-          value,
-          secret,
-          yes,
-        },
-    } => command::update::variable(name, value, *secret, *yes).await,
-    cli::Command::Database {
-      command: cli::DatabaseCommand::Backup { yes, .. },
-    } => command::database::backup(*yes).await,
-    cli::Command::Database {
-      command: cli::DatabaseCommand::Restore { yes, .. },
-    } => command::database::restore(*yes).await,
-    cli::Command::Database {
-      command: cli::DatabaseCommand::Prune { yes, .. },
-    } => command::database::prune(*yes).await,
-    cli::Command::Database {
-      command: cli::DatabaseCommand::Copy { yes, .. },
-    } => command::database::copy(*yes).await,
+    cli::Command::Update { command } => {
+      command::update::handle(command).await
+    }
+    cli::Command::Database { command } => {
+      command::database::handle(command).await
+    }
   }
 }
 

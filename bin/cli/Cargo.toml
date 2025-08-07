@@ -21,10 +21,13 @@ config.workspace = true
 logger.workspace = true
 # external
 futures-util.workspace = true
+serde_json.workspace = true
+serde_qs.workspace = true
 tracing.workspace = true
 colored.workspace = true
 dotenvy.workspace = true
 anyhow.workspace = true
 tokio.workspace = true
+serde.workspace = true
 clap.workspace = true
 envy.workspace = true

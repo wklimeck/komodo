@@ -2594,6 +2594,9 @@ dependencies = [
  "futures-util",
  "komodo_client",
  "logger",
+ "serde",
+ "serde_json",
+ "serde_qs",
  "tokio",
  "tracing",
 ]

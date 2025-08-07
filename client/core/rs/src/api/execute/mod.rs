@@ -60,25 +60,27 @@ pub enum Execution {
   None(NoData),
 
   // ACTION
-  /// Run the target action. (alias: `action`)
-  #[clap(alias = "action")]
+  /// Run the target action. (alias: `action`, `act`)
+  #[clap(alias = "action", alias = "act")]
   RunAction(RunAction),
   BatchRunAction(BatchRunAction),
 
   // PROCEDURE
-  /// Run the target procedure. (alias: `procedure`)
-  #[clap(alias = "procedure")]
+  /// Run the target procedure. (alias: `procedure`, `proc`)
+  #[clap(alias = "procedure", alias = "proc")]
   RunProcedure(RunProcedure),
   BatchRunProcedure(BatchRunProcedure),
 
   // BUILD
-  /// Run the target build. (alias: `build`)
-  #[clap(alias = "build")]
+  /// Run the target build. (alias: `build`, `bld`)
+  #[clap(alias = "build", alias = "bld")]
   RunBuild(RunBuild),
   BatchRunBuild(BatchRunBuild),
   CancelBuild(CancelBuild),
 
   // DEPLOYMENT
+  /// Deploy the target deployment. (alias: `dep`)
+  #[clap(alias = "dep")]
   Deploy(Deploy),
   BatchDeploy(BatchDeploy),
   PullDeployment(PullDeployment),
@@ -91,6 +93,8 @@ pub enum Execution {
   BatchDestroyDeployment(BatchDestroyDeployment),
 
   // REPO
+  /// Clone the target repo
+  #[clap(alias = "clone")]
   CloneRepo(CloneRepo),
   BatchCloneRepo(BatchCloneRepo),
   PullRepo(PullRepo),
@@ -125,10 +129,15 @@ pub enum Execution {
   PruneSystem(PruneSystem),
 
   // SYNC
+  /// Execute a Resource Sync. (alias: `sync`)
+  #[clap(alias = "sync")]
   RunSync(RunSync),
+  /// Commit a Resource Sync. (alias: `commit`)
+  #[clap(alias = "commit")]
   CommitSync(CommitSync), // This is a special case, its actually a write operation.
 
   // STACK
+  #[clap(alias = "stack", alias = "stk")]
   DeployStack(DeployStack),
   BatchDeployStack(BatchDeployStack),
   DeployStackIfChanged(DeployStackIfChanged),

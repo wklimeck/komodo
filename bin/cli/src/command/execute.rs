@@ -16,8 +16,8 @@ enum ExecutionResult {
   Batch(BatchExecutionResponse),
 }
 
-pub async fn execute(
-  execution: Execution,
+pub async fn handle(
+  execution: &Execution,
   yes: bool,
 ) -> anyhow::Result<()> {
   if matches!(execution, Execution::None(_)) {
@@ -28,7 +28,7 @@ pub async fn execute(
   }
 
   println!("\n{}: Execution", "Mode".dimmed());
-  match &execution {
+  match execution {
     Execution::None(data) => {
       println!("{}: {data:?}", "Data".dimmed())
     }
@@ -229,7 +229,7 @@ pub async fn execute(
 
   let client = super::komodo_client().await?;
 
-  let res = match execution {
+  let res = match execution.clone() {
     Execution::RunAction(request) => client
       .execute(request)
       .await

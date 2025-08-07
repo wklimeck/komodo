@@ -1,10 +1,21 @@
 use anyhow::Context;
 use colored::Colorize;
-use komodo_client::entities::optional_string;
+use komodo_client::entities::{
+  config::cli::DatabaseCommand, optional_string,
+};
 
 use crate::config::cli_config;
 
-pub async fn backup(yes: bool) -> anyhow::Result<()> {
+pub async fn handle(command: &DatabaseCommand) -> anyhow::Result<()> {
+  match command {
+    DatabaseCommand::Backup { yes, .. } => backup(*yes).await,
+    DatabaseCommand::Restore { yes, .. } => restore(*yes).await,
+    DatabaseCommand::Prune { yes, .. } => prune(*yes).await,
+    DatabaseCommand::Copy { yes, .. } => copy(*yes).await,
+  }
+}
+
+async fn backup(yes: bool) -> anyhow::Result<()> {
   let config = cli_config();
 
   println!(
@@ -63,7 +74,7 @@ pub async fn backup(yes: bool) -> anyhow::Result<()> {
   prune_inner().await
 }
 
-pub async fn restore(yes: bool) -> anyhow::Result<()> {
+async fn restore(yes: bool) -> anyhow::Result<()> {
   let config = cli_config();
 
   println!(
@@ -116,7 +127,7 @@ pub async fn restore(yes: bool) -> anyhow::Result<()> {
   .await
 }
 
-pub async fn prune(yes: bool) -> anyhow::Result<()> {
+async fn prune(yes: bool) -> anyhow::Result<()> {
   let config = cli_config();
 
   println!(
@@ -218,7 +229,7 @@ async fn prune_inner() -> anyhow::Result<()> {
   Ok(())
 }
 
-pub async fn copy(yes: bool) -> anyhow::Result<()> {
+async fn copy(yes: bool) -> anyhow::Result<()> {
   let config = cli_config();
 
   println!(

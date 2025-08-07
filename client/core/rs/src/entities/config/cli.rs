@@ -60,8 +60,8 @@ pub enum Command {
     unsanitized: bool,
   },
 
-  /// Run Komodo executions. (aliases: `x`, `run`)
-  #[clap(alias = "x", alias = "run")]
+  /// Run Komodo executions. (aliases: `x`, `run`, `deploy`, `dep`)
+  #[clap(alias = "x", alias = "run", alias = "deploy", alias = "dep")]
   Execute {
     #[command(subcommand)]
     execution: Execution,
@@ -80,7 +80,7 @@ pub enum Command {
     yes: bool,
   },
 
-  /// Update resource properties. (alias `set`)
+  /// Update resource configuration. (alias `set`)
   #[clap(alias = "set")]
   Update {
     #[command(subcommand)]
@@ -108,6 +108,126 @@ pub enum UpdateCommand {
     /// If unset, will leave the variable secret setting as-is.
     #[arg(long, short = 's')]
     secret: Option<bool>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a Build's configuration. (alias: `bld`)
+  #[clap(alias = "bld")]
+  Build {
+    /// The name / id of the Build.
+    build: String,
+    /// The update string, parsed using 'https://docs.rs/serde_qs/latest/serde_qs'.
+    ///
+    /// The fields can be found here: 'https://docs.rs/komodo_client/latest/komodo_client/entities/build/struct.BuildConfig.html'
+    ///
+    /// Example: `km update build example-build "version=1.13.4&branch=release"`
+    ///
+    /// Note. Should be enclosed in single or double quotes.
+    /// Values containing complex characters (like URLs)
+    /// will need to be url-encoded in order to be parsed correctly.
+    update: String,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a Deployments's configuration. (alias: `dep`)
+  #[clap(alias = "dep")]
+  Deployment {
+    /// The name / id of the Deployment.
+    deployment: String,
+    /// The update string, parsed using 'https://docs.rs/serde_qs/latest/serde_qs'.
+    ///
+    /// The fields can be found here: 'https://docs.rs/komodo_client/latest/komodo_client/entities/deployment/struct.DeploymentConfig.html'
+    ///
+    /// Example: `km update deployment example-deployment "restart=unless-stopped"`
+    ///
+    /// Note. Should be enclosed in single or double quotes.
+    /// Values containing complex characters (like URLs)
+    /// will need to be url-encoded in order to be parsed correctly.
+    update: String,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a Repos's configuration.
+  Repo {
+    /// The name / id of the Repo.
+    repo: String,
+    /// The update string, parsed using 'https://docs.rs/serde_qs/latest/serde_qs'.
+    ///
+    /// The fields can be found here: 'https://docs.rs/komodo_client/latest/komodo_client/entities/repo/struct.RepoConfig.html'
+    ///
+    /// Example: `km update repo example-repo "branch=testing"`
+    ///
+    /// Note. Should be enclosed in single or double quotes.
+    /// Values containing complex characters (like URLs)
+    /// will need to be url-encoded in order to be parsed correctly.
+    update: String,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a Servers's configuration. (alias: `srv`)
+  #[clap(alias = "srv")]
+  Server {
+    /// The name / id of the Server.
+    server: String,
+    /// The update string, parsed using 'https://docs.rs/serde_qs/latest/serde_qs'.
+    ///
+    /// The fields can be found here: 'https://docs.rs/komodo_client/latest/komodo_client/entities/server/struct.ServerConfig.html'
+    ///
+    /// Example: `km update server example-server "enabled=true&address=https%3A%2F%2Fmy.periphery%3A8120"`
+    ///
+    /// The above includes example of url encoded address `https://my.periphery:8120`.
+    ///
+    /// Note. Should be enclosed in single or double quotes.
+    /// Values containing complex characters (like URLs)
+    /// will need to be url-encoded in order to be parsed correctly.
+    update: String,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a Stacks's configuration. (alias: `stk`)
+  #[clap(alias = "stk")]
+  Stack {
+    /// The name / id of the Stack.
+    stack: String,
+    /// The update string, parsed using 'https://docs.rs/serde_qs/latest/serde_qs'.
+    ///
+    /// The fields can be found here: 'https://docs.rs/komodo_client/latest/komodo_client/entities/stack/struct.StackConfig.html'
+    ///
+    /// Example: `km update stack example-stack "branch=testing"`
+    ///
+    /// Note. Should be enclosed in single or double quotes.
+    /// Values containing complex characters (like URLs)
+    /// will need to be url-encoded in order to be parsed correctly.
+    update: String,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a Syncs's configuration.
+  Sync {
+    /// The name / id of the Sync.
+    sync: String,
+    /// The update string, parsed using 'https://docs.rs/serde_qs/latest/serde_qs'.
+    ///
+    /// The fields can be found here: 'https://docs.rs/komodo_client/latest/komodo_client/entities/sync/struct.ResourceSyncConfig.html'
+    ///
+    /// Example: `km update sync example-sync "branch=testing"`
+    ///
+    /// Note. Should be enclosed in single or double quotes.
+    /// Values containing complex characters (like URLs)
+    /// will need to be url-encoded in order to be parsed correctly.
+    update: String,
     /// Always continue on user confirmation prompts.
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
