@@ -783,13 +783,17 @@ export type BuilderQuery = ResourceQuery<BuilderQuerySpecifics>;
 export type Execution = 
 	/** The "null" execution. Does nothing. */
 	| { type: "None", params: NoData }
+	/** Run the target action. (alias: `action`, `act`) */
 	| { type: "RunAction", params: RunAction }
 	| { type: "BatchRunAction", params: BatchRunAction }
+	/** Run the target procedure. (alias: `procedure`, `proc`) */
 	| { type: "RunProcedure", params: RunProcedure }
 	| { type: "BatchRunProcedure", params: BatchRunProcedure }
+	/** Run the target build. (alias: `build`, `bld`) */
 	| { type: "RunBuild", params: RunBuild }
 	| { type: "BatchRunBuild", params: BatchRunBuild }
 	| { type: "CancelBuild", params: CancelBuild }
+	/** Deploy the target deployment. (alias: `dep`) */
 	| { type: "Deploy", params: Deploy }
 	| { type: "BatchDeploy", params: BatchDeploy }
 	| { type: "PullDeployment", params: PullDeployment }
@@ -800,6 +804,7 @@ export type Execution =
 	| { type: "StopDeployment", params: StopDeployment }
 	| { type: "DestroyDeployment", params: DestroyDeployment }
 	| { type: "BatchDestroyDeployment", params: BatchDestroyDeployment }
+	/** Clone the target repo */
 	| { type: "CloneRepo", params: CloneRepo }
 	| { type: "BatchCloneRepo", params: BatchCloneRepo }
 	| { type: "PullRepo", params: PullRepo }
@@ -828,8 +833,11 @@ export type Execution =
 	| { type: "PruneDockerBuilders", params: PruneDockerBuilders }
 	| { type: "PruneBuildx", params: PruneBuildx }
 	| { type: "PruneSystem", params: PruneSystem }
+	/** Execute a Resource Sync. (alias: `sync`) */
 	| { type: "RunSync", params: RunSync }
+	/** Commit a Resource Sync. (alias: `commit`) */
 	| { type: "CommitSync", params: CommitSync }
+	/** Deploy the target stack. (alias: `stack`, `stk`) */
 	| { type: "DeployStack", params: DeployStack }
 	| { type: "BatchDeployStack", params: BatchDeployStack }
 	| { type: "DeployStackIfChanged", params: DeployStackIfChanged }
@@ -7504,9 +7512,16 @@ export interface RunAction {
  * Runs the target build. Response: [Update].
  * 
  * 1. Get a handle to the builder. If using AWS builder, this means starting a builder ec2 instance.
+ * 
  * 2. Clone the repo on the builder. If an `on_clone` commmand is given, it will be executed.
+ * 
  * 3. Execute `docker build {...params}`, where params are determined using the builds configuration.
- * 4. If a dockerhub account is attached, the build will be pushed to that account.
+ * 
+ * 4. If a docker registry is configured, the build will be pushed to the registry.
+ * 
+ * 5. If using AWS builder, destroy the builder ec2 instance.
+ * 
+ * 6. Deploy any Deployments with *Redeploy on Build* enabled.
  */
 export interface RunBuild {
 	/** Can be build id or name */
