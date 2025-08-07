@@ -113,6 +113,9 @@ pub fn cli_config() -> &'static CliConfig {
       backups_folder: backups_folder
         .or(env.komodo_cli_backups_folder)
         .unwrap_or(config.backups_folder),
+      max_backups: env
+        .komodo_cli_max_backups
+        .unwrap_or(config.max_backups),
       restore_folder: restore_folder
         .or(env.komodo_cli_restore_folder)
         .or(config.restore_folder),

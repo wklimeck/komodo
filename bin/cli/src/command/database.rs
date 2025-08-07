@@ -1,3 +1,4 @@
+use anyhow::Context;
 use colored::Colorize;
 use komodo_client::entities::optional_string;
 
@@ -17,20 +18,13 @@ pub async fn backup(yes: bool) -> anyhow::Result<()> {
       .dimmed()
   );
   if let Some(uri) = optional_string(&config.database.uri) {
-    println!(
-      "{}: {}",
-      " - Source URI".dimmed(),
-      sanitize_uri(&uri)
-    );
+    println!("{}: {}", " - Source URI".dimmed(), sanitize_uri(&uri));
   }
   if let Some(address) = optional_string(&config.database.address) {
     println!("{}: {address}", " - Source Address".dimmed());
   }
   if let Some(username) = optional_string(&config.database.username) {
-    println!(
-      "{}: {username}",
-      " - Source Username".dimmed()
-    );
+    println!("{}: {username}", " - Source Username".dimmed());
   }
   println!(
     "{}: {}\n",
@@ -42,12 +36,31 @@ pub async fn backup(yes: bool) -> anyhow::Result<()> {
     " - Backups Folder".dimmed(),
     config.backups_folder
   );
+  if config.max_backups == 0 {
+    println!(
+      "{}{}",
+      " - Backup pruning".dimmed(),
+      "disabled".red().dimmed()
+    );
+  } else {
+    println!("{}: {}", " - Max Backups".dimmed(), config.max_backups);
+  }
 
   crate::command::wait_for_enter("start backup", yes)?;
 
   let db = database::init(&config.database).await?;
 
-  database::utils::backup(&db, &config.backups_folder).await
+  database::utils::backup(&db, &config.backups_folder).await?;
+
+  // Early return if backup pruning disabled
+  if config.max_backups == 0 {
+    return Ok(());
+  }
+
+  // Know that new backup was taken successfully at this point,
+  // safe to prune old backup folders
+
+  prune_inner().await
 }
 
 pub async fn restore(yes: bool) -> anyhow::Result<()> {
@@ -64,11 +77,7 @@ pub async fn restore(yes: bool) -> anyhow::Result<()> {
       .dimmed()
   );
   if let Some(uri) = optional_string(&config.database_target.uri) {
-    println!(
-      "{}: {}",
-      " - Target URI".dimmed(),
-      sanitize_uri(&uri)
-    );
+    println!("{}: {}", " - Target URI".dimmed(), sanitize_uri(&uri));
   }
   if let Some(address) =
     optional_string(&config.database_target.address)
@@ -78,10 +87,7 @@ pub async fn restore(yes: bool) -> anyhow::Result<()> {
   if let Some(username) =
     optional_string(&config.database_target.username)
   {
-    println!(
-      "{}: {username}",
-      " - Target Username".dimmed()
-    );
+    println!("{}: {username}", " - Target Username".dimmed());
   }
   println!(
     "{}: {}\n",
@@ -110,6 +116,108 @@ pub async fn restore(yes: bool) -> anyhow::Result<()> {
   .await
 }
 
+pub async fn prune(yes: bool) -> anyhow::Result<()> {
+  let config = cli_config();
+
+  println!(
+    "\n🦎  {} Database {} Utility  🦎",
+    "Komodo".bold(),
+    "Backup Prune".cyan().bold()
+  );
+  println!(
+    "\n{}\n",
+    " - Prunes database backup folders when greater than the configured amount."
+      .dimmed()
+  );
+  println!(
+    "{}: {:?}",
+    " - Backups Folder".dimmed(),
+    config.backups_folder
+  );
+  if config.max_backups == 0 {
+    println!(
+      "{}{}",
+      " - Backup pruning".dimmed(),
+      "disabled".red().dimmed()
+    );
+  } else {
+    println!("{}: {}", " - Max Backups".dimmed(), config.max_backups);
+  }
+
+  // Early return if backup pruning disabled
+  if config.max_backups == 0 {
+    info!(
+      "Backup pruning is disabled, enabled using 'max_backups' (KOMODO_CLI_MAX_BACKUPS)"
+    );
+    return Ok(());
+  }
+
+  crate::command::wait_for_enter("start backup prune", yes)?;
+
+  prune_inner().await
+}
+
+async fn prune_inner() -> anyhow::Result<()> {
+  let config = cli_config();
+
+  let mut backups_dir =
+    match tokio::fs::read_dir(&config.backups_folder)
+      .await
+      .context("Failed to read backups folder for prune")
+    {
+      Ok(backups_dir) => backups_dir,
+      Err(e) => {
+        warn!("{e:#}");
+        return Ok(());
+      }
+    };
+
+  let mut backup_folders = Vec::new();
+  loop {
+    match backups_dir.next_entry().await {
+      Ok(Some(entry)) => {
+        let Ok(metadata) = entry.metadata().await else {
+          continue;
+        };
+        if metadata.is_dir() {
+          backup_folders.push(entry.path());
+        }
+      }
+      Ok(None) => break,
+      Err(_) => {
+        continue;
+      }
+    }
+  }
+  // Ordered from oldest -> newest
+  backup_folders.sort();
+
+  let max_backups = config.max_backups as usize;
+  let backup_folders_len = backup_folders.len();
+
+  // Early return if under the backup count threshold
+  if backup_folders_len <= max_backups {
+    return Ok(());
+  }
+
+  let to_delete =
+    &backup_folders[..(backup_folders_len - max_backups)];
+
+  info!("Pruning old backups: {to_delete:?}");
+
+  for path in to_delete {
+    if let Err(e) =
+      tokio::fs::remove_dir_all(path).await.with_context(|| {
+        format!("Failed to delete backup folder at {path:?}")
+      })
+    {
+      warn!("{e:#}");
+    }
+  }
+
+  Ok(())
+}
+
 pub async fn copy(yes: bool) -> anyhow::Result<()> {
   let config = cli_config();
 
@@ -124,20 +232,13 @@ pub async fn copy(yes: bool) -> anyhow::Result<()> {
   );
 
   if let Some(uri) = optional_string(&config.database.uri) {
-    println!(
-      "{}: {}",
-      " - Source URI".dimmed(),
-      sanitize_uri(&uri)
-    );
+    println!("{}: {}", " - Source URI".dimmed(), sanitize_uri(&uri));
   }
   if let Some(address) = optional_string(&config.database.address) {
     println!("{}: {address}", " - Source Address".dimmed());
   }
   if let Some(username) = optional_string(&config.database.username) {
-    println!(
-      "{}: {username}",
-      " - Source Username".dimmed()
-    );
+    println!("{}: {username}", " - Source Username".dimmed());
   }
   println!(
     "{}: {}\n",
@@ -146,11 +247,7 @@ pub async fn copy(yes: bool) -> anyhow::Result<()> {
   );
 
   if let Some(uri) = optional_string(&config.database_target.uri) {
-    println!(
-      "{}: {}",
-      " - Target URI".dimmed(),
-      sanitize_uri(&uri)
-    );
+    println!("{}: {}", " - Target URI".dimmed(), sanitize_uri(&uri));
   }
   if let Some(address) =
     optional_string(&config.database_target.address)
@@ -160,10 +257,7 @@ pub async fn copy(yes: bool) -> anyhow::Result<()> {
   if let Some(username) =
     optional_string(&config.database_target.username)
   {
-    println!(
-      "{}: {username}",
-      " - Target Username".dimmed()
-    );
+    println!("{}: {username}", " - Target Username".dimmed());
   }
   println!(
     "{}: {}",

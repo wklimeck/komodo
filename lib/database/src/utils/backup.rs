@@ -1,6 +1,9 @@
-use std::path::Path;
+use std::{
+  path::Path,
+  sync::{Arc, atomic},
+};
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use async_compression::tokio::write::GzipEncoder;
 use chrono::Local;
 use futures_util::{
@@ -32,6 +35,8 @@ pub async fn backup(
 
   info!("Backing up to {now_backups_folder:?}...");
 
+  let has_error = Arc::new(atomic::AtomicBool::new(false));
+
   let mut handles = collections
     .into_iter()
     .map(|collection| {
@@ -41,6 +46,7 @@ pub async fn backup(
       } else {
         now_backups_folder.join(format!("{collection}.gz"))
       };
+      let has_error = has_error.clone();
       tokio::spawn(async move {
         let res = async {
           let mut count = 0;
@@ -111,6 +117,7 @@ pub async fn backup(
           }
           Err(e) => {
             error!("[{collection}]: {e:#}");
+            has_error.store(true, atomic::Ordering::Relaxed);
           }
         }
       })
@@ -127,7 +134,10 @@ pub async fn backup(
     }
   }
 
-  info!("Finished backing up database ✅");
-
-  Ok(())
+  if has_error.load(atomic::Ordering::Relaxed) {
+    Err(anyhow!("Finished backing up database with errors 🚨"))
+  } else {
+    info!("Finished backing up database ✅");
+    Ok(())
+  }
 }

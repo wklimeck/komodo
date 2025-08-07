@@ -37,6 +37,9 @@ async fn app() -> anyhow::Result<()> {
       command: cli::DatabaseCommand::Restore { yes, .. },
     } => command::database::restore(*yes).await,
     cli::Command::Database {
+      command: cli::DatabaseCommand::Prune { yes, .. },
+    } => command::database::prune(*yes).await,
+    cli::Command::Database {
       command: cli::DatabaseCommand::Copy { yes, .. },
     } => command::database::copy(*yes).await,
   }

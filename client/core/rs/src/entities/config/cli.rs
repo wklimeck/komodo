@@ -119,6 +119,17 @@ pub enum DatabaseCommand {
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
   },
+  /// Prunes database backups if there are greater than
+  /// the configured `max_backups` (KOMODO_CLI_MAX_BACKUPS)
+  Prune {
+    /// Optionally provide a specific backups folder.
+    /// Default: `/backups`
+    #[arg(long, short = 'f')]
+    backups_folder: Option<PathBuf>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
   /// Copy the database to another running database. (alias: `cp`)
   #[clap(alias = "cp")]
   Copy {
@@ -192,6 +203,8 @@ pub struct Env {
   pub komodo_cli_secret: Option<String>,
   /// Override `backups_folder`
   pub komodo_cli_backups_folder: Option<PathBuf>,
+  /// Override `max_backups`
+  pub komodo_cli_max_backups: Option<u16>,
   /// Override `restore_folder`
   pub komodo_cli_restore_folder: Option<PathBuf>,
   /// Override `database_target_uri`
@@ -310,6 +323,15 @@ pub struct CliConfig {
   /// `/backups/2025-08-04_05_05_53`
   #[serde(default = "default_backups_folder")]
   pub backups_folder: PathBuf,
+
+  /// Specify the maximum number of backups to keep,
+  /// or 0 to disable backup pruning.
+  /// Default: `14`
+  ///
+  /// After every backup, the CLI will prune the oldest backups
+  /// if there are more backups than `max_backups`
+  #[serde(default = "default_max_backups")]
+  pub max_backups: u16,
   /// A specific restore folder,
   /// either absolute or relative to the `backups_folder`.
   ///
@@ -334,6 +356,10 @@ fn default_backups_folder() -> PathBuf {
   PathBuf::from_str("/backups").unwrap()
 }
 
+fn default_max_backups() -> u16 {
+  14
+}
+
 impl Default for CliConfig {
   fn default() -> Self {
     Self {
@@ -345,6 +371,7 @@ impl Default for CliConfig {
         ..Default::default()
       },
       backups_folder: default_backups_folder(),
+      max_backups: default_max_backups(),
       restore_folder: Default::default(),
       database: Default::default(),
       database_target: Default::default(),
@@ -366,6 +393,7 @@ impl CliConfig {
         .map(|cli_secret| empty_or_redacted(cli_secret)),
       cli_logging: self.cli_logging.clone(),
       backups_folder: self.backups_folder.clone(),
+      max_backups: self.max_backups,
       restore_folder: self.restore_folder.clone(),
       database_target: self.database_target.sanitized(),
       host: self.host.clone(),
