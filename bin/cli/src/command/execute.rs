@@ -478,7 +478,7 @@ pub async fn handle(
 
   match res {
     Ok(ExecutionResult::Single(update)) => {
-      poll_update_until_complete(&update.id).await
+      poll_update_until_complete(&update).await
     }
     Ok(ExecutionResult::Batch(updates)) => {
       let mut handles = updates
@@ -486,7 +486,7 @@ pub async fn handle(
         .map(|update| async move {
           match update {
             BatchExecutionResponseItem::Ok(update) => {
-              poll_update_until_complete(&update.id).await
+              poll_update_until_complete(&update).await
             }
             BatchExecutionResponseItem::Err(e) => {
               error!("{e:#?}");
@@ -513,11 +513,20 @@ pub async fn handle(
 }
 
 async fn poll_update_until_complete(
-  update_id: &str,
+  update: &Update,
 ) -> anyhow::Result<()> {
+  let link = if update.id.is_empty() {
+    let (resource_type, id) = update.target.extract_variant_id();
+    resource_link(&cli_config().host, resource_type, id)
+  } else {
+    format!("{}/updates/{}", cli_config().host, update.id)
+  };
+  info!("Link: '{}'", link.bold());
+
   let client = super::komodo_client().await?;
+
   let timer = tokio::time::Instant::now();
-  let update = client.poll_update_until_complete(update_id).await?;
+  let update = client.poll_update_until_complete(&update.id).await?;
   if update.success {
     info!(
       "FINISHED in {}: {}",
@@ -531,10 +540,5 @@ async fn poll_update_until_complete(
       "EXECUTION FAILED".red(),
     );
   }
-  let (resource_type, id) = update.target.extract_variant_id();
-  println!(
-    "\nSee '{}' for details.",
-    resource_link(&cli_config().host, resource_type, id).bold()
-  );
   Ok(())
 }
