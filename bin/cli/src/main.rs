@@ -22,6 +22,7 @@ async fn app() -> anyhow::Result<()> {
   match &config::cli_args().command {
     cli::Command::Config {
       all_profiles,
+      debug,
       unsanitized,
     } => {
       let mut config = if *unsanitized {
@@ -32,11 +33,15 @@ async fn app() -> anyhow::Result<()> {
       if !*all_profiles {
         config.profiles = Default::default();
       }
-      println!(
-        "\nCLI Config {}",
-        serde_json::to_string_pretty(&config)
-          .context("Failed to serialize config for pretty print")?
-      );
+      if *debug {
+        println!("\n{config:#?}");
+      } else {
+        println!(
+          "\nCLI Config {}",
+          serde_json::to_string_pretty(&config)
+            .context("Failed to serialize config for pretty print")?
+        );
+      }
       Ok(())
     }
     cli::Command::Execute { execution, yes, .. } => {

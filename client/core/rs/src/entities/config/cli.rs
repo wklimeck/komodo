@@ -62,6 +62,9 @@ pub enum Command {
     /// Whether to print the additional profiles picked up
     #[arg(long, short = 'a', default_value_t = false)]
     all_profiles: bool,
+    /// Whether to debug print the config
+    #[arg(long, short = 'd', default_value_t = false)]
+    debug: bool,
     /// Whether to print unsanitized config,
     /// including sensitive credentials.
     #[arg(long, action)]
