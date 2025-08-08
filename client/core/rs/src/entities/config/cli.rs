@@ -272,6 +272,9 @@ pub enum DatabaseCommand {
     /// Example: `2025-08-01_05-04-53`
     #[arg(long, short = 'r')]
     restore_folder: Option<PathBuf>,
+    /// Whether to index the target database. Default: true
+    #[arg(long, short = 'i', default_value_t = true)]
+    index: bool,
     /// Always continue on user confirmation prompts.
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
@@ -305,6 +308,9 @@ pub enum DatabaseCommand {
     /// The target db name to copy to.
     #[arg(long, short = 'd')]
     db_name: Option<String>,
+    /// Whether to index the target database. Default: true
+    #[arg(long, short = 'i', default_value_t = true)]
+    index: bool,
     /// Always continue on user confirmation prompts.
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,

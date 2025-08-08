@@ -13,11 +13,14 @@ pub async fn handle(command: &DatabaseCommand) -> anyhow::Result<()> {
     DatabaseCommand::Backup { yes, .. } => backup(*yes).await,
     DatabaseCommand::Restore {
       restore_folder,
+      index,
       yes,
       ..
-    } => restore(restore_folder.as_deref(), *yes).await,
+    } => restore(restore_folder.as_deref(), *index, *yes).await,
     DatabaseCommand::Prune { yes, .. } => prune(*yes).await,
-    DatabaseCommand::Copy { yes, .. } => copy(*yes).await,
+    DatabaseCommand::Copy { yes, index, .. } => {
+      copy(*index, *yes).await
+    }
   }
 }
 
@@ -82,6 +85,7 @@ async fn backup(yes: bool) -> anyhow::Result<()> {
 
 async fn restore(
   restore_folder: Option<&Path>,
+  index: bool,
   yes: bool,
 ) -> anyhow::Result<()> {
   let config = cli_config();
@@ -125,11 +129,14 @@ async fn restore(
 
   crate::command::wait_for_enter("start restore", yes)?;
 
-  // Initialize the whole client to ensure the target database is indexed.
-  let db = database::Client::new(&config.database_target).await?;
+  let db = if index {
+    database::Client::new(&config.database_target).await?.db
+  } else {
+    database::init(&config.database_target).await?
+  };
 
   database::utils::restore(
-    &db.db,
+    &db,
     &config.backups_folder,
     restore_folder,
   )
@@ -239,7 +246,7 @@ async fn prune_inner() -> anyhow::Result<()> {
   Ok(())
 }
 
-async fn copy(yes: bool) -> anyhow::Result<()> {
+async fn copy(index: bool, yes: bool) -> anyhow::Result<()> {
   let config = cli_config();
 
   println!(
@@ -289,11 +296,13 @@ async fn copy(yes: bool) -> anyhow::Result<()> {
   crate::command::wait_for_enter("start copy", yes)?;
 
   let source_db = database::init(&config.database).await?;
-  // Initialize the full client to perform indexing
-  let target_db =
-    database::Client::new(&config.database_target).await?;
+  let target_db = if index {
+    database::Client::new(&config.database_target).await?.db
+  } else {
+    database::init(&config.database_target).await?
+  };
 
-  database::utils::copy(&source_db, &target_db.db).await
+  database::utils::copy(&source_db, &target_db).await
 }
 
 /// Sanitizes uris of the form:
