@@ -21,16 +21,19 @@ fn default_config_path() -> PathBuf {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DatabaseConfig {
   /// Full mongo uri string, eg. `mongodb://username:password@your.mongo.int:27017`
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "String::is_empty")]
   pub uri: String,
   /// Just the address part of the mongo uri, eg `your.mongo.int:27017`
-  #[serde(default = "default_database_address")]
+  #[serde(
+    default = "default_database_address",
+    skip_serializing_if = "String::is_empty"
+  )]
   pub address: String,
   /// Mongo user username
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "String::is_empty")]
   pub username: String,
   /// Mongo user password
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "String::is_empty")]
   pub password: String,
   /// Mongo app name. default: `komodo_core`
   #[serde(default = "default_database_app_name")]

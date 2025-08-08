@@ -32,7 +32,7 @@ pub async fn write_env_file(
     .collect::<Vec<_>>()
     .join("\n");
 
-  if let Some(parent) = env_file_path.parent() 
+  if let Some(parent) = env_file_path.parent()
     && let Err(e) = tokio::fs::create_dir_all(parent)
       .await
       .with_context(|| format!("Failed to initialize environment file parent directory {parent:?}"))

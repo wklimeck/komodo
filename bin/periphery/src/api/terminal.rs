@@ -192,7 +192,7 @@ async fn handle_terminal_websocket(
           {
             // println!("Got ws read bytes - for resize");
             if let Ok(dimensions) =
-              serde_json::from_slice::<ResizeDimensions>(&bytes[1..]) 
+              serde_json::from_slice::<ResizeDimensions>(&bytes[1..])
                 && let Err(e) = terminal.stdin.send(StdinMsg::Resize(dimensions)).await
             {
               debug!("WS -> PTY channel send error: {e:}");

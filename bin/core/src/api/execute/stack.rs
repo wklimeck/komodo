@@ -408,7 +408,9 @@ pub async fn pull_stack_inner(
       Interpolator::new(Some(&variables), &secrets);
 
     interpolator.interpolate_stack(&mut stack)?;
-    if let Some(repo) = repo.as_mut() && !repo.config.skip_secret_interp {
+    if let Some(repo) = repo.as_mut()
+      && !repo.config.skip_secret_interp
+    {
       interpolator.interpolate_repo(repo)?;
     }
     if let Some(update) = update {

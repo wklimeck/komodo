@@ -510,13 +510,21 @@ pub struct CliConfig {
   pub restore_folder: Option<PathBuf>,
   // Same as Core
   /// Configure database connection
-  #[serde(default, alias = "mongo")]
+  #[serde(
+    default,
+    alias = "mongo",
+    skip_serializing_if = "DatabaseConfig::is_default"
+  )]
   pub database: DatabaseConfig,
   /// Configure restore / copy database connection
-  #[serde(default, alias = "database_copy")]
+  #[serde(
+    default,
+    alias = "database_copy",
+    skip_serializing_if = "DatabaseConfig::is_default"
+  )]
   pub database_target: DatabaseConfig,
   /// Logging configuration
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "LogConfig::is_default")]
   pub cli_logging: LogConfig,
   /// Configure additional profiles.
   #[serde(
