@@ -236,29 +236,29 @@ async fn validate_config(
   config: &mut PartialRepoConfig,
   user: &User,
 ) -> anyhow::Result<()> {
-  if let Some(server_id) = &config.server_id {
-    if !server_id.is_empty() {
-      let server = get_check_permissions::<Server>(
-        server_id,
-        user,
-        PermissionLevel::Read.attach(),
-      )
-      .await
-      .context("Cannot attach Repo to this Server")?;
-      config.server_id = Some(server.id);
-    }
+  if let Some(server_id) = &config.server_id
+    && !server_id.is_empty()
+  {
+    let server = get_check_permissions::<Server>(
+      server_id,
+      user,
+      PermissionLevel::Read.attach(),
+    )
+    .await
+    .context("Cannot attach Repo to this Server")?;
+    config.server_id = Some(server.id);
   }
-  if let Some(builder_id) = &config.builder_id {
-    if !builder_id.is_empty() {
-      let builder = super::get_check_permissions::<Builder>(
-        builder_id,
-        user,
-        PermissionLevel::Read.attach(),
-      )
-      .await
-      .context("Cannot attach Repo to this Builder")?;
-      config.builder_id = Some(builder.id);
-    }
+  if let Some(builder_id) = &config.builder_id
+    && !builder_id.is_empty()
+  {
+    let builder = super::get_check_permissions::<Builder>(
+      builder_id,
+      user,
+      PermissionLevel::Read.attach(),
+    )
+    .await
+    .context("Cannot attach Repo to this Builder")?;
+    config.builder_id = Some(builder.id);
   }
   Ok(())
 }

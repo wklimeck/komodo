@@ -486,7 +486,7 @@ pub async fn handle(
         .map(|update| async move {
           match update {
             BatchExecutionResponseItem::Ok(update) => {
-              poll_update_until_complete(&update).await
+              poll_update_until_complete(update).await
             }
             BatchExecutionResponseItem::Err(e) => {
               error!("{e:#?}");

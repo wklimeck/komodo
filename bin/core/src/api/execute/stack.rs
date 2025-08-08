@@ -123,10 +123,10 @@ impl Resolve<ExecuteArgs> for DeployStack {
         Interpolator::new(Some(&variables), &secrets);
 
       interpolator.interpolate_stack(&mut stack)?;
-      if let Some(repo) = repo.as_mut() {
-        if !repo.config.skip_secret_interp {
-          interpolator.interpolate_repo(repo)?;
-        }
+      if let Some(repo) = repo.as_mut()
+        && !repo.config.skip_secret_interp
+      {
+        interpolator.interpolate_repo(repo)?;
       }
       interpolator.push_logs(&mut update.logs);
 
@@ -378,16 +378,16 @@ pub async fn pull_stack_inner(
   mut repo: Option<Repo>,
   mut update: Option<&mut Update>,
 ) -> anyhow::Result<ComposePullResponse> {
-  if let Some(update) = update.as_mut() {
-    if !services.is_empty() {
-      update.logs.push(Log::simple(
-        "Service/s",
-        format!(
-          "Execution requested for Stack service/s {}",
-          services.join(", ")
-        ),
-      ))
-    }
+  if let Some(update) = update.as_mut()
+    && !services.is_empty()
+  {
+    update.logs.push(Log::simple(
+      "Service/s",
+      format!(
+        "Execution requested for Stack service/s {}",
+        services.join(", ")
+      ),
+    ))
   }
 
   let git_token = stack_git_token(&mut stack, repo.as_mut()).await?;
@@ -408,10 +408,8 @@ pub async fn pull_stack_inner(
       Interpolator::new(Some(&variables), &secrets);
 
     interpolator.interpolate_stack(&mut stack)?;
-    if let Some(repo) = repo.as_mut() {
-      if !repo.config.skip_secret_interp {
-        interpolator.interpolate_repo(repo)?;
-      }
+    if let Some(repo) = repo.as_mut() && !repo.config.skip_secret_interp {
+      interpolator.interpolate_repo(repo)?;
     }
     if let Some(update) = update {
       interpolator.push_logs(&mut update.logs);

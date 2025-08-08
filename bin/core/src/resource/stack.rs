@@ -378,31 +378,31 @@ async fn validate_config(
   config: &mut PartialStackConfig,
   user: &User,
 ) -> anyhow::Result<()> {
-  if let Some(server_id) = &config.server_id {
-    if !server_id.is_empty() {
-      let server = get_check_permissions::<Server>(
-        server_id,
-        user,
-        PermissionLevel::Read.attach(),
-      )
-      .await
-      .context("Cannot attach Stack to this Server")?;
-      // in case it comes in as name
-      config.server_id = Some(server.id);
-    }
+  if let Some(server_id) = &config.server_id
+    && !server_id.is_empty()
+  {
+    let server = get_check_permissions::<Server>(
+      server_id,
+      user,
+      PermissionLevel::Read.attach(),
+    )
+    .await
+    .context("Cannot attach Stack to this Server")?;
+    // in case it comes in as name
+    config.server_id = Some(server.id);
   }
-  if let Some(linked_repo) = &config.linked_repo {
-    if !linked_repo.is_empty() {
-      let repo = get_check_permissions::<Repo>(
-        linked_repo,
-        user,
-        PermissionLevel::Read.attach(),
-      )
-      .await
-      .context("Cannot attach Repo to this Stack")?;
-      // in case it comes in as name
-      config.linked_repo = Some(repo.id);
-    }
+  if let Some(linked_repo) = &config.linked_repo
+    && !linked_repo.is_empty()
+  {
+    let repo = get_check_permissions::<Repo>(
+      linked_repo,
+      user,
+      PermissionLevel::Read.attach(),
+    )
+    .await
+    .context("Cannot attach Repo to this Stack")?;
+    // in case it comes in as name
+    config.linked_repo = Some(repo.id);
   }
   Ok(())
 }

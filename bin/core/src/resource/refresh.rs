@@ -107,20 +107,17 @@ async fn refresh_deployments() {
     return;
   };
   for deployment in deployments {
-    if deployment.config.poll_for_updates
-      || deployment.config.auto_update
-    {
-      if let Some(server) =
+    if (deployment.config.poll_for_updates
+      || deployment.config.auto_update)
+      && let Some(server) =
         servers.iter().find(|s| s.id == deployment.config.server_id)
+    {
+      let name = deployment.name.clone();
+      if let Err(e) = pull_deployment_inner(deployment, server).await
       {
-        let name = deployment.name.clone();
-        if let Err(e) =
-          pull_deployment_inner(deployment, server).await
-        {
-          warn!(
-            "Failed to pull latest image for Deployment {name} | {e:#}"
-          );
-        }
+        warn!(
+          "Failed to pull latest image for Deployment {name} | {e:#}"
+        );
       }
     }
   }

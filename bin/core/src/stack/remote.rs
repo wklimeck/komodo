@@ -40,10 +40,10 @@ pub async fn get_repo_compose_contents(
 
   for path in stack.file_paths() {
     let file_path = run_directory.join(path);
-    if !file_path.exists() {
-      if let Some(missing_files) = &mut missing_files {
-        missing_files.push(path.to_string());
-      }
+    if !file_path.exists()
+      && let Some(missing_files) = &mut missing_files
+    {
+      missing_files.push(path.to_string());
     }
     // If file does not exist, will show up in err case so the log is handled
     match fs::read_to_string(&file_path).with_context(|| {

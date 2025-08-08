@@ -51,7 +51,7 @@ pub fn parse_config_paths<T: DeserializeOwned>(
         println!(
           "{}: {}: {ignores:?}",
           "DEBUG".cyan(),
-          format!(
+          format_args!(
             "{} {path:?} {}",
             "Config Path".dimmed(),
             "Ignores".dimmed()

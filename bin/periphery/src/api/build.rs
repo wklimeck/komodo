@@ -96,12 +96,12 @@ impl Resolve<super::Args> for WriteDockerfileContentsToHost {
       .components()
       .collect::<PathBuf>();
     // Ensure parent directory exists
-    if let Some(parent) = full_path.parent() {
-      if !parent.exists() {
-        tokio::fs::create_dir_all(parent)
-            .await
-            .with_context(|| format!("Failed to initialize dockerfile parent directory {parent:?}"))?;
-      }
+    if let Some(parent) = full_path.parent()
+      && !parent.exists()
+    {
+      tokio::fs::create_dir_all(parent)
+        .await
+        .with_context(|| format!("Failed to initialize dockerfile parent directory {parent:?}"))?;
     }
     fs::write(&full_path, contents).await.with_context(|| {
       format!("Failed to write dockerfile contents to {full_path:?}")

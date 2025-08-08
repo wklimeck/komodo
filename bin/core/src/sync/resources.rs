@@ -762,25 +762,24 @@ impl ExecuteResourceSync for Procedure {
           )
           .await;
         }
-        if !resource.config.is_none() {
-          if let Err(e) = crate::resource::update::<Procedure>(
+        if !resource.config.is_none()
+          && let Err(e) = crate::resource::update::<Procedure>(
             id,
             resource.config.clone(),
             sync_user(),
           )
           .await
-          {
-            if i == 9 {
-              has_error = true;
-              log.push_str(&format!(
-                "\n{}: failed to update {} '{}' | {e:#}",
-                colored("ERROR", Color::Red),
-                Self::resource_type(),
-                bold(&name)
-              ));
-            }
-            continue;
+        {
+          if i == 9 {
+            has_error = true;
+            log.push_str(&format!(
+              "\n{}: failed to update {} '{}' | {e:#}",
+              colored("ERROR", Color::Red),
+              Self::resource_type(),
+              bold(&name)
+            ));
           }
+          continue;
         }
 
         log.push_str(&format!(

@@ -81,8 +81,7 @@ pub async fn maybe_login_registry(
 ) {
   if !stack.config.registry_provider.is_empty()
     && !stack.config.registry_account.is_empty()
-  {
-    if let Err(e) = docker_login(
+    && let Err(e) = docker_login(
       &stack.config.registry_provider,
       &stack.config.registry_account,
       registry_token.as_deref(),
@@ -95,11 +94,10 @@ pub async fn maybe_login_registry(
       )
     })
     .context("Failed to login to image registry")
-    {
-      logs.push(Log::error(
-        "Login to Registry",
-        format_serror(&e.into()),
-      ));
-    }
+  {
+    logs.push(Log::error(
+      "Login to Registry",
+      format_serror(&e.into()),
+    ));
   }
 }

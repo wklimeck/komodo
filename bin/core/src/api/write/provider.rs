@@ -90,22 +90,22 @@ impl Resolve<WriteArgs> for UpdateGitProviderAccount {
       );
     }
 
-    if let Some(domain) = &self.account.domain {
-      if domain.is_empty() {
-        return Err(
-          anyhow!("cannot update git provider with empty domain")
-            .into(),
-        );
-      }
+    if let Some(domain) = &self.account.domain
+      && domain.is_empty()
+    {
+      return Err(
+        anyhow!("cannot update git provider with empty domain")
+          .into(),
+      );
     }
 
-    if let Some(username) = &self.account.username {
-      if username.is_empty() {
-        return Err(
-          anyhow!("cannot update git provider with empty username")
-            .into(),
-        );
-      }
+    if let Some(username) = &self.account.username
+      && username.is_empty()
+    {
+      return Err(
+        anyhow!("cannot update git provider with empty username")
+          .into(),
+      );
     }
 
     // Ensure update does not change id
@@ -283,26 +283,26 @@ impl Resolve<WriteArgs> for UpdateDockerRegistryAccount {
       );
     }
 
-    if let Some(domain) = &self.account.domain {
-      if domain.is_empty() {
-        return Err(
-          anyhow!(
-            "cannot update docker registry account with empty domain"
-          )
-          .into(),
-        );
-      }
+    if let Some(domain) = &self.account.domain
+      && domain.is_empty()
+    {
+      return Err(
+        anyhow!(
+          "cannot update docker registry account with empty domain"
+        )
+        .into(),
+      );
     }
 
-    if let Some(username) = &self.account.username {
-      if username.is_empty() {
-        return Err(
-          anyhow!(
-            "cannot update docker registry account with empty username"
-          )
-          .into(),
-        );
-      }
+    if let Some(username) = &self.account.username
+      && username.is_empty()
+    {
+      return Err(
+        anyhow!(
+          "cannot update docker registry account with empty username"
+        )
+        .into(),
+      );
     }
 
     self.account.id = None;

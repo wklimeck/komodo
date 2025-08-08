@@ -176,19 +176,19 @@ pub async fn get_resource_ids_for_user<T: KomodoResource>(
   let resource_type = T::resource_type();
 
   // Check user 'all' on variant
-  if let Some(permission) = user.all.get(&resource_type).cloned() {
-    if permission.level > PermissionLevel::None {
-      return Ok(None);
-    }
+  if let Some(permission) = user.all.get(&resource_type).cloned()
+    && permission.level > PermissionLevel::None
+  {
+    return Ok(None);
   }
 
   // Check user groups 'all' on variant
   let groups = get_user_user_groups(&user.id).await?;
   for group in &groups {
-    if let Some(permission) = group.all.get(&resource_type).cloned() {
-      if permission.level > PermissionLevel::None {
-        return Ok(None);
-      }
+    if let Some(permission) = group.all.get(&resource_type).cloned()
+      && permission.level > PermissionLevel::None
+    {
+      return Ok(None);
     }
   }
 
