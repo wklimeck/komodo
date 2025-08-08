@@ -519,7 +519,11 @@ pub struct CliConfig {
   #[serde(default)]
   pub cli_logging: LogConfig,
   /// Configure additional profiles.
-  #[serde(default, alias = "profile")]
+  #[serde(
+    default,
+    alias = "profile",
+    skip_serializing_if = "Vec::is_empty"
+  )]
   pub profiles: Vec<CliConfig>,
 }
 
