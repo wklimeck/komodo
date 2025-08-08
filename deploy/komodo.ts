@@ -38,6 +38,9 @@ echo ""
 km set var KOMODO_TAG ${tag}-${next_count} -y
 echo ""
 
+km run -y commit variables
+echo ""
+
 km run -y action deploy-komodo
 `
   .split("\n")
