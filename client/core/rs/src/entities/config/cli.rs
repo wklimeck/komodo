@@ -464,7 +464,11 @@ pub struct CliConfig {
   /// Optional. The profile name. (alias: `name`)
   /// Configure profiles with name in the komodo.cli.toml,
   /// and select them using `km -p profile-name ...`.
-  #[serde(default, alias = "name")]
+  #[serde(
+    default,
+    alias = "name",
+    skip_serializing_if = "String::is_empty"
+  )]
   pub config_profile: String,
   /// Optional. The profile aliases. (aliases: `aliases`, `alias`)
   /// Configure profiles with alias in the komodo.cli.toml,
@@ -473,7 +477,8 @@ pub struct CliConfig {
     default,
     alias = "aliases",
     alias = "alias",
-    deserialize_with = "string_list_deserializer"
+    deserialize_with = "string_list_deserializer",
+    skip_serializing_if = "Vec::is_empty"
   )]
   pub config_aliases: Vec<String>,
   // Same as Core
