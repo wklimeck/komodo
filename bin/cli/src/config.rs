@@ -86,19 +86,14 @@ pub fn cli_config() -> &'static CliConfig {
       _ => (None, None, None),
     };
 
-    let (backups_folder, restore_folder) = match &args.command {
+    let backups_folder = match &args.command {
       Command::Database {
         command: DatabaseCommand::Backup { backups_folder, .. },
-      } => (backups_folder.clone(), None),
+      } => backups_folder.clone(),
       Command::Database {
-        command:
-          DatabaseCommand::Restore {
-            backups_folder,
-            restore_folder,
-            ..
-          },
-      } => (backups_folder.clone(), restore_folder.clone()),
-      _ => (None, None),
+        command: DatabaseCommand::Restore { backups_folder, .. },
+      } => backups_folder.clone(),
+      _ => None,
     };
     let (uri, address, username, password, db_name) =
       match &args.command {
@@ -172,9 +167,6 @@ pub fn cli_config() -> &'static CliConfig {
       max_backups: env
         .komodo_cli_max_backups
         .unwrap_or(config.max_backups),
-      restore_folder: restore_folder
-        .or(env.komodo_cli_restore_folder)
-        .or(config.restore_folder),
       database_target: DatabaseConfig {
         uri: uri
           .or(env.komodo_cli_database_target_uri)
@@ -191,7 +183,7 @@ pub fn cli_config() -> &'static CliConfig {
         db_name: db_name
           .or(env.komodo_cli_database_target_db_name)
           .unwrap_or(config.database_target.db_name),
-        app_name: String::from("komodo_cli"),
+        app_name: config.database_target.app_name,
       },
       database: DatabaseConfig {
         uri: maybe_read_item_from_file(
@@ -215,7 +207,7 @@ pub fn cli_config() -> &'static CliConfig {
         db_name: env
           .komodo_database_db_name
           .unwrap_or(config.database.db_name),
-        app_name: String::from("komodo_cli"),
+        app_name: config.database.app_name,
       },
       cli_logging: LogConfig {
         level: args

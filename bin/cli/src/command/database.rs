@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::Context;
 use colored::Colorize;
 use komodo_client::entities::{
@@ -9,7 +11,11 @@ use crate::config::cli_config;
 pub async fn handle(command: &DatabaseCommand) -> anyhow::Result<()> {
   match command {
     DatabaseCommand::Backup { yes, .. } => backup(*yes).await,
-    DatabaseCommand::Restore { yes, .. } => restore(*yes).await,
+    DatabaseCommand::Restore {
+      restore_folder,
+      yes,
+      ..
+    } => restore(restore_folder.as_deref(), *yes).await,
     DatabaseCommand::Prune { yes, .. } => prune(*yes).await,
     DatabaseCommand::Copy { yes, .. } => copy(*yes).await,
   }
@@ -74,7 +80,10 @@ async fn backup(yes: bool) -> anyhow::Result<()> {
   prune_inner().await
 }
 
-async fn restore(yes: bool) -> anyhow::Result<()> {
+async fn restore(
+  restore_folder: Option<&Path>,
+  yes: bool,
+) -> anyhow::Result<()> {
   let config = cli_config();
 
   println!(
@@ -110,7 +119,7 @@ async fn restore(yes: bool) -> anyhow::Result<()> {
     " - Backups Folder".dimmed(),
     config.backups_folder
   );
-  if let Some(restore_folder) = &config.restore_folder {
+  if let Some(restore_folder) = restore_folder {
     println!("{}: {restore_folder:?}", " - Restore Folder".dimmed());
   }
 
@@ -122,7 +131,7 @@ async fn restore(yes: bool) -> anyhow::Result<()> {
   database::utils::restore(
     &db.db,
     &config.backups_folder,
-    config.restore_folder.as_deref(),
+    restore_folder,
   )
   .await
 }

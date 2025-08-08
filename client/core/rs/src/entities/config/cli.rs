@@ -504,30 +504,26 @@ pub struct CliConfig {
   /// if there are more backups than `max_backups`
   #[serde(default = "default_max_backups")]
   pub max_backups: u16,
-  /// A specific restore folder,
-  /// either absolute or relative to the `backups_folder`.
-  ///
-  /// Default: None (restores most recent backup).
-  ///
-  /// Example: `2025-08-04_05_05_53`
-  pub restore_folder: Option<PathBuf>,
   // Same as Core
   /// Configure database connection
   #[serde(
-    default,
+    default = "default_database_config",
     alias = "mongo",
-    skip_serializing_if = "DatabaseConfig::is_default"
+    skip_serializing_if = "database_config_is_default"
   )]
   pub database: DatabaseConfig,
   /// Configure restore / copy database connection
   #[serde(
-    default,
+    default = "default_database_config",
     alias = "database_copy",
-    skip_serializing_if = "DatabaseConfig::is_default"
+    skip_serializing_if = "database_config_is_default"
   )]
   pub database_target: DatabaseConfig,
   /// Logging configuration
-  #[serde(default, skip_serializing_if = "LogConfig::is_default")]
+  #[serde(
+    default = "default_log_config",
+    skip_serializing_if = "log_config_is_default"
+  )]
   pub cli_logging: LogConfig,
   /// Configure additional profiles.
   #[serde(
@@ -547,6 +543,28 @@ fn default_max_backups() -> u16 {
   14
 }
 
+fn default_database_config() -> DatabaseConfig {
+  DatabaseConfig {
+    app_name: String::from("komodo_cli"),
+    ..Default::default()
+  }
+}
+
+fn database_config_is_default(db_config: &DatabaseConfig) -> bool {
+  db_config == &default_database_config()
+}
+
+fn default_log_config() -> LogConfig {
+  LogConfig {
+    location: false,
+    ..Default::default()
+  }
+}
+
+fn log_config_is_default(log_config: &LogConfig) -> bool {
+  log_config == &default_log_config()
+}
+
 impl Default for CliConfig {
   fn default() -> Self {
     Self {
@@ -554,16 +572,11 @@ impl Default for CliConfig {
       config_aliases: Default::default(),
       cli_key: Default::default(),
       cli_secret: Default::default(),
-      cli_logging: LogConfig {
-        opentelemetry_service_name: String::from("Komodo-CLI"),
-        location: false,
-        ..Default::default()
-      },
+      cli_logging: default_log_config(),
       backups_folder: default_backups_folder(),
       max_backups: default_max_backups(),
-      restore_folder: Default::default(),
-      database: Default::default(),
-      database_target: Default::default(),
+      database: default_database_config(),
+      database_target: default_database_config(),
       host: Default::default(),
       profiles: Default::default(),
     }
@@ -586,7 +599,6 @@ impl CliConfig {
       cli_logging: self.cli_logging.clone(),
       backups_folder: self.backups_folder.clone(),
       max_backups: self.max_backups,
-      restore_folder: self.restore_folder.clone(),
       database_target: self.database_target.sanitized(),
       host: self.host.clone(),
       database: self.database.sanitized(),
