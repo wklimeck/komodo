@@ -19,12 +19,19 @@ async fn app() -> anyhow::Result<()> {
   logger::init(&config::cli_config().cli_logging)?;
 
   match &config::cli_args().command {
-    cli::Command::Config { unsanitized } => {
-      if *unsanitized {
-        println!("\n{:#?}", cli_config());
+    cli::Command::Config {
+      all_profiles,
+      unsanitized,
+    } => {
+      let mut config = if *unsanitized {
+        cli_config().clone()
       } else {
-        println!("\n{:#?}", cli_config().sanitized());
+        cli_config().sanitized()
+      };
+      if !*all_profiles {
+        config.profiles = Default::default();
       }
+      println!("\n{config:#?}");
       Ok(())
     }
     cli::Command::Execute { execution, yes, .. } => {

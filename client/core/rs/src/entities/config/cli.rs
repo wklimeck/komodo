@@ -59,6 +59,9 @@ pub enum Command {
   /// Print the CLI config being used. (alias: `cfg`)
   #[clap(alias = "cfg")]
   Config {
+    /// Whether to print the additional profiles picked up
+    #[arg(long, short = 'a', default_value_t = false)]
+    all_profiles: bool,
     /// Whether to print unsanitized config,
     /// including sensitive credentials.
     #[arg(long, action)]
