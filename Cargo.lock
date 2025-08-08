@@ -267,9 +267,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-ec2"
-version = "1.155.0"
+version = "1.156.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff6c19c6200f532e30479a64685bca86f11fbd7e837807ef819e59ec401e7397"
+checksum = "0e04d00427a65f27b7f704f43352560d1eba7d31204a9566e2c633fb5c1d96ed"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
@@ -904,7 +904,7 @@ dependencies = [
 
 [[package]]
 name = "cache"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "tokio",
@@ -996,9 +996,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.42"
+version = "4.5.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed87a9d530bb41a67537289bafcac159cb3ee28460e0a4571123d2a778a6a882"
+checksum = "50fd97c9dc2399518aa331917ac6f274280ec5eb34e555dd291899745c48ec6f"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1006,9 +1006,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.42"
+version = "4.5.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64f4f3f3c77c94aff3c7e9aac9a2ca1974a5adf392a8bb751e827d6d127ab966"
+checksum = "c35b5830294e1fa0462034af85cc95225a4cb07092c088c55bda3147cfcd8f65"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1060,7 +1060,7 @@ dependencies = [
 
 [[package]]
 name = "command"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "komodo_client",
  "run_command",
@@ -1069,7 +1069,7 @@ dependencies = [
 
 [[package]]
 name = "config"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "colored",
  "indexmap 2.10.0",
@@ -1285,7 +1285,7 @@ checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 
 [[package]]
 name = "database"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -1583,7 +1583,7 @@ dependencies = [
 
 [[package]]
 name = "environment"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "formatting",
@@ -1593,7 +1593,7 @@ dependencies = [
 
 [[package]]
 name = "environment_file"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "thiserror 2.0.12",
 ]
@@ -1683,7 +1683,7 @@ dependencies = [
 
 [[package]]
 name = "formatting"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "serror",
 ]
@@ -1845,7 +1845,7 @@ checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 
 [[package]]
 name = "git"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "cache",
@@ -2451,7 +2451,7 @@ dependencies = [
 
 [[package]]
 name = "interpolate"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "komodo_client",
@@ -2582,7 +2582,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_cli"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "clap",
@@ -2604,7 +2604,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_client"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "async_timing_util",
@@ -2637,7 +2637,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_core"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -2706,7 +2706,7 @@ dependencies = [
 
 [[package]]
 name = "komodo_periphery"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -2826,7 +2826,7 @@ dependencies = [
 
 [[package]]
 name = "logger"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "komodo_client",
@@ -3568,7 +3568,7 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "periphery_client"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "komodo_client",
@@ -4099,7 +4099,7 @@ dependencies = [
 
 [[package]]
 name = "response"
-version = "1.18.5-dev-24"
+version = "1.18.5-dev-25"
 dependencies = [
  "anyhow",
  "axum",
