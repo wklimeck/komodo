@@ -11,9 +11,8 @@ use crate::{
   },
 };
 
-/// 🦎  Komodo CLI  🦎
 #[derive(Debug, clap::Parser)]
-#[command(name = "km", author, about, version)]
+#[command(name = "", version = "", about = "", author)]
 pub struct CliArgs {
   /// The command to run
   #[command(subcommand)]
