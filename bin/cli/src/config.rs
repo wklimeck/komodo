@@ -33,6 +33,11 @@ pub fn cli_config() -> &'static CliConfig {
       .config_path
       .clone()
       .unwrap_or(env.komodo_cli_config_paths);
+    if config_paths.is_empty() {
+      panic!(
+        "No --config-path (KOMODO_CLI_CONFIG_PATHS) have been set."
+      )
+    }
     let debug = args
       .log_level
       .map(|level| {
@@ -47,46 +52,46 @@ pub fn cli_config() -> &'static CliConfig {
       .extend_config_arrays
       .unwrap_or(env.komodo_cli_extend_config_arrays);
 
-    let config = if config_paths.is_empty() {
+    if debug {
       println!(
-        "{}: No config paths found, using default config",
-        "INFO".green(),
+        "{}: {}: {config_paths:?}",
+        "DEBUG".cyan(),
+        "Config Paths".dimmed(),
       );
-      CliConfig::default()
-    } else {
-      if debug {
-        println!(
-          "{}: {}: {config_paths:?}",
-          "DEBUG".cyan(),
-          "Config Paths".dimmed(),
-        );
-      }
-      let config_keywords = args
-        .config_keyword
-        .clone()
-        .unwrap_or(env.komodo_cli_config_keywords);
-      let config_keywords = config_keywords
+    }
+
+    let config_keywords = args
+      .config_keyword
+      .clone()
+      .unwrap_or(env.komodo_cli_config_keywords);
+    let config_keywords = config_keywords
+      .iter()
+      .map(String::as_str)
+      .collect::<Vec<_>>();
+    println!(
+      "{}: {}: {config_keywords:?}",
+      "INFO".green(),
+      "Config File Keywords".dimmed(),
+    );
+    let mut unparsed_config = config::parse_config_paths::<
+      serde_json::Map<String, serde_json::Value>,
+    >(
+      &config_paths
         .iter()
-        .map(String::as_str)
-        .collect::<Vec<_>>();
-      println!(
-        "{}: {}: {config_keywords:?}",
-        "INFO".green(),
-        "Config File Keywords".dimmed(),
-      );
-      config::parse_config_paths::<CliConfig>(
-        &config_paths
-          .iter()
-          .map(PathBuf::as_path)
-          .collect::<Vec<_>>(),
-        &config_keywords,
-        ".kmignore",
-        merge_nested_config,
-        extend_config_arrays,
-        debug,
-      )
-      .expect("failed at parsing config from paths")
-    };
+        .map(PathBuf::as_path)
+        .collect::<Vec<_>>(),
+      &config_keywords,
+      ".kmignore",
+      merge_nested_config,
+      extend_config_arrays,
+      debug,
+    )
+    .expect("failed at parsing config from paths");
+    let init_parsed_config = serde_json::from_value::<CliConfig>(
+      serde_json::Value::Object(unparsed_config.clone()),
+    )
+    .context("Failed to parse config")
+    .unwrap();
 
     let (host, key, secret) = match &args.command {
       Command::Execute {
@@ -126,36 +131,56 @@ pub fn cli_config() -> &'static CliConfig {
         _ => (None, None, None, None, None),
       };
 
-    let profile =
-      args.profile.as_ref().or(config.default_profile.as_ref());
+    let profile = args
+      .profile
+      .as_ref()
+      .or(init_parsed_config.default_profile.as_ref());
 
-    let config = if let Some(profile) = profile
+    let unparsed_config = if let Some(profile) = profile
       && !profile.is_empty()
     {
       // Find the profile config,
       // then merge it with the Default config.
-      let profile_config = config
-        .profiles
-        .clone()
-        .into_iter()
-        .find(|p| {
-          &p.config_profile == profile
-            || p.config_aliases.iter().any(|alias| alias == profile)
-        })
-        .with_context(|| {
-          format!("Did not find config profile matching {profile}")
-        })
-        .unwrap();
+      let serde_json::Value::Array(profiles) = unparsed_config
+        .remove("profile")
+        .context("Config has no profiles, but a profile is required")
+        .unwrap()
+      else {
+        panic!("`config.profile` is not array");
+      };
+      let Some(profile_config) = profiles.into_iter().find(|p| {
+        let Ok(parsed) =
+          serde_json::from_value::<CliConfig>(p.clone())
+        else {
+          return false;
+        };
+        &parsed.config_profile == profile
+          || parsed
+            .config_aliases
+            .iter()
+            .any(|alias| alias == profile)
+      }) else {
+        panic!("No profile matching '{profile}' was found.");
+      };
+      let serde_json::Value::Object(profile_config) = profile_config
+      else {
+        panic!("Profile config is not Object type.");
+      };
       config::merge_config(
-        config,
+        unparsed_config,
         profile_config.clone(),
         merge_nested_config,
         extend_config_arrays,
       )
       .unwrap_or(profile_config)
     } else {
-      config
+      unparsed_config
     };
+    let config = serde_json::from_value::<CliConfig>(
+      serde_json::Value::Object(unparsed_config),
+    )
+    .context("Failed to parse final config")
+    .unwrap();
     let config_profile = if config.config_profile.is_empty() {
       String::from("Default")
     } else {
@@ -242,7 +267,7 @@ pub fn cli_config() -> &'static CliConfig {
           .komodo_cli_logging_opentelemetry_service_name
           .unwrap_or(config.cli_logging.opentelemetry_service_name),
       },
-      profiles: config.profiles,
+      profile: config.profile,
     }
   })
 }

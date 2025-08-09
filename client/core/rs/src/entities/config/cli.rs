@@ -582,12 +582,8 @@ pub struct CliConfig {
   )]
   pub cli_logging: LogConfig,
   /// Configure additional profiles.
-  #[serde(
-    default,
-    alias = "profile",
-    skip_serializing_if = "Vec::is_empty"
-  )]
-  pub profiles: Vec<CliConfig>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub profile: Vec<CliConfig>,
 }
 
 fn default_backups_folder() -> PathBuf {
@@ -635,7 +631,7 @@ impl Default for CliConfig {
       database: default_database_config(),
       database_target: default_database_config(),
       host: Default::default(),
-      profiles: Default::default(),
+      profile: Default::default(),
     }
   }
 }
@@ -660,8 +656,8 @@ impl CliConfig {
       database_target: self.database_target.sanitized(),
       host: self.host.clone(),
       database: self.database.sanitized(),
-      profiles: self
-        .profiles
+      profile: self
+        .profile
         .iter()
         .map(CliConfig::sanitized)
         .collect(),

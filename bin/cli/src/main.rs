@@ -31,7 +31,7 @@ async fn app() -> anyhow::Result<()> {
         cli_config().sanitized()
       };
       if !*all_profiles {
-        config.profiles = Default::default();
+        config.profile = Default::default();
       }
       if *debug {
         println!("\n{config:#?}");

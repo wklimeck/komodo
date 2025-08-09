@@ -246,11 +246,8 @@ pub fn parse_config_files<T: DeserializeOwned>(
     };
   }
 
-  serde_json::from_str(
-    &serde_json::to_string(&target)
-      .map_err(|e| Error::SerializeFinalJson { e })?,
-  )
-  .map_err(|e| Error::ParseFinalJson { e })
+  serde_json::from_value(serde_json::Value::Object(target))
+    .map_err(|e| Error::ParseFinalJson { e })
 }
 
 /// parses a single config file
@@ -376,13 +373,13 @@ pub fn merge_config<T: Serialize + DeserializeOwned>(
 ) -> Result<T> {
   let serde_json::Value::Object(target) =
     serde_json::to_value(target)
-      .map_err(|e| Error::SerializeFinalJson { e })?
+      .map_err(|e| Error::SerializeJson { e })?
   else {
     return Err(Error::ValueIsNotObject);
   };
   let serde_json::Value::Object(source) =
     serde_json::to_value(source)
-      .map_err(|e| Error::SerializeFinalJson { e })?
+      .map_err(|e| Error::SerializeJson { e })?
   else {
     return Err(Error::ValueIsNotObject);
   };

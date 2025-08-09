@@ -42,8 +42,8 @@ pub enum Error {
   #[error("Failed to parse merged config into final type | {e:?}")]
   ParseFinalJson { e: serde_json::Error },
 
-  #[error("Failed to serialize merged config to string | {e:?}")]
-  SerializeFinalJson { e: serde_json::Error },
+  #[error("Failed to serialize config to json string | {e:?}")]
+  SerializeJson { e: serde_json::Error },
 
   #[error("Failed to read directory at {path:?}")]
   ReadDir { path: PathBuf, e: std::io::Error },

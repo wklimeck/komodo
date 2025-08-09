@@ -17,6 +17,9 @@
 default_profile = "Default"
 # default_profile = "Alt"
 
+# Set base values if they aren't defined in profile
+max_backups = 7
+
 [[profile]]
 name = "Default"
 aliases = ["d"] # Use `km -p d ...`
