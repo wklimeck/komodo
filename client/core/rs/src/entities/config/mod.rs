@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::OnceLock};
+use std::sync::OnceLock;
 
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -7,8 +7,16 @@ pub mod cli;
 pub mod core;
 pub mod periphery;
 
-fn default_config_path() -> PathBuf {
-  PathBuf::from("/config/config.toml")
+fn default_config_keywords() -> Vec<String> {
+  vec![String::from("*config.toml")]
+}
+
+fn default_merge_nested_config() -> bool {
+  true
+}
+
+fn default_extend_config_arrays() -> bool {
+  true
 }
 
 /// Provide database connection information.

@@ -51,24 +51,24 @@ use super::{
 pub struct CliArgs {
   /// Sets the path of a config file or directory to use.
   /// Can use multiple times
-  #[arg(short, long)]
+  #[arg(long, short = 'c')]
   pub config_path: Option<Vec<PathBuf>>,
 
   /// Sets the keywords to match directory periphery config file names on.
   /// Supports wildcard syntax.
   /// Can use multiple times to match multiple patterns independently.
-  #[arg(long)]
+  #[arg(long, short = 'm')]
   pub config_keyword: Option<Vec<String>>,
 
   /// Merges nested configs, eg. secrets, providers.
   /// Will override the equivalent env configuration.
-  /// Default: false
+  /// Default: true
   #[arg(long)]
   pub merge_nested_config: Option<bool>,
 
   /// Extends config arrays, eg. allowed_ips, passkeys.
   /// Will override the equivalent env configuration.
-  /// Default: false
+  /// Default: true
   #[arg(long)]
   pub extend_config_arrays: Option<bool>,
 
@@ -95,25 +95,29 @@ pub struct Env {
   pub periphery_config_paths: Vec<PathBuf>,
   /// If specifying folders, use this to narrow down which
   /// files will be matched to parse into the final [PeripheryConfig].
-  /// Only files inside the folders which have names containing all keywords
+  /// Only files inside the folders which have names containing a keywords
   /// provided to `config_keywords` will be included.
+  /// Keywords support wildcard matching syntax.
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default, alias = "periphery_config_keyword")]
+  #[serde(
+    default = "super::default_config_keywords",
+    alias = "periphery_config_keyword"
+  )]
   pub periphery_config_keywords: Vec<String>,
 
   /// Will merge nested config object (eg. secrets, providers) across multiple
-  /// config files. Default: `false`
+  /// config files. Default: `true`
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default)]
+  #[serde(default = "super::default_merge_nested_config")]
   pub periphery_merge_nested_config: bool,
 
   /// Will extend config arrays (eg. `allowed_ips`, `passkeys`) across multiple config files.
-  /// Default: `false`
+  /// Default: `true`
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default)]
+  #[serde(default = "super::default_extend_config_arrays")]
   pub periphery_extend_config_arrays: bool,
 
   /// Override `port`

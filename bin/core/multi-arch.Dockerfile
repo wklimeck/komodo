@@ -34,7 +34,7 @@ COPY --from=aarch64 /km /app/km/linux/arm64
 RUN mv /app/km/${TARGETPLATFORM} /usr/local/bin/km && rm -r /app/km
 
 # Copy default config / static frontend / deno binary
-COPY ./config/core.config.toml /config/config.toml
+COPY ./config/core.config.toml /config/.default.config.toml
 COPY --from=frontend /frontend /app/frontend
 COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 
@@ -47,8 +47,9 @@ RUN mkdir /action-cache && \
 # Hint at the port
 EXPOSE 9120
 
-# This ensures any `komodo.cli.toml` takes precedence over the Core `/config/config.toml`
-ENV KOMODO_CLI_CONFIG_PATHS="/config/config.toml,/config"
+ENV KOMODO_CLI_CONFIG_PATHS="/config"
+# This ensures any `komodo.cli.toml` takes precedence over the Core `/config/*config.toml`
+ENV KOMODO_CLI_CONFIG_KEYWORDS="*config.toml,*komodo.cli*.toml"
 
 CMD [ "core" ]
 

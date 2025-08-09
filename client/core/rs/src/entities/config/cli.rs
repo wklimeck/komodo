@@ -13,7 +13,7 @@ use crate::{
 
 /// 🦎  Komodo CLI  🦎
 #[derive(Debug, clap::Parser)]
-#[command(version, about, long_about = None)]
+#[command(name = "km", author, about, version)]
 pub struct CliArgs {
   /// The command to run
   #[command(subcommand)]
@@ -36,13 +36,13 @@ pub struct CliArgs {
 
   /// Merges nested configs, eg. secrets, providers.
   /// Will override the equivalent env configuration.
-  /// Default: false
+  /// Default: true
   #[arg(long)]
   pub merge_nested_config: Option<bool>,
 
   /// Extends config arrays, eg. allowed_ips, passkeys.
   /// Will override the equivalent env configuration.
-  /// Default: false
+  /// Default: true
   #[arg(long)]
   pub extend_config_arrays: Option<bool>,
 
@@ -395,17 +395,17 @@ pub struct Env {
     alias = "komodo_cli_config_keyword"
   )]
   pub komodo_cli_config_keywords: Vec<String>,
-  /// Will merge nested config object (eg. secrets, providers) across multiple
-  /// config files. Default: `false`
+  /// Will merge nested config object (eg. database) across multiple
+  /// config files. Default: `true`
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default = "default_merge_nested_config")]
+  #[serde(default = "super::default_merge_nested_config")]
   pub komodo_cli_merge_nested_config: bool,
-  /// Will extend config arrays (eg. `allowed_ips`, `passkeys`) across multiple config files.
-  /// Default: `false`
+  /// Will extend config arrays (eg profiles) across multiple config files.
+  /// Default: `true`
   ///
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
-  #[serde(default = "default_extend_config_arrays")]
+  #[serde(default = "super::default_extend_config_arrays")]
   pub komodo_cli_extend_config_arrays: bool,
   /// Override `host` and `KOMODO_HOST`.
   pub komodo_cli_host: Option<String>,
@@ -452,11 +452,6 @@ pub struct Env {
   // ================
   // Same as Core env
   // ================
-  /// Specify a custom config path for the core config toml.
-  /// Used as a base for the `cli_config_paths`.
-  /// Default: `/config/config.toml`
-  #[serde(default = "super::default_config_path")]
-  pub komodo_config_path: PathBuf,
   /// Override `host`
   pub komodo_host: Option<String>,
 
@@ -504,14 +499,6 @@ fn default_config_paths() -> Vec<PathBuf> {
 
 fn default_config_keywords() -> Vec<String> {
   vec![String::from("*komodo.cli*.toml")]
-}
-
-fn default_merge_nested_config() -> bool {
-  true
-}
-
-fn default_extend_config_arrays() -> bool {
-  true
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

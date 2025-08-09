@@ -3,7 +3,6 @@ use std::{path::PathBuf, sync::OnceLock};
 use anyhow::Context;
 use clap::Parser;
 use colored::Colorize;
-use config::{merge_config, parse_config_paths};
 use environment_file::maybe_read_item_from_file;
 use komodo_client::entities::{
   config::{
@@ -21,8 +20,14 @@ pub fn cli_args() -> &'static CliArgs {
 pub fn cli_config() -> &'static CliConfig {
   static CLI_CONFIG: OnceLock<CliConfig> = OnceLock::new();
   CLI_CONFIG.get_or_init(|| {
-    let env: Env =
-      envy::from_env().expect("failed to parse cli environment");
+    let env: Env = match envy::from_env()
+      .context("Failed to parse Komodo CLI environment")
+    {
+      Ok(env) => env,
+      Err(e) => {
+        panic!("{e:?}");
+      }
+    };
     let args = cli_args();
     let config_paths = args
       .config_path
@@ -65,7 +70,7 @@ pub fn cli_config() -> &'static CliConfig {
         "INFO".green(),
         "Config File Keywords".dimmed(),
       );
-      parse_config_paths::<CliConfig>(
+      config::parse_config_paths::<CliConfig>(
         &config_paths
           .iter()
           .map(PathBuf::as_path)
@@ -134,7 +139,7 @@ pub fn cli_config() -> &'static CliConfig {
           format!("Did not find config profile matching {profile}")
         })
         .unwrap();
-      merge_config(
+      config::merge_config(
         config,
         profile_config.clone(),
         merge_nested_config,

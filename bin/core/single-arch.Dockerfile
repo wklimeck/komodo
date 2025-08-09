@@ -21,7 +21,7 @@ COPY ./bin/core/debian-deps.sh .
 RUN sh ./debian-deps.sh && rm ./debian-deps.sh
 	
 # Copy
-COPY ./config/core.config.toml /config/config.toml
+COPY ./config/core.config.toml /config/.default.config.toml
 COPY --from=frontend-builder /builder/frontend/dist /app/frontend
 COPY --from=binaries /core /usr/local/bin/core
 COPY --from=binaries /km /usr/local/bin/km
@@ -36,8 +36,9 @@ RUN mkdir /action-cache && \
 # Hint at the port
 EXPOSE 9120
 
-# This ensures any `komodo.cli.toml` takes precedence over the Core `/config/config.toml`
-ENV KOMODO_CLI_CONFIG_PATHS="/config/config.toml,/config"
+ENV KOMODO_CLI_CONFIG_PATHS="/config"
+# This ensures any `komodo.cli.toml` takes precedence over the Core `/config/*config.toml`
+ENV KOMODO_CLI_CONFIG_KEYWORDS="*config.toml,*komodo.cli*.toml"
 
 CMD [ "core" ]
 

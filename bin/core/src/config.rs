@@ -1,7 +1,7 @@
-use std::sync::OnceLock;
+use std::{path::PathBuf, sync::OnceLock};
 
 use anyhow::Context;
-use config::parse_config_file;
+use colored::Colorize;
 use environment_file::{
   maybe_read_item_from_file, maybe_read_list_from_file,
 };
@@ -20,19 +20,46 @@ pub fn core_config() -> &'static CoreConfig {
   static CORE_CONFIG: OnceLock<CoreConfig> = OnceLock::new();
   CORE_CONFIG.get_or_init(|| {
     let env: Env = match envy::from_env()
-      .context("failed to parse core Env") {
+      .context("Failed to parse Komodo Core environment") {
         Ok(env) => env,
         Err(e) => {
-          panic!("{e:#?}");
+          panic!("{e:?}");
         }
       };
-    let config_path = &env.komodo_config_path;
-    let config =
-      parse_config_file::<CoreConfig>(config_path)
-        .unwrap_or_else(|e| {
-          panic!("failed at parsing config at {config_path:?} | {e:#}")
-        });
-    let installations = match (maybe_read_list_from_file(env.komodo_github_webhook_app_installations_ids_file,env.komodo_github_webhook_app_installations_ids), env.komodo_github_webhook_app_installations_namespaces) {
+    
+    let config = if env.komodo_config_paths.is_empty() {
+      CoreConfig::default()
+    } else {
+      let config_keywords = env.komodo_config_keywords
+        .iter()
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+      println!(
+        "{}: {}: {config_keywords:?}",
+        "INFO".green(),
+        "Config File Keywords".dimmed(),
+      );
+      config::parse_config_paths::<CoreConfig>(
+        &env.komodo_config_paths
+          .iter()
+          .map(PathBuf::as_path)
+          .collect::<Vec<_>>(),
+        &config_keywords,
+        ".kcoreignore",
+        env.komodo_merge_nested_config,
+        env.komodo_extend_config_arrays,
+        env.komodo_config_debug,
+      )
+      .expect("Failed at parsing config from paths")
+    };
+
+    let installations = match (
+      maybe_read_list_from_file(
+        env.komodo_github_webhook_app_installations_ids_file,
+        env.komodo_github_webhook_app_installations_ids
+      ),
+      env.komodo_github_webhook_app_installations_namespaces
+    ) {
       (Some(ids), Some(namespaces)) => {
         if ids.len() != namespaces.len() {
           panic!("KOMODO_GITHUB_WEBHOOK_APP_INSTALLATIONS_IDS length and KOMODO_GITHUB_WEBHOOK_APP_INSTALLATIONS_NAMESPACES length mismatch. Got {ids:?} and {namespaces:?}")

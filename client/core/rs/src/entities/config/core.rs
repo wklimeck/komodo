@@ -36,8 +36,29 @@ use super::{DockerRegistry, GitProvider, empty_or_redacted};
 pub struct Env {
   /// Specify a custom config path for the core config toml.
   /// Default: `/config/config.toml`
-  #[serde(default = "super::default_config_path")]
-  pub komodo_config_path: PathBuf,
+  #[serde(default, alias = "komodo_config_path")]
+  pub komodo_config_paths: Vec<PathBuf>,
+  /// If specifying folders, use this to narrow down which
+  /// files will be matched to parse into the final [PeripheryConfig].
+  /// Only files inside the folders which have names containing a keywords
+  /// provided to `config_keywords` will be included.
+  /// Keywords support wildcard matching syntax.
+  #[serde(
+    default = "super::default_config_keywords",
+    alias = "komodo_config_keyword"
+  )]
+  pub komodo_config_keywords: Vec<String>,
+  /// Will merge nested config object (eg. secrets, providers) across multiple
+  /// config files. Default: `true`
+  #[serde(default = "super::default_merge_nested_config")]
+  pub komodo_merge_nested_config: bool,
+  /// Will extend config arrays across multiple config files.
+  /// Default: `true`
+  #[serde(default = "super::default_extend_config_arrays")]
+  pub komodo_extend_config_arrays: bool,
+  /// Print some extra logs on startup to debug config loading issues.
+  #[serde(default)]
+  pub komodo_config_debug: bool,
 
   /// Override `title`
   pub komodo_title: Option<String>,
@@ -258,7 +279,7 @@ pub struct CoreConfig {
   /// The host to use with oauth redirect url, whatever host
   /// the user hits to access Komodo. eg `https://komodo.domain.com`.
   /// Only used if oauth used without user specifying redirect url themselves.
-  #[serde(default)]
+  #[serde(default = "default_host")]
   pub host: String,
 
   /// Port the core web server runs on.
@@ -277,6 +298,7 @@ pub struct CoreConfig {
 
   /// Sent in auth header with req to periphery.
   /// Should be some secure hash, maybe 20-40 chars.
+  #[serde(default = "default_passkey")]
   pub passkey: String,
 
   /// A TZ Identifier. If not provided, will use Core local timezone.
@@ -551,12 +573,20 @@ fn default_title() -> String {
   String::from("Komodo")
 }
 
+fn default_host() -> String {
+  String::from("https://komodo.example.com")
+}
+
 fn default_core_port() -> u16 {
   9120
 }
 
 fn default_core_bind_ip() -> String {
   "[::]".to_string()
+}
+
+fn default_passkey() -> String {
+  String::from("default-passkey-changeme")
 }
 
 fn default_frontend_path() -> String {
@@ -600,6 +630,63 @@ fn default_ssl_key_file() -> PathBuf {
 
 fn default_ssl_cert_file() -> PathBuf {
   "/config/ssl/cert.pem".parse().unwrap()
+}
+
+impl Default for CoreConfig {
+  fn default() -> Self {
+    Self {
+      title: default_title(),
+      host: default_host(),
+      port: default_core_port(),
+      bind_ip: default_core_bind_ip(),
+      internet_interface: Default::default(),
+      passkey: default_passkey(),
+      timezone: Default::default(),
+      ui_write_disabled: Default::default(),
+      disable_confirm_dialog: Default::default(),
+      disable_websocket_reconnect: Default::default(),
+      enable_fancy_toml: Default::default(),
+      first_server: Default::default(),
+      frontend_path: default_frontend_path(),
+      database: Default::default(),
+      local_auth: Default::default(),
+      transparent_mode: Default::default(),
+      enable_new_users: Default::default(),
+      disable_user_registration: Default::default(),
+      lock_login_credentials_for: Default::default(),
+      disable_non_admin_create: Default::default(),
+      jwt_secret: Default::default(),
+      jwt_ttl: default_jwt_ttl(),
+      oidc_enabled: Default::default(),
+      oidc_provider: Default::default(),
+      oidc_redirect_host: Default::default(),
+      oidc_client_id: Default::default(),
+      oidc_client_secret: Default::default(),
+      oidc_use_full_email: Default::default(),
+      oidc_additional_audiences: Default::default(),
+      google_oauth: Default::default(),
+      github_oauth: Default::default(),
+      webhook_secret: Default::default(),
+      webhook_base_url: Default::default(),
+      github_webhook_app: Default::default(),
+      logging: Default::default(),
+      pretty_startup_config: Default::default(),
+      keep_stats_for_days: default_prune_days(),
+      keep_alerts_for_days: default_prune_days(),
+      resource_poll_interval: default_poll_interval(),
+      monitoring_interval: default_monitoring_interval(),
+      aws: Default::default(),
+      git_providers: Default::default(),
+      docker_registries: Default::default(),
+      secrets: Default::default(),
+      ssl_enabled: Default::default(),
+      ssl_key_file: default_ssl_key_file(),
+      ssl_cert_file: default_ssl_cert_file(),
+      sync_directory: default_sync_directory(),
+      repo_directory: default_repo_directory(),
+      action_directory: default_action_directory(),
+    }
+  }
 }
 
 impl CoreConfig {

@@ -1,7 +1,6 @@
 use std::{path::PathBuf, sync::OnceLock};
 
 use clap::Parser;
-use config::parse_config_paths;
 use environment_file::maybe_read_list_from_file;
 use komodo_client::entities::{
   config::periphery::{CliArgs, Env, PeripheryConfig},
@@ -20,7 +19,7 @@ pub fn periphery_config() -> &'static PeripheryConfig {
     let config = if config_paths.is_empty() {
       PeripheryConfig::default()
     } else {
-      parse_config_paths::<PeripheryConfig>(
+      config::parse_config_paths::<PeripheryConfig>(
         &config_paths
           .iter()
           .map(PathBuf::as_path)

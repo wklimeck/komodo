@@ -59,13 +59,27 @@ pub fn parse_config_paths<T: DeserializeOwned>(
         );
       }
 
-      let mut files = HashSet::new();
+      let mut files = Vec::new();
       add_files(&mut files, path, &wildcards, &ignores);
-      let mut files = files.into_iter().collect::<Vec<_>>();
-      files.sort();
-      all_files.extend(files);
+      files.sort_by(|(a_index, a_path), (b_index, b_path)| {
+        match a_index.cmp(b_index) {
+          std::cmp::Ordering::Less => {
+            return std::cmp::Ordering::Less;
+          }
+          std::cmp::Ordering::Greater => {
+            return std::cmp::Ordering::Greater;
+          }
+          std::cmp::Ordering::Equal => {}
+        }
+        a_path.cmp(b_path)
+      });
+      all_files.extend(files.into_iter().map(|(_, path)| path));
     } else if metadata.is_file() {
-      all_files.insert(path.to_path_buf());
+      let path = path.to_path_buf();
+      // If the same path comes up again later on, it should be removed and
+      // reinserted so it maintains higher priority.
+      all_files.shift_remove(&path);
+      all_files.insert(path);
     }
   }
   println!(
@@ -87,7 +101,8 @@ fn ignore_dir(path: &Path, ignores: &HashSet<PathBuf>) -> bool {
 }
 
 fn add_files(
-  files: &mut HashSet<PathBuf>,
+  // stores index of matching keyword as well as path
+  files: &mut Vec<(usize, PathBuf)>,
   folder: &Path,
   wildcards: &[wildcard::Wildcard],
   ignores: &HashSet<PathBuf>,
@@ -118,17 +133,20 @@ fn add_files(
         continue;
       };
       // Ensure file name matches a wildcard keyword
-      if !wildcards.is_empty()
-        && !wildcards
-          .iter()
-          .any(|wc| wc.is_match(file_name.as_bytes()))
+      let index = if wildcards.is_empty() {
+        0
+      } else if let Some(index) = wildcards
+        .iter()
+        .position(|wc| wc.is_match(file_name.as_bytes()))
       {
+        index
+      } else {
         continue;
-      }
+      };
       let Ok(path) = path.canonicalize() else {
         continue;
       };
-      files.insert(path);
+      files.push((index, path));
     } else if metadata.is_dir() {
       // RECURSIVE CASE
       add_files(files, &dir_entry.path(), wildcards, ignores);
