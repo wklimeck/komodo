@@ -56,13 +56,14 @@ in the merge ordering, meaning they are **lower priority** than those detected i
 
 #### Profiles
 
-In the file, you configure multiple profiles with names and aliases, and
-choose which config profile to use with `km -p <profile> ...`. Each profile can then correspond
-to a different Komodo Core you would like to connect to, or different places to backup to.
+In the files, you can configure multiple profiles, each with a name / aliases. Then you
+choose which config profile to use with `km -p <profile> ...`. This allows you to easily switch between
+multiple Cores you want to connect to, or different database backup / restore options.
 
 In order to avoid passing `-p <profile>` every time, you can set a
 `default_profile` at the top level of the configuration file. Additionally,
-any fields you would like to be global across all profiles can be set at the top level as well.
+any fields you would like to be the "default" across all profiles can be 
+set at the top level of the file.
 
 #### Example File
 
