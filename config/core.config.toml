@@ -91,6 +91,7 @@ action_directory = "/action-cache"
 
 ## Interface to use as default route in multi-NIC environments.
 ## Env: KOMODO_INTERNET_INTERFACE
+## Example: "eth1"
 ## Optional, no default.
 internet_interface = ""
 
