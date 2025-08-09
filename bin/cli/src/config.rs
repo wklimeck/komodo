@@ -33,11 +33,6 @@ pub fn cli_config() -> &'static CliConfig {
       .config_path
       .clone()
       .unwrap_or(env.komodo_cli_config_paths);
-    if config_paths.is_empty() {
-      panic!(
-        "No --config-path (KOMODO_CLI_CONFIG_PATHS) have been set."
-      )
-    }
     let debug = args
       .log_level
       .map(|level| {
