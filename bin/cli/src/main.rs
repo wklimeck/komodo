@@ -2,7 +2,6 @@
 extern crate tracing;
 
 use anyhow::Context;
-use colored::Colorize;
 use komodo_client::entities::config::cli;
 
 use crate::config::cli_config;
@@ -12,11 +11,6 @@ mod config;
 
 async fn app() -> anyhow::Result<()> {
   dotenvy::dotenv().ok();
-  println!(
-    "{}: Komodo CLI version: {}",
-    "INFO".green(),
-    env!("CARGO_PKG_VERSION").blue().bold()
-  );
   logger::init(&config::cli_config().cli_logging)?;
 
   match &config::cli_args().command {
@@ -44,6 +38,7 @@ async fn app() -> anyhow::Result<()> {
       }
       Ok(())
     }
+    cli::Command::List(list) => command::list::handle(list).await,
     cli::Command::Execute { execution, yes, .. } => {
       command::execute::handle(execution, *yes).await
     }

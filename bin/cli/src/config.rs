@@ -49,6 +49,11 @@ pub fn cli_config() -> &'static CliConfig {
 
     if debug {
       println!(
+        "{}: Komodo CLI version: {}",
+        "DEBUG".cyan(),
+        env!("CARGO_PKG_VERSION").blue().bold()
+      );
+      println!(
         "{}: {}: {config_paths:?}",
         "DEBUG".cyan(),
         "Config Paths".dimmed(),
@@ -63,11 +68,13 @@ pub fn cli_config() -> &'static CliConfig {
       .iter()
       .map(String::as_str)
       .collect::<Vec<_>>();
-    println!(
-      "{}: {}: {config_keywords:?}",
-      "INFO".green(),
-      "Config File Keywords".dimmed(),
-    );
+    if debug {
+      println!(
+        "{}: {}: {config_keywords:?}",
+        "DEBUG".cyan(),
+        "Config File Keywords".dimmed(),
+      );
+    }
     let mut unparsed_config = config::parse_config_paths::<
       serde_json::Map<String, serde_json::Value>,
     >(

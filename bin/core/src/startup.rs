@@ -27,8 +27,7 @@ use crate::{
   config::core_config,
   helpers::random_string,
   helpers::update::init_execution_update,
-  network,
-  resource,
+  network, resource,
   state::db_client,
 };
 

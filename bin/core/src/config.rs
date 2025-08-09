@@ -26,7 +26,6 @@ pub fn core_config() -> &'static CoreConfig {
           panic!("{e:?}");
         }
       };
-    
     let config = if env.komodo_config_paths.is_empty() {
       println!(
         "{}: No config paths found, using default config",

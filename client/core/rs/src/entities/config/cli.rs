@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, clap::Parser)]
-#[command(name = "", version = "", about = "", author)]
+#[command(name = "komodo-cli", version, about = "", author)]
 pub struct CliArgs {
   /// The command to run
   #[command(subcommand)]
@@ -69,6 +69,10 @@ pub enum Command {
     unsanitized: bool,
   },
 
+  /// List containers and other resources (aliases: `ls`, `ps`)
+  #[clap(alias = "ls", alias = "ps")]
+  List(List),
+
   /// Run Komodo executions. (aliases: `x`, `run`, `deploy`, `dep`)
   #[clap(alias = "x", alias = "run", alias = "deploy", alias = "dep")]
   Execute {
@@ -102,6 +106,63 @@ pub enum Command {
     #[command(subcommand)]
     command: DatabaseCommand,
   },
+}
+
+#[derive(Debug, Clone, clap::Parser)]
+pub struct List {
+  /// List other Komodo entities
+  #[command(subcommand)]
+  pub command: Option<ListCommand>,
+  /// List all containers, including stopped ones.
+  #[arg(long, short = 'a', default_value_t = false)]
+  pub all: bool,
+  /// Reverse the ordering of when --all is passed,
+  /// so non-running containers are listed first.
+  #[arg(long, short = 'r', default_value_t = false)]
+  pub reverse: bool,
+  /// Filter containers by a particular server.
+  /// Can be specified multiple times. (alias `s`)
+  #[arg(name = "server", long, short = 's')]
+  pub servers: Vec<String>,
+  /// Filter containers by a name. Supports wildcard syntax.
+  /// Can be specified multiple times. (alias `n`)
+  #[arg(name = "name", long, short = 'n')]
+  pub names: Vec<String>,
+  /// Filter containers by image. Supports wildcard syntax.
+  /// Can be specified multiple times. (alias `i`)
+  #[arg(name = "image", long, short = 'i')]
+  pub images: Vec<String>,
+  /// Filter containers by image. Supports wildcard syntax.
+  /// Can be specified multiple times. (alias `--net`)
+  #[arg(name = "network", alias = "net", long)]
+  pub networks: Vec<String>,
+  /// Always continue on user confirmation prompts.
+  #[arg(long, short = 'f', default_value_t = CliFormat::Table)]
+  pub format: CliFormat,
+}
+
+#[derive(Debug, Clone, clap::Subcommand)]
+pub enum ListCommand {
+  #[clap(alias = "server", alias = "srv")]
+  Servers,
+  #[clap(alias = "stack", alias = "stk")]
+  Stacks,
+  #[clap(alias = "deployment", alias = "dep")]
+  Deployments,
+}
+
+#[derive(
+  Debug, Clone, Copy, Default, strum::Display, clap::ValueEnum,
+)]
+#[strum(serialize_all = "lowercase")]
+pub enum CliFormat {
+  /// Table output format. Default. (alias: `t`)
+  #[default]
+  #[clap(alias = "t")]
+  Table,
+  /// Json output format. (alias: `j`)
+  #[clap(alias = "j")]
+  Json,
 }
 
 #[derive(Debug, Clone, clap::Subcommand)]
@@ -277,9 +338,12 @@ pub enum UpdateUserCommand {
   },
 }
 
-#[derive(Debug, Clone, Copy, clap::ValueEnum, strum::Display)]
+#[derive(
+  Debug, Clone, Copy, Default, clap::ValueEnum, strum::Display,
+)]
 #[strum(serialize_all = "lowercase")]
 pub enum CliEnabled {
+  #[default]
   #[clap(alias = "y", alias = "true", alias = "t")]
   Yes,
   #[clap(alias = "n", alias = "false", alias = "f")]

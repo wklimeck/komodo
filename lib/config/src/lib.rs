@@ -68,16 +68,7 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       let mut files = Vec::new();
       add_files(&mut files, path, &wildcards, &ignores);
       files.sort_by(|(a_index, a_path), (b_index, b_path)| {
-        match a_index.cmp(b_index) {
-          std::cmp::Ordering::Less => {
-            return std::cmp::Ordering::Less;
-          }
-          std::cmp::Ordering::Greater => {
-            return std::cmp::Ordering::Greater;
-          }
-          std::cmp::Ordering::Equal => {}
-        }
-        a_path.cmp(b_path)
+        a_index.cmp(b_index).then(a_path.cmp(b_path))
       });
       all_files.extend(files.into_iter().map(|(_, path)| path));
     } else if metadata.is_file() {

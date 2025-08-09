@@ -1,6 +1,11 @@
 use anyhow::Context;
 use colored::Colorize;
-use komodo_client::api::{read::GetVariable, write::{CreateVariable, UpdateVariableIsSecret, UpdateVariableValue}};
+use komodo_client::api::{
+  read::GetVariable,
+  write::{
+    CreateVariable, UpdateVariableIsSecret, UpdateVariableValue,
+  },
+};
 
 pub async fn update(
   name: &str,

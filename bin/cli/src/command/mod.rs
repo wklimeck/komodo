@@ -9,6 +9,7 @@ use crate::config::cli_config;
 
 pub mod database;
 pub mod execute;
+pub mod list;
 pub mod update;
 
 async fn komodo_client() -> anyhow::Result<&'static KomodoClient> {
