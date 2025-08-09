@@ -25,6 +25,7 @@ const sidebars: SidebarsConfig = {
         "setup/mongo",
         "setup/ferretdb",
         "setup/advanced",
+        "setup/backup",
       ],
     },
     "connect-servers",
@@ -62,8 +63,9 @@ const sidebars: SidebarsConfig = {
     "permissioning",
     "sync-resources",
     "webhooks",
-    "version-upgrades",
     "api",
+    "cli",
+    "version-upgrades",
     "development",
     "other-resources"
   ],

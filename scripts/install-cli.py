@@ -1,6 +1,5 @@
 import sys
 import os
-import shutil
 import platform
 import json
 import urllib.request
@@ -17,24 +16,14 @@ def load_version():
 def load_latest_version():
 	return json.load(urllib.request.urlopen("https://api.github.com/repos/moghtech/komodo/releases/latest"))["tag_name"]
 
-def load_paths():
+def load_bin_dir():
 	home_dir = os.environ['HOME']
 	# Checks if setup.py is passed --user arg
 	user_install = sys.argv.count("--user") > 0
 	if user_install:
-		return [
-			# binary dir
-			f'{home_dir}/.local/bin',
-      # config dir
-	 		f'{home_dir}/.config/komodo',
-		]
+		return f'{home_dir}/.local/bin'
 	else:
-		return [
-			# binary dir
-			"/usr/local/bin",
-      # config dir
-	 		f'{home_dir}/.config/komodo',
-		]
+		return "/usr/local/bin"
 
 def copy_binary(bin_dir, version):
 	# ensure bin_dir exists
@@ -59,22 +48,6 @@ def copy_binary(bin_dir, version):
 
 	# add executable permissions
 	os.popen(f'chmod +x {bin_path}')
-
-def copy_config(config_dir):
-	config_file = f'{config_dir}/komodo.cli.toml'
-
-	# early return if config file already exists
-	if os.path.isfile(config_file):
-		print("config already exists, skipping...")
-		return
-	
-	print(f'creating config at {config_file}')
-
-	# ensure config dir exists
-	if not os.path.isdir(config_dir):
-		os.makedirs(config_dir)
-
-	print(os.popen(f'curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/config/komodo.cli.toml > {config_file}').read())
 	
 def main():
 	print("======================")
@@ -82,14 +55,12 @@ def main():
 	print("======================")
 
 	version = load_version()
-	[bin_dir, config_dir] = load_paths()
+	bin_dir = load_bin_dir()
  
 	print(f'version: {version}')
 	print(f'install to: {bin_dir}/km')
-	print(f'config path: {config_dir}/komodo.cli.toml')
 
 	copy_binary(bin_dir, version)
-	copy_config(config_dir)
 
 	print("Finished komodo-cli setup. Try running 'km --help'.\n")
 

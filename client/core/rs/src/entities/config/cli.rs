@@ -253,7 +253,8 @@ pub enum UpdateCommand {
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum UpdateUserCommand {
-  /// Update the users password. Fails if user is not "Local" user (ie OIDC).
+  /// Update the users password. Fails if user is not "Local" user (ie OIDC). (alias: `pw`)
+  #[clap(alias = "pw")]
   Password {
     /// The new password to use.
     password: String,
@@ -265,7 +266,8 @@ pub enum UpdateUserCommand {
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
   },
-  /// Un/assign super admin to user.
+  /// Un/assign super admin to user. (aliases: `supa`, `sa`)
+  #[clap(alias = "supa", alias = "sa")]
   SuperAdmin {
     #[clap(default_value_t = CliEnabled::Yes)]
     enabled: CliEnabled,
@@ -484,15 +486,11 @@ pub struct Env {
 fn default_config_paths() -> Vec<PathBuf> {
   if let Ok(home) = std::env::var("HOME") {
     vec![
-      PathBuf::from_str("/etc/komodo").unwrap(),
       PathBuf::from_str(&home).unwrap().join(".config/komodo"),
       PathBuf::from_str(".").unwrap(),
     ]
   } else {
-    vec![
-      PathBuf::from_str("/etc/komodo").unwrap(),
-      PathBuf::from_str(".").unwrap(),
-    ]
+    vec![PathBuf::from_str(".").unwrap()]
   }
 }
 

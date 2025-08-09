@@ -17,6 +17,7 @@ description = "runs periphery --release pointing to .dev/periphery.config.toml"
 cmd = "PERIPHERY_CONFIG_PATH=.dev/periphery.config.toml cargo run -p komodo_periphery --release"
 
 [dev-docsite]
+alias = "dd"
 description = "starts the documentation site (https://komo.do) in dev mode"
 path = "docsite"
 cmd = "yarn && yarn start"

@@ -1,0 +1,87 @@
+# Komodo CLI
+
+The Komodo CLI (`km`) can be used to:
+  - Quickly **run executions** and update **resources** and **variables**.
+  - **Reset user passwords** and elevate users to **Super Admin**. 
+  - Perform Database **backup**, **restore**, and **copy**.
+
+The Komodo Core image comes packaged with the Komodo CLI,
+and is available for usage inside running container with `docker exec -it komodo-core km ...`.
+This way, it inherits the Core database config in order to easily perform backups with `km db backup -y`.
+
+### Examples
+
+  - `km --help`
+  - `km run action my-action -y`
+  - `km database backup`
+  - `km db restore`
+  - `km --profile other-komodo set var MY_VAR my_value -y`
+  - `km update build my-build "version=1.19.0&branch=release"`
+  - `km x commit my-sync`
+  - `km set user mbecks super-admin true`
+  - `km set user mbecks password "temp-password"`
+
+### Install
+
+You can install the binary using the following command:
+
+System-wide, as root, to `/usr/local/bin/km`:
+```bash
+curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/install-cli.py | python3
+```
+
+Or as non-root, to `${HOME}/.local/bin/km`
+```bash
+curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/install-cli.py | python3 - --user
+```
+
+The CLI is also available packaged in into multi-arch docker images.
+  - `ghcr.io/moghtech/komodo-cli`.
+
+### Configure
+
+The CLI uses a configuration file to pass the Komodo host / api keys, database address and credentials,
+and configure some other behaviors. Additionally, all configuration fields can be individually overridden
+using **CLI arguments** or **environment variables**, with CLI arguments having top priority.
+
+Whenever you want to check how config will be loaded, you can use the `km config` command
+to print it out.
+
+#### File detection
+
+When run, CLI will scan the **current working directory** in addition to `${HOME}/.config/komodo` for any files matching the wildcard pattern **`*komodo.cli*.*`**,
+parse them into a general representation, and then merge them together. Files which are detected later are merged later,
+meaning they will override on conflicting fields. By default, files in `${HOME}/.config/komodo` come first
+in the merge ordering, meaning they are **lower priority** than those detected in the current working directory.
+
+#### Profiles
+
+In the file, you configure multiple profiles with names and aliases, and
+choose which config profile to use with `km -p <profile> ...`. Each profile can then correspond
+to a different Komodo Core you would like to connect to, or different places to backup to.
+
+In order to avoid passing `-p <profile>` every time, you can set a
+`default_profile` at the top level of the configuration file. Additionally,
+any fields you would like to be global across all profiles can be set at the top level as well.
+
+#### Example File
+
+The configuration can also be passed as **YAML** or **JSON**.
+You can use the it-tools to convert this TOML file to your preferred format:
+  - YAML: https://it-tools.tech/toml-to-yaml
+  - JSON: https://it-tools.tech/toml-to-json
+
+Quick download to `./komodo/komodo.cli.toml`:
+```bash
+wget -P komodo https://raw.githubusercontent.com/moghtech/komodo/main/config/komodo.cli.toml
+```
+
+```mdx-code-block
+import RemoteCodeFile from "@site/src/components/RemoteCodeFile";
+
+<RemoteCodeFile
+	title="https://github.com/moghtech/komodo/blob/main/config/komodo.cli.toml"
+	url="https://raw.githubusercontent.com/moghtech/komodo/1.19.0/config/komodo.cli.toml"
+	language="toml"
+/>
+```
