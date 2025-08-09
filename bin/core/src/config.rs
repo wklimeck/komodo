@@ -28,6 +28,10 @@ pub fn core_config() -> &'static CoreConfig {
       };
     
     let config = if env.komodo_config_paths.is_empty() {
+      println!(
+        "{}: No config paths found, using default config",
+        "INFO".green(),
+      );
       CoreConfig::default()
     } else {
       let config_keywords = env.komodo_config_keywords

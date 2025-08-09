@@ -1,6 +1,7 @@
 use std::{path::PathBuf, sync::OnceLock};
 
 use clap::Parser;
+use colored::Colorize;
 use environment_file::maybe_read_list_from_file;
 use komodo_client::entities::{
   config::periphery::{CliArgs, Env, PeripheryConfig},
@@ -16,7 +17,12 @@ pub fn periphery_config() -> &'static PeripheryConfig {
     let args = CliArgs::parse();
     let config_paths =
       args.config_path.unwrap_or(env.periphery_config_paths);
+
     let config = if config_paths.is_empty() {
+      println!(
+        "{}: No config paths found, using default config",
+        "INFO".green(),
+      );
       PeripheryConfig::default()
     } else {
       config::parse_config_paths::<PeripheryConfig>(

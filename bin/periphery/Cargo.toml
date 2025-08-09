@@ -42,6 +42,7 @@ serde_json.workspace = true
 serde_yaml_ng.workspace = true
 tokio-util.workspace = true
 arc-swap.workspace = true
+colored.workspace = true
 futures.workspace = true
 tracing.workspace = true
 bollard.workspace = true

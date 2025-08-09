@@ -48,6 +48,10 @@ pub fn cli_config() -> &'static CliConfig {
       .unwrap_or(env.komodo_cli_extend_config_arrays);
 
     let config = if config_paths.is_empty() {
+      println!(
+        "{}: No config paths found, using default config",
+        "INFO".green(),
+      );
       CliConfig::default()
     } else {
       if debug {

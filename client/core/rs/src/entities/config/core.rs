@@ -36,7 +36,10 @@ use super::{DockerRegistry, GitProvider, empty_or_redacted};
 pub struct Env {
   /// Specify a custom config path for the core config toml.
   /// Default: `/config/config.toml`
-  #[serde(default, alias = "komodo_config_path")]
+  #[serde(
+    default = "default_core_config_paths",
+    alias = "komodo_config_path"
+  )]
   pub komodo_config_paths: Vec<PathBuf>,
   /// If specifying folders, use this to narrow down which
   /// files will be matched to parse into the final [PeripheryConfig].
@@ -251,6 +254,10 @@ pub struct Env {
   pub komodo_ssl_key_file: Option<PathBuf>,
   /// Override `ssl_cert_file`
   pub komodo_ssl_cert_file: Option<PathBuf>,
+}
+
+fn default_core_config_paths() -> Vec<PathBuf> {
+  vec![PathBuf::from_str("/config").unwrap()]
 }
 
 /// # Core Configuration File
