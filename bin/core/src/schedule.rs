@@ -33,6 +33,7 @@ use crate::{
 pub fn spawn_schedule_executor() {
   // Executor thread
   tokio::spawn(async move {
+    update_schedules().await;
     loop {
       let current_time = async_timing_util::wait_until_timelength(
         Timelength::OneSecond,
@@ -187,18 +188,6 @@ pub fn spawn_schedule_executor() {
           }
         };
       }
-    }
-  });
-  // Updater thread
-  tokio::spawn(async move {
-    update_schedules().await;
-    loop {
-      async_timing_util::wait_until_timelength(
-        Timelength::FiveMinutes,
-        500,
-      )
-      .await;
-      update_schedules().await
     }
   });
 }
