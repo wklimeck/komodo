@@ -1073,6 +1073,7 @@ version = "1.19.0-dev-2"
 dependencies = [
  "colored",
  "indexmap 2.10.0",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml_ng",

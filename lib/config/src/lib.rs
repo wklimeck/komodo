@@ -1,3 +1,9 @@
+//! # Komodo Config
+//!
+//! This library is used to parse Core, Periphery, and CLI config files.
+//! It supports interpolating in environment variables (only '${VAR}' syntax),
+//! as well as merging together multiple files into a final configuration object.
+
 use std::{
   collections::HashSet,
   fs::File,
@@ -256,28 +262,26 @@ pub fn parse_config_file<T: DeserializeOwned>(
       e,
       path: file.to_path_buf(),
     })?;
+  let mut contents = String::new();
+  file_handle.read_to_string(&mut contents).map_err(|e| {
+    Error::ReadFileContents {
+      e,
+      path: file.to_path_buf(),
+    }
+  })?;
+  let contents = interpolate_env(&contents);
   let config = match file.extension().and_then(|e| e.to_str()) {
     Some("toml") => {
-      let mut contents = String::new();
-      file_handle.read_to_string(&mut contents).map_err(|e| {
-        Error::ReadFileContents {
-          e,
-          path: file.to_path_buf(),
-        }
-      })?;
       toml::from_str(&contents).map_err(|e| Error::ParseToml {
         e,
         path: file.to_path_buf(),
       })?
     }
-    Some("yaml") | Some("yml") => {
-      serde_yaml_ng::from_reader(file_handle).map_err(|e| {
-        Error::ParseYaml {
-          e,
-          path: file.to_path_buf(),
-        }
-      })?
-    }
+    Some("yaml") | Some("yml") => serde_yaml_ng::from_str(&contents)
+      .map_err(|e| Error::ParseYaml {
+        e,
+        path: file.to_path_buf(),
+      })?,
     Some("json") => {
       serde_json::from_reader(file_handle).map_err(|e| {
         Error::ParseJson {
@@ -386,4 +390,21 @@ pub fn merge_config<T: Serialize + DeserializeOwned>(
     merge_objects(target, source, merge_nested, extend_array)?;
   serde_json::from_value(serde_json::Value::Object(object))
     .map_err(|e| Error::ParseFinalJson { e })
+}
+
+/// Only supports '${VAR}' syntax
+fn interpolate_env(input: &str) -> String {
+  let re = regex::Regex::new(r"\$\{([A-Za-z0-9_]+)\}").unwrap();
+  let first_pass = re
+    .replace_all(input, |caps: &regex::Captures| {
+      let var_name = &caps[1];
+      std::env::var(var_name).unwrap_or_default()
+    })
+    .into_owned();
+  // Do it twice in case any env vars expand again to env vars
+  re.replace_all(&first_pass, |caps: &regex::Captures| {
+    let var_name = &caps[1];
+    std::env::var(var_name).unwrap_or_default()
+  })
+  .into_owned()
 }

@@ -126,7 +126,10 @@ pub fn cli_config() -> &'static CliConfig {
         _ => (None, None, None, None, None),
       };
 
-    let config = if let Some(profile) = &args.profile
+    let profile =
+      args.profile.as_ref().or(config.default_profile.as_ref());
+
+    let config = if let Some(profile) = profile
       && !profile.is_empty()
     {
       // Find the profile config,
@@ -162,6 +165,7 @@ pub fn cli_config() -> &'static CliConfig {
     CliConfig {
       config_profile,
       config_aliases: config.config_aliases,
+      default_profile: config.default_profile,
       host: host
         .or(env.komodo_cli_host)
         .or(env.komodo_host)

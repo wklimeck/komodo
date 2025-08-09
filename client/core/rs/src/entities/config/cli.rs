@@ -407,6 +407,8 @@ pub struct Env {
   /// Note. This is overridden if the equivalent arg is passed in [CliArgs].
   #[serde(default = "super::default_extend_config_arrays")]
   pub komodo_cli_extend_config_arrays: bool,
+  // Override `default_profile`.
+  pub komodo_cli_default_profile: Option<String>,
   /// Override `host` and `KOMODO_HOST`.
   pub komodo_cli_host: Option<String>,
   /// Override `cli_key`
@@ -417,8 +419,6 @@ pub struct Env {
   pub komodo_cli_backups_folder: Option<PathBuf>,
   /// Override `max_backups`
   pub komodo_cli_max_backups: Option<u16>,
-  /// Override `restore_folder`
-  pub komodo_cli_restore_folder: Option<PathBuf>,
   /// Override `database_target_uri`
   #[serde(alias = "komodo_cli_database_copy_uri")]
   pub komodo_cli_database_target_uri: Option<String>,
@@ -498,11 +498,20 @@ fn default_config_paths() -> Vec<PathBuf> {
 }
 
 fn default_config_keywords() -> Vec<String> {
-  vec![String::from("*komodo.cli*.toml")]
+  vec![String::from("*komodo.cli*.*")]
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CliConfig {
+  /// Optional. Only relevant for top level CLI config.
+  /// Set a default profile to be used when none is provided.
+  /// This allows for quick switching between profiles while
+  /// not having to explicitly pass `-p profile`.
+  #[serde(
+    alias = "default",
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub default_profile: Option<String>,
   /// Optional. The profile name. (alias: `name`)
   /// Configure profiles with name in the komodo.cli.toml,
   /// and select them using `km -p profile-name ...`.
@@ -615,6 +624,7 @@ fn log_config_is_default(log_config: &LogConfig) -> bool {
 impl Default for CliConfig {
   fn default() -> Self {
     Self {
+      default_profile: Default::default(),
       config_profile: Default::default(),
       config_aliases: Default::default(),
       cli_key: Default::default(),
@@ -633,6 +643,7 @@ impl Default for CliConfig {
 impl CliConfig {
   pub fn sanitized(&self) -> CliConfig {
     CliConfig {
+      default_profile: self.default_profile.clone(),
       config_profile: self.config_profile.clone(),
       config_aliases: self.config_aliases.clone(),
       cli_key: self

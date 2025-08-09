@@ -13,6 +13,13 @@
 ## file will be located either in `/etc/komodo/periphery.config.toml`,
 ## or for user installs, `$HOME/.config/komodo/periphery.config.toml`.
 
+## Most fields can also be configured using environment variables.
+## Environment variables will override values set in this file.
+
+## You can also use JSON or YAML if preffered. You can convert here:
+##   - YAML: https://it-tools.tech/toml-to-yaml
+##   - JSON: https://it-tools.tech/toml-to-json
+
 ## Optional. The port the server runs on.
 ## Env: PERIPHERY_PORT
 ## Default: 8120
