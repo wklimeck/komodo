@@ -50,3 +50,32 @@ fn wait_for_enter(
     .context("failed to read ENTER")?;
   Ok(())
 }
+
+/// Sanitizes uris of the form:
+/// `protocol://username:password@address`
+fn sanitize_uri(uri: &str) -> String {
+  // protocol: `mongodb`
+  // credentials_address: `username:password@address`
+  let Some((protocol, credentials_address)) = uri.split_once("://")
+  else {
+    // If no protocol, return as-is
+    return uri.to_string();
+  };
+
+  // credentials: `username:password`
+  let Some((credentials, address)) =
+    credentials_address.split_once('@')
+  else {
+    // If no credentials, return as-is
+    return uri.to_string();
+  };
+
+  match credentials.split_once(':') {
+    Some((username, _)) => {
+      format!("{protocol}://{username}:*****@{address}")
+    }
+    None => {
+      format!("{protocol}://*****@{address}")
+    }
+  }
+}

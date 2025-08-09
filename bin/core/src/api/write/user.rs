@@ -8,13 +8,11 @@ use komodo_client::{
     UpdateUserPasswordResponse, UpdateUserUsername,
     UpdateUserUsernameResponse,
   },
-  entities::{NoData, user::UserConfig},
+  entities::NoData,
 };
 use resolver_api::Resolve;
 
-use crate::{
-  config::core_config, helpers::hash_password, state::db_client,
-};
+use crate::{config::core_config, state::db_client};
 
 use super::WriteArgs;
 
@@ -78,25 +76,7 @@ impl Resolve<WriteArgs> for UpdateUserPassword {
         );
       }
     }
-    let UserConfig::Local { .. } = user.config else {
-      return Err(anyhow!("User is not local user").into());
-    };
-    if self.password.is_empty() {
-      return Err(anyhow!("Password cannot be empty.").into());
-    }
-    let id = ObjectId::from_str(&user.id)
-      .context("User id not valid ObjectId.")?;
-    let hashed_password = hash_password(self.password)?;
-    db_client()
-      .users
-      .update_one(
-        doc! { "_id": id },
-        doc! { "$set": {
-          "config.data.password": hashed_password
-        } },
-      )
-      .await
-      .context("Failed to update user password on database.")?;
+    db_client().set_user_password(user, &self.password).await?;
     Ok(NoData {})
   }
 }

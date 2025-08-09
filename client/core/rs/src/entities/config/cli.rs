@@ -1,6 +1,5 @@
 use std::{path::PathBuf, str::FromStr};
 
-use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -13,7 +12,7 @@ use crate::{
 };
 
 /// 🦎  Komodo CLI  🦎
-#[derive(Debug, Parser)]
+#[derive(Debug, clap::Parser)]
 #[command(version, about, long_about = None)]
 pub struct CliArgs {
   /// The command to run
@@ -54,7 +53,7 @@ pub struct CliArgs {
   pub log_level: Option<tracing::Level>,
 }
 
-#[derive(Debug, Clone, Subcommand)]
+#[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
   /// Print the CLI config being used. (alias: `cfg`)
   #[clap(alias = "cfg")]
@@ -106,24 +105,8 @@ pub enum Command {
   },
 }
 
-#[derive(Debug, Clone, Subcommand)]
+#[derive(Debug, Clone, clap::Subcommand)]
 pub enum UpdateCommand {
-  /// Update a Variable's value. (alias: `var`)
-  #[clap(alias = "var")]
-  Variable {
-    /// The name of the variable.
-    name: String,
-    /// The value to set variable to.
-    value: String,
-    /// Whether the value should be set to secret.
-    /// If unset, will leave the variable secret setting as-is.
-    #[arg(long, short = 's')]
-    secret: Option<bool>,
-    /// Always continue on user confirmation prompts.
-    #[arg(long, short = 'y', default_value_t = false)]
-    yes: bool,
-  },
-
   /// Update a Build's configuration. (alias: `bld`)
   #[clap(alias = "bld")]
   Build {
@@ -243,9 +226,75 @@ pub enum UpdateCommand {
     #[arg(long, short = 'y', default_value_t = false)]
     yes: bool,
   },
+
+  /// Update a Variable's value. (alias: `var`)
+  #[clap(alias = "var")]
+  Variable {
+    /// The name of the variable.
+    name: String,
+    /// The value to set variable to.
+    value: String,
+    /// Whether the value should be set to secret.
+    /// If unset, will leave the variable secret setting as-is.
+    #[arg(long, short = 's')]
+    secret: Option<bool>,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+
+  /// Update a user's configuration, including assigning resetting password and assigning Super Admin
+  User {
+    /// The user to update
+    username: String,
+    #[command(subcommand)]
+    command: UpdateUserCommand,
+  },
 }
 
-#[derive(Debug, Clone, Subcommand)]
+#[derive(Debug, Clone, clap::Subcommand)]
+pub enum UpdateUserCommand {
+  /// Update the users password. Fails if user is not "Local" user (ie OIDC).
+  Password {
+    /// The new password to use.
+    password: String,
+    /// Whether to print unsanitized config,
+    /// including sensitive credentials.
+    #[arg(long, action)]
+    unsanitized: bool,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+  /// Un/assign super admin to user.
+  SuperAdmin {
+    #[clap(default_value_t = CliEnabled::Yes)]
+    enabled: CliEnabled,
+    /// Always continue on user confirmation prompts.
+    #[arg(long, short = 'y', default_value_t = false)]
+    yes: bool,
+  },
+}
+
+#[derive(Debug, Clone, Copy, clap::ValueEnum, strum::Display)]
+#[strum(serialize_all = "lowercase")]
+pub enum CliEnabled {
+  #[clap(alias = "y", alias = "true", alias = "t")]
+  Yes,
+  #[clap(alias = "n", alias = "false", alias = "f")]
+  No,
+}
+
+impl From<CliEnabled> for bool {
+  fn from(value: CliEnabled) -> Self {
+    match value {
+      CliEnabled::Yes => true,
+      CliEnabled::No => false,
+    }
+  }
+}
+
+#[derive(Debug, Clone, clap::Subcommand)]
 pub enum DatabaseCommand {
   /// Triggers database backup to compressed files
   /// organized by time the backup was taken. (alias: `bkp`)

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anyhow::{Context, anyhow};
 use komodo_client::entities::{
   action::Action,
@@ -18,14 +20,17 @@ use komodo_client::entities::{
   sync::ResourceSync,
   tag::Tag,
   update::Update,
-  user::User,
+  user::{User, UserConfig},
   user_group::UserGroup,
   variable::Variable,
 };
 use mongo_indexed::{create_index, create_unique_index};
 use mungos::{
   init::MongoBuilder,
-  mongodb::{Collection, Database},
+  mongodb::{
+    Collection, Database,
+    bson::{doc, oid::ObjectId},
+  },
 };
 
 pub use mongo_indexed;
@@ -99,6 +104,38 @@ impl Client {
     };
     Ok(client)
   }
+
+  /// Updates a user's password using a DB call.
+  pub async fn set_user_password(
+    &self,
+    user: &User,
+    password: &str,
+  ) -> anyhow::Result<()> {
+    let UserConfig::Local { .. } = user.config else {
+      return Err(
+        anyhow!("User is not a 'Local' (username / password) user")
+          .into(),
+      );
+    };
+    if password.is_empty() {
+      return Err(anyhow!("Password cannot be empty.").into());
+    }
+    let id = ObjectId::from_str(&user.id)
+      .context("User id not valid ObjectId.")?;
+    let hashed_password =
+      hash_password(password).context("Failed to hash password")?;
+    self
+      .users
+      .update_one(
+        doc! { "_id": id },
+        doc! { "$set": {
+          "config.data.password": hashed_password
+        } },
+      )
+      .await
+      .context("Failed to update user password on database.")?;
+    Ok(())
+  }
 }
 
 /// Initializes unindexed database handle.
@@ -158,4 +195,13 @@ async fn resource_collection<T: Send + Sync>(
   create_index(&coll, "tags").await?;
 
   Ok(coll)
+}
+
+const BCRYPT_COST: u32 = 10;
+pub fn hash_password<P>(password: P) -> anyhow::Result<String>
+where
+  P: AsRef<[u8]>,
+{
+  bcrypt::hash(password, BCRYPT_COST)
+    .context("failed to hash password")
 }

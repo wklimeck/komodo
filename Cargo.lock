@@ -1289,6 +1289,7 @@ version = "1.18.5-dev-26"
 dependencies = [
  "anyhow",
  "async-compression",
+ "bcrypt",
  "chrono",
  "futures-util",
  "komodo_client",
