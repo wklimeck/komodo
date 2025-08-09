@@ -50,8 +50,8 @@ RUN mkdir /action-cache && \
 EXPOSE 9120
 
 ENV KOMODO_CLI_CONFIG_PATHS="/config"
-# This ensures any `komodo.cli.toml` takes precedence over the Core `/config/*config.toml`
-ENV KOMODO_CLI_CONFIG_KEYWORDS="*config.toml,*komodo.cli*.toml"
+# This ensures any `komodo.cli.*` takes precedence over the Core `/config/*config.*`
+ENV KOMODO_CLI_CONFIG_KEYWORDS="*config.*,*komodo.cli*.*"
 
 CMD [ "core" ]
 
