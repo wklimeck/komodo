@@ -114,12 +114,19 @@ async fn restore(
     println!("{}: {username}", " - Target Username".dimmed());
   }
   println!(
-    "{}: {}\n",
+    "{}: {}",
     " - Target Db Name".dimmed(),
     config.database_target.db_name,
   );
+  if !index {
+    println!(
+      "{}: {}",
+      " - Target Db Indexing".dimmed(),
+      "DISABLED".red(),
+    );
+  }
   println!(
-    "{}: {:?}",
+    "\n{}: {:?}",
     " - Backups Folder".dimmed(),
     config.backups_folder
   );
@@ -292,6 +299,13 @@ async fn copy(index: bool, yes: bool) -> anyhow::Result<()> {
     " - Target Db Name".dimmed(),
     config.database_target.db_name,
   );
+  if !index {
+    println!(
+      "{}: {}",
+      " - Target Db Indexing".dimmed(),
+      "DISABLED".red(),
+    );
+  }
 
   crate::command::wait_for_enter("start copy", yes)?;
 
