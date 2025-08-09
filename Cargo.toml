@@ -68,8 +68,8 @@ ipnetwork = { version = "0.21.1", features = ["serde"] }
 indexmap = { version = "2.10.0", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive"] }
 strum = { version = "0.27.2", features = ["derive"] }
+serde_yaml_ng = "0.10.0"
 serde_json = "1.0.142"
-serde_yaml = "0.9.34-deprecated"
 serde_qs = "0.15.0"
 toml = "0.9.5"
 

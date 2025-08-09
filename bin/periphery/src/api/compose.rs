@@ -562,7 +562,7 @@ impl Resolve<super::Args> for ComposeUp {
         return Ok(res);
       }
       let compose =
-        serde_yaml::from_str::<ComposeFile>(&config_log.stdout)
+        serde_yaml_ng::from_str::<ComposeFile>(&config_log.stdout)
           .context("Failed to parse compose contents")?;
       // Record sanitized compose config output
       res.compose_config = Some(config_log.stdout);

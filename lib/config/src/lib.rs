@@ -270,6 +270,14 @@ pub fn parse_config_file<T: DeserializeOwned>(
         path: file.to_path_buf(),
       })?
     }
+    Some("yaml") | Some("yml") => {
+      serde_yaml_ng::from_reader(file_handle).map_err(|e| {
+        Error::ParseYaml {
+          e,
+          path: file.to_path_buf(),
+        }
+      })?
+    }
     Some("json") => {
       serde_json::from_reader(file_handle).map_err(|e| {
         Error::ParseJson {

@@ -27,6 +27,12 @@ pub enum Error {
   #[error("Failed to parse toml file at {path} | {e:?}")]
   ParseToml { e: toml::de::Error, path: PathBuf },
 
+  #[error("Failed to parse yaml file at {path} | {e:?}")]
+  ParseYaml {
+    e: serde_yaml_ng::Error,
+    path: PathBuf,
+  },
+
   #[error("Failed to parse json file at {path} | {e:?}")]
   ParseJson { e: serde_json::Error, path: PathBuf },
 
