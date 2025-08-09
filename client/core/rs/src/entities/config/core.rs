@@ -221,6 +221,9 @@ pub struct Env {
   /// Override `aws.secret_access_key` with file
   pub komodo_aws_secret_access_key_file: Option<PathBuf>,
 
+  /// Override `internet_interface`
+  pub komodo_internet_interface: Option<String>,
+
   /// Override `ssl_enabled`.
   pub komodo_ssl_enabled: Option<bool>,
   /// Override `ssl_key_file`
@@ -267,6 +270,10 @@ pub struct CoreConfig {
   /// Default: [::].
   #[serde(default = "default_core_bind_ip")]
   pub bind_ip: String,
+
+  /// Interface to use as default route in multi-NIC environments.
+  #[serde(default)]
+  pub internet_interface: String,
 
   /// Sent in auth header with req to periphery.
   /// Should be some secure hash, maybe 20-40 chars.
@@ -612,6 +619,7 @@ impl CoreConfig {
       repo_directory: config.repo_directory,
       action_directory: config.action_directory,
       sync_directory: config.sync_directory,
+      internet_interface: config.internet_interface,
       resource_poll_interval: config.resource_poll_interval,
       monitoring_interval: config.monitoring_interval,
       keep_stats_for_days: config.keep_stats_for_days,

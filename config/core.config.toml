@@ -89,6 +89,11 @@ repo_directory = "/repo-cache"
 ## Default: /action-cache
 action_directory = "/action-cache"
 
+## Interface to use as default route in multi-NIC environments.
+## Env: KOMODO_INTERNET_INTERFACE
+## Optional, no default.
+internet_interface = ""
+
 ################
 # AUTH / LOGIN #
 ################
