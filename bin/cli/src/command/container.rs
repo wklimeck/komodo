@@ -20,8 +20,12 @@ use komodo_client::{
   },
 };
 
-use crate::command::{
-  PrintTable, matches_wildcards, parse_wildcards, print_items,
+use crate::{
+  command::{
+    PrintTable, matches_wildcards, parse_wildcards, print_items,
+    text_link,
+  },
+  config::cli_config,
 };
 
 pub async fn handle(container: &Container) -> anyhow::Result<()> {
@@ -47,7 +51,7 @@ async fn list_containers(
   }: &Container,
 ) -> anyhow::Result<()> {
   let client = super::komodo_client().await?;
-  let (server_map, mut containers) = tokio::try_join!(
+  let (server_map, containers) = tokio::try_join!(
     client
       .read(ListServers::default())
       .map(|res| res.map(|res| res
@@ -59,15 +63,16 @@ async fn list_containers(
     }),
   )?;
 
-  containers.iter_mut().for_each(|c| {
-    let Some(server_id) = c.server_id.as_ref() else {
-      return;
+  // (Option<Server Name>, Container)
+  let containers = containers.into_iter().map(|c| {
+    let server = if let Some(server_id) = c.server_id.as_ref()
+      && let Some(server) = server_map.get(server_id)
+    {
+      server
+    } else {
+      return (None, c);
     };
-    let Some(server) = server_map.get(server_id) else {
-      c.server_id = Some(String::from("Unknown"));
-      return;
-    };
-    c.server_id = Some(server.name.clone());
+    (Some(server.name.as_str()), c)
   });
 
   let names = parse_wildcards(names);
@@ -77,7 +82,7 @@ async fn list_containers(
 
   let mut containers = containers
     .into_iter()
-    .filter(|c| {
+    .filter(|(server_name, c)| {
       let state_check = if *all {
         true
       } else if *down {
@@ -100,7 +105,7 @@ async fn list_containers(
         && matches_wildcards(&names, &[c.name.as_str()])
         && matches_wildcards(
           &servers,
-          &c.server_id
+          &server_name
             .as_deref()
             .map(|i| vec![i])
             .unwrap_or_default(),
@@ -111,11 +116,11 @@ async fn list_containers(
         )
     })
     .collect::<Vec<_>>();
-  containers.sort_by(|a, b| {
+  containers.sort_by(|(a_s, a), (b_s, b)| {
     a.state
       .cmp(&b.state)
       .then(a.name.cmp(&b.name))
-      .then(a.server_id.cmp(&b.server_id))
+      .then(a_s.cmp(b_s))
       .then(a.network_mode.cmp(&b.network_mode))
       .then(a.image.cmp(&b.image))
   });
@@ -124,52 +129,6 @@ async fn list_containers(
   }
   print_items(containers, *format)?;
   Ok(())
-}
-
-impl PrintTable for ContainerListItem {
-  fn header() -> &'static [&'static str] {
-    &["Container", "State", "Server", "Ports", "Networks", "Image"]
-  }
-  fn row(self) -> Vec<Cell> {
-    let color = match self.state {
-      ContainerStateStatusEnum::Running => Color::Green,
-      ContainerStateStatusEnum::Paused => Color::DarkYellow,
-      ContainerStateStatusEnum::Empty => Color::Grey,
-      _ => Color::Red,
-    };
-    let mut networks = HashSet::new();
-    if let Some(network) = self.network_mode {
-      networks.insert(network);
-    }
-    for network in self.networks {
-      networks.insert(network);
-    }
-    let mut networks = networks.into_iter().collect::<Vec<_>>();
-    networks.sort();
-    let mut ports = self
-      .ports
-      .into_iter()
-      .flat_map(|p| p.public_port.map(|p| p.to_string()))
-      .collect::<HashSet<_>>()
-      .into_iter()
-      .collect::<Vec<_>>();
-    ports.sort();
-    let ports = if ports.is_empty() {
-      Cell::new("")
-    } else {
-      Cell::new(format!(":{}", ports.join(", :")))
-    };
-    vec![
-      Cell::new(self.name).add_attribute(Attribute::Bold),
-      Cell::new(self.state.to_string())
-        .fg(color)
-        .add_attribute(Attribute::Bold),
-      Cell::new(self.server_id.unwrap_or(String::from("Unknown"))),
-      ports,
-      Cell::new(networks.join(", ")),
-      Cell::new(self.image.unwrap_or(String::from("Unknown"))),
-    ]
-  }
 }
 
 pub async fn inspect_container(
@@ -254,4 +213,64 @@ pub async fn inspect_container(
   }
 
   Ok(())
+}
+
+// (Option<Server Name>, Container)
+impl PrintTable for (Option<&'_ str>, ContainerListItem) {
+  fn header() -> &'static [&'static str] {
+    &["Container", "State", "Server", "Ports", "Networks", "Image"]
+  }
+  fn row(self) -> Vec<Cell> {
+    let color = match self.1.state {
+      ContainerStateStatusEnum::Running => Color::Green,
+      ContainerStateStatusEnum::Paused => Color::DarkYellow,
+      ContainerStateStatusEnum::Empty => Color::Grey,
+      _ => Color::Red,
+    };
+    let mut networks = HashSet::new();
+    if let Some(network) = self.1.network_mode {
+      networks.insert(network);
+    }
+    for network in self.1.networks {
+      networks.insert(network);
+    }
+    let mut networks = networks.into_iter().collect::<Vec<_>>();
+    networks.sort();
+    let mut ports = self
+      .1
+      .ports
+      .into_iter()
+      .flat_map(|p| p.public_port.map(|p| p.to_string()))
+      .collect::<HashSet<_>>()
+      .into_iter()
+      .collect::<Vec<_>>();
+    ports.sort();
+    let ports = if ports.is_empty() {
+      Cell::new("")
+    } else {
+      Cell::new(format!(":{}", ports.join(", :")))
+    };
+    let name = if let Some(server_id) = self.1.server_id {
+      text_link(
+        &format!(
+          "{}/servers/{server_id}/container/{}",
+          cli_config().host,
+          self.1.name
+        ),
+        &self.1.name,
+      )
+    } else {
+      self.1.name
+    };
+    vec![
+      Cell::new(name).add_attribute(Attribute::Bold),
+      Cell::new(self.1.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      Cell::new(self.0.unwrap_or("Unknown")),
+      ports,
+      Cell::new(networks.join(", ")),
+      Cell::new(self.1.image.as_deref().unwrap_or("Unknown")),
+    ]
+  }
 }

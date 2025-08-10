@@ -137,8 +137,8 @@ pub enum Execution {
   CommitSync(CommitSync), // This is a special case, its actually a write operation.
 
   // STACK
-  /// Deploy the target stack. (alias: `stack`, `sk`)
-  #[clap(alias = "stack", alias = "sk")]
+  /// Deploy the target stack. (alias: `stack`, `st`)
+  #[clap(alias = "stack", alias = "st")]
   DeployStack(DeployStack),
   BatchDeployStack(BatchDeployStack),
   DeployStackIfChanged(DeployStackIfChanged),

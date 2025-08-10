@@ -54,8 +54,8 @@ pub enum ListCommand {
   /// List Servers (aliases: `server`, `sv`)
   #[clap(alias = "server", alias = "sv")]
   Servers(ResourceFilters),
-  /// List Stacks (aliases: `stack`, `sk`)
-  #[clap(alias = "stack", alias = "sk")]
+  /// List Stacks (aliases: `stack`, `st`)
+  #[clap(alias = "stack", alias = "st")]
   Stacks(ResourceFilters),
   /// List Deployments (aliases: `deployment`, `dp`)
   #[clap(alias = "deployment", alias = "dp")]

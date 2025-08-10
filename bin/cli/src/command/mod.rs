@@ -149,3 +149,7 @@ fn format_timetamp(ts: i64) -> anyhow::Result<String> {
     .to_string();
   Ok(ts)
 }
+
+fn text_link(link: &str, text: &str) -> String {
+  format!("\x1b]8;;{link}\x07{text}\x1b]8;;\x07")
+}
