@@ -29,6 +29,7 @@ tracing.workspace = true
 colored.workspace = true
 dotenvy.workspace = true
 anyhow.workspace = true
+chrono.workspace = true
 tokio.workspace = true
 serde.workspace = true
 clap.workspace = true

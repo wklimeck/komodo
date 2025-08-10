@@ -38,7 +38,17 @@ pub struct ActionListItemInfo {
 
 #[typeshare]
 #[derive(
-  Debug, Clone, Copy, Default, Serialize, Deserialize, Display,
+  Debug,
+  Clone,
+  Copy,
+  Default,
+  PartialEq,
+  Eq,
+  PartialOrd,
+  Ord,
+  Display,
+  Serialize,
+  Deserialize,
 )]
 pub enum ActionState {
   /// Unknown case

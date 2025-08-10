@@ -2621,6 +2621,7 @@ name = "komodo_cli"
 version = "1.19.0-dev-2"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "colored",
  "comfy-table",

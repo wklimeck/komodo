@@ -35,15 +35,25 @@ pub struct ProcedureListItemInfo {
 
 #[typeshare]
 #[derive(
-  Debug, Clone, Copy, Default, Serialize, Deserialize, Display,
+  Debug,
+  Clone,
+  Copy,
+  Default,
+  PartialEq,
+  Eq,
+  PartialOrd,
+  Ord,
+  Serialize,
+  Deserialize,
+  Display,
 )]
 pub enum ProcedureState {
+  /// Currently running
+  Running,
   /// Last run successful
   Ok,
   /// Last run failed
   Failed,
-  /// Currently running
-  Running,
   /// Other case (never run)
   #[default]
   Unknown,

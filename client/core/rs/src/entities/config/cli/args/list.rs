@@ -57,6 +57,30 @@ pub enum ListCommand {
   /// List Stacks (aliases: `stack`, `stk`)
   #[clap(alias = "stack", alias = "stk")]
   Stacks(ResourceFilters),
+  /// List Deployments (aliases: `deployment`, `dep`)
+  #[clap(alias = "deployment", alias = "dep")]
+  Deployments(ResourceFilters),
+  /// List Builds (aliases: `build`, `bld`)
+  #[clap(alias = "build", alias = "bld")]
+  Builds(ResourceFilters),
+  /// List Repos (alias: `repo`)
+  #[clap(alias = "repo")]
+  Repos(ResourceFilters),
+  /// List Procedures (aliases: `procedure`, `proc`)
+  #[clap(alias = "procedure", alias = "proc")]
+  Procedures(ResourceFilters),
+  /// List Actions (aliases: `action`, `act`)
+  #[clap(alias = "action", alias = "act")]
+  Actions(ResourceFilters),
+  /// List Syncs (alias: `sync`)
+  #[clap(alias = "sync")]
+  Syncs(ResourceFilters),
+  /// List Builders (aliases: `builder`, `bldr`)
+  #[clap(alias = "builder", alias = "bldr")]
+  Builders(ResourceFilters),
+  /// List Alerters (aliases: `alerter`, `alrt`)
+  #[clap(alias = "alerter", alias = "alrt")]
+  Alerters(ResourceFilters),
 }
 
 #[derive(Debug, Clone, clap::Parser)]

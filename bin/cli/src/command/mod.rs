@@ -1,6 +1,7 @@
 use std::io::Read;
 
 use anyhow::{Context, anyhow};
+use chrono::TimeZone;
 use colored::Colorize;
 use comfy_table::{Cell, Table};
 use komodo_client::{
@@ -137,4 +138,14 @@ fn matches_wildcards(
   items.iter().any(|item| {
     wildcards.iter().any(|wc| wc.is_match(item.as_bytes()))
   })
+}
+
+fn format_timetamp(ts: i64) -> anyhow::Result<String> {
+  let ts = chrono::Local
+    .timestamp_millis_opt(ts)
+    .single()
+    .context("Invalid ts")?
+    .format("%Y%m%d-%H%M%S")
+    .to_string();
+  Ok(ts)
 }

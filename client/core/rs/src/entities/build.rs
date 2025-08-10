@@ -68,15 +68,25 @@ pub struct BuildListItemInfo {
 
 #[typeshare]
 #[derive(
-  Debug, Clone, Copy, Default, Serialize, Deserialize, Display,
+  Debug,
+  Clone,
+  Copy,
+  Default,
+  PartialEq,
+  Eq,
+  PartialOrd,
+  Ord,
+  Serialize,
+  Deserialize,
+  Display,
 )]
 pub enum BuildState {
+  /// Currently building
+  Building,
   /// Last build successful (or never built)
   Ok,
   /// Last build failed
   Failed,
-  /// Currently building
-  Building,
   /// Other case
   #[default]
   Unknown,

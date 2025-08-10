@@ -4,21 +4,41 @@ use comfy_table::{Attribute, Cell, Color};
 use futures_util::{FutureExt, try_join};
 use komodo_client::{
   KomodoClient,
-  api::read::{ListServers, ListStacks, ListTags},
+  api::read::{
+    ListActions, ListAlerters, ListBuilders, ListBuilds,
+    ListDeployments, ListProcedures, ListRepos, ListResourceSyncs,
+    ListServers, ListStacks, ListTags,
+  },
   entities::{
+    action::{ActionListItem, ActionListItemInfo, ActionState},
+    alerter::{AlerterListItem, AlerterListItemInfo},
+    build::{BuildListItem, BuildListItemInfo, BuildState},
+    builder::{BuilderListItem, BuilderListItemInfo},
     config::cli::args::{
       self,
       list::{ListCommand, ResourceFilters},
     },
+    deployment::{
+      DeploymentListItem, DeploymentListItemInfo, DeploymentState,
+    },
+    procedure::{
+      ProcedureListItem, ProcedureListItemInfo, ProcedureState,
+    },
+    repo::{RepoListItem, RepoListItemInfo, RepoState},
     resource::{ResourceListItem, ResourceQuery},
     server::{ServerListItem, ServerListItemInfo, ServerState},
     stack::{StackListItem, StackListItemInfo, StackState},
+    sync::{
+      ResourceSyncListItem, ResourceSyncListItemInfo,
+      ResourceSyncState,
+    },
   },
 };
 use serde::Serialize;
 
 use crate::command::{
-  PrintTable, matches_wildcards, parse_wildcards, print_items,
+  PrintTable, format_timetamp, matches_wildcards, parse_wildcards,
+  print_items,
 };
 
 pub async fn handle(list: &args::list::List) -> anyhow::Result<()> {
@@ -30,20 +50,60 @@ pub async fn handle(list: &args::list::List) -> anyhow::Result<()> {
     Some(ListCommand::Stacks(filters)) => {
       list_resources::<StackListItem>(filters).await
     }
+    Some(ListCommand::Deployments(filters)) => {
+      list_resources::<DeploymentListItem>(filters).await
+    }
+    Some(ListCommand::Builds(filters)) => {
+      list_resources::<BuildListItem>(filters).await
+    }
+    Some(ListCommand::Repos(filters)) => {
+      list_resources::<RepoListItem>(filters).await
+    }
+    Some(ListCommand::Procedures(filters)) => {
+      list_resources::<ProcedureListItem>(filters).await
+    }
+    Some(ListCommand::Actions(filters)) => {
+      list_resources::<ActionListItem>(filters).await
+    }
+    Some(ListCommand::Syncs(filters)) => {
+      list_resources::<ResourceSyncListItem>(filters).await
+    }
+    Some(ListCommand::Builders(filters)) => {
+      list_resources::<BuilderListItem>(filters).await
+    }
+    Some(ListCommand::Alerters(filters)) => {
+      list_resources::<AlerterListItem>(filters).await
+    }
   }
 }
 
+/// Includes all resources besides builds and alerters.
 async fn list_all(list: &args::list::List) -> anyhow::Result<()> {
   let filters: ResourceFilters = list.clone().into();
   let client = super::komodo_client().await?;
-
-  let (tags, mut servers, mut stacks) = try_join!(
+  let (
+    tags,
+    mut servers,
+    mut stacks,
+    mut deployments,
+    mut builds,
+    mut repos,
+    mut procedures,
+    mut actions,
+    mut syncs,
+  ) = try_join!(
     client.read(ListTags::default()).map(|res| res.map(|res| res
       .into_iter()
       .map(|t| (t.id, t.name))
       .collect::<HashMap<_, _>>())),
     ServerListItem::list(client, &filters),
-    StackListItem::list(client, &filters)
+    StackListItem::list(client, &filters),
+    DeploymentListItem::list(client, &filters),
+    BuildListItem::list(client, &filters),
+    RepoListItem::list(client, &filters),
+    ProcedureListItem::list(client, &filters),
+    ActionListItem::list(client, &filters),
+    ResourceSyncListItem::list(client, &filters),
   )?;
 
   if !servers.is_empty() {
@@ -55,6 +115,42 @@ async fn list_all(list: &args::list::List) -> anyhow::Result<()> {
   if !stacks.is_empty() {
     fix_tags(&mut stacks, &tags);
     print_items(stacks, filters.format)?;
+    println!();
+  }
+
+  if !deployments.is_empty() {
+    fix_tags(&mut deployments, &tags);
+    print_items(deployments, filters.format)?;
+    println!();
+  }
+
+  if !builds.is_empty() {
+    fix_tags(&mut builds, &tags);
+    print_items(builds, filters.format)?;
+    println!();
+  }
+
+  if !repos.is_empty() {
+    fix_tags(&mut repos, &tags);
+    print_items(repos, filters.format)?;
+    println!();
+  }
+
+  if !procedures.is_empty() {
+    fix_tags(&mut procedures, &tags);
+    print_items(procedures, filters.format)?;
+    println!();
+  }
+
+  if !actions.is_empty() {
+    fix_tags(&mut actions, &tags);
+    print_items(actions, filters.format)?;
+    println!();
+  }
+
+  if !syncs.is_empty() {
+    fix_tags(&mut syncs, &tags);
+    print_items(syncs, filters.format)?;
     println!();
   }
 
@@ -202,13 +298,294 @@ impl ListResources for StackListItem {
       })
       .collect::<Vec<_>>();
     stacks.sort_by(|a, b| {
-      a.info.state.cmp(&b.info.state).then(
-        a.name
-          .cmp(&b.name)
-          .then(a.info.server_id.cmp(&b.info.server_id)),
-      )
+      a.info
+        .state
+        .cmp(&b.info.state)
+        .then(a.name.cmp(&b.name))
+        .then(a.info.server_id.cmp(&b.info.server_id))
     });
     Ok(stacks)
+  }
+}
+
+impl ListResources for DeploymentListItem {
+  type Info = DeploymentListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let (servers, mut deployments) = tokio::try_join!(
+      client
+        .read(ListServers {
+          query: ResourceQuery::builder().build(),
+        })
+        .map(|res| res.map(|res| res
+          .into_iter()
+          .map(|s| (s.id.clone(), s))
+          .collect::<HashMap<_, _>>())),
+      client.read(ListDeployments {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+    )?;
+    deployments.iter_mut().for_each(|deployment| {
+      if deployment.info.server_id.is_empty() {
+        return;
+      }
+      let Some(server) = servers.get(&deployment.info.server_id)
+      else {
+        return;
+      };
+      deployment.info.server_id.clone_from(&server.name);
+    });
+    let names = parse_wildcards(&filters.names);
+    let servers = parse_wildcards(&filters.servers);
+    let mut deployments = deployments
+      .into_iter()
+      .filter(|deployment| {
+        let state_check = if filters.all {
+          true
+        } else if filters.down {
+          !matches!(deployment.info.state, DeploymentState::Running)
+        } else {
+          matches!(deployment.info.state, DeploymentState::Running)
+        };
+        state_check
+          && matches_wildcards(&names, &[deployment.name.as_str()])
+          && matches_wildcards(
+            &servers,
+            &[deployment.info.server_id.as_str()],
+          )
+      })
+      .collect::<Vec<_>>();
+    deployments.sort_by(|a, b| {
+      a.info
+        .state
+        .cmp(&b.info.state)
+        .then(a.name.cmp(&b.name))
+        .then(a.info.server_id.cmp(&b.info.server_id))
+    });
+    Ok(deployments)
+  }
+}
+
+impl ListResources for BuildListItem {
+  type Info = BuildListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let (builders, mut builds) = tokio::try_join!(
+      client
+        .read(ListBuilders {
+          query: ResourceQuery::builder().build(),
+        })
+        .map(|res| res.map(|res| res
+          .into_iter()
+          .map(|s| (s.id.clone(), s))
+          .collect::<HashMap<_, _>>())),
+      client.read(ListBuilds {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+    )?;
+    builds.iter_mut().for_each(|build| {
+      if build.info.builder_id.is_empty() {
+        return;
+      }
+      let Some(builder) = builders.get(&build.info.builder_id) else {
+        return;
+      };
+      build.info.builder_id.clone_from(&builder.name);
+    });
+    let names = parse_wildcards(&filters.names);
+    let builders = parse_wildcards(&filters.builders);
+    let mut builds = builds
+      .into_iter()
+      .filter(|build| {
+        matches_wildcards(&names, &[build.name.as_str()])
+          && matches_wildcards(
+            &builders,
+            &[build.info.builder_id.as_str()],
+          )
+      })
+      .collect::<Vec<_>>();
+    builds.sort_by(|a, b| {
+      a.name
+        .cmp(&b.name)
+        .then(a.info.builder_id.cmp(&b.info.builder_id))
+        .then(a.info.state.cmp(&b.info.state))
+    });
+    Ok(builds)
+  }
+}
+
+impl ListResources for RepoListItem {
+  type Info = RepoListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let names = parse_wildcards(&filters.names);
+    let mut repos = client
+      .read(ListRepos {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+      .await?
+      .into_iter()
+      .filter(|repo| matches_wildcards(&names, &[repo.name.as_str()]))
+      .collect::<Vec<_>>();
+    repos.sort_by(|a, b| {
+      a.name
+        .cmp(&b.name)
+        .then(a.info.server_id.cmp(&b.info.server_id))
+        .then(a.info.builder_id.cmp(&b.info.builder_id))
+    });
+    Ok(repos)
+  }
+}
+
+impl ListResources for ProcedureListItem {
+  type Info = ProcedureListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let names = parse_wildcards(&filters.names);
+    let mut procedures = client
+      .read(ListProcedures {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+      .await?
+      .into_iter()
+      .filter(|procedure| {
+        matches_wildcards(&names, &[procedure.name.as_str()])
+      })
+      .collect::<Vec<_>>();
+    procedures.sort_by(|a, b| {
+      a.name.cmp(&b.name).then(a.info.state.cmp(&b.info.state))
+    });
+    Ok(procedures)
+  }
+}
+
+impl ListResources for ActionListItem {
+  type Info = ActionListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let names = parse_wildcards(&filters.names);
+    let mut actions = client
+      .read(ListActions {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+      .await?
+      .into_iter()
+      .filter(|action| {
+        matches_wildcards(&names, &[action.name.as_str()])
+      })
+      .collect::<Vec<_>>();
+    actions.sort_by(|a, b| {
+      a.name.cmp(&b.name).then(a.info.state.cmp(&b.info.state))
+    });
+    Ok(actions)
+  }
+}
+
+impl ListResources for ResourceSyncListItem {
+  type Info = ResourceSyncListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let names = parse_wildcards(&filters.names);
+    let mut syncs = client
+      .read(ListResourceSyncs {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+      .await?
+      .into_iter()
+      .filter(|sync| matches_wildcards(&names, &[sync.name.as_str()]))
+      .collect::<Vec<_>>();
+    syncs.sort_by(|a, b| {
+      a.name.cmp(&b.name).then(a.info.state.cmp(&b.info.state))
+    });
+    Ok(syncs)
+  }
+}
+
+impl ListResources for BuilderListItem {
+  type Info = BuilderListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let names = parse_wildcards(&filters.names);
+    let mut builders = client
+      .read(ListBuilders {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+      .await?
+      .into_iter()
+      .filter(|builder| {
+        matches_wildcards(&names, &[builder.name.as_str()])
+      })
+      .collect::<Vec<_>>();
+    builders.sort_by(|a, b| {
+      a.name
+        .cmp(&b.name)
+        .then(a.info.builder_type.cmp(&b.info.builder_type))
+    });
+    Ok(builders)
+  }
+}
+
+impl ListResources for AlerterListItem {
+  type Info = AlerterListItemInfo;
+  async fn list(
+    client: &KomodoClient,
+    filters: &ResourceFilters,
+  ) -> anyhow::Result<Vec<Self>> {
+    let names = parse_wildcards(&filters.names);
+    let mut syncs = client
+      .read(ListAlerters {
+        query: ResourceQuery::builder()
+          .tags(filters.tags.clone())
+          // .tag_behavior(TagQueryBehavior::Any)
+          .build(),
+      })
+      .await?
+      .into_iter()
+      .filter(|sync| matches_wildcards(&names, &[sync.name.as_str()]))
+      .collect::<Vec<_>>();
+    syncs.sort_by(|a, b| {
+      a.info
+        .enabled
+        .cmp(&b.info.enabled)
+        .then(a.name.cmp(&b.name))
+        .then(a.info.endpoint_type.cmp(&b.info.endpoint_type))
+    });
+    Ok(syncs)
   }
 }
 
@@ -253,6 +630,191 @@ impl PrintTable for ResourceListItem<StackListItemInfo> {
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.server_id),
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<DeploymentListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Deployment", "State", "Server", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let color = match self.info.state {
+      DeploymentState::NotDeployed => Color::Blue,
+      DeploymentState::Running => Color::Green,
+      DeploymentState::Paused => Color::DarkYellow,
+      DeploymentState::Unknown => Color::Magenta,
+      _ => Color::Red,
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      Cell::new(self.info.server_id),
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<BuildListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Build", "State", "Builder", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let color = match self.info.state {
+      BuildState::Ok => Color::Green,
+      BuildState::Building => Color::DarkYellow,
+      BuildState::Unknown => Color::Magenta,
+      BuildState::Failed => Color::Red,
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      Cell::new(self.info.builder_id),
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<RepoListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Repo", "State", "Link", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let color = match self.info.state {
+      RepoState::Ok => Color::Green,
+      RepoState::Building
+      | RepoState::Cloning
+      | RepoState::Pulling => Color::DarkYellow,
+      RepoState::Unknown => Color::Magenta,
+      RepoState::Failed => Color::Red,
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      Cell::new(self.info.repo_link),
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Procedure", "State", "Schedule", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let color = match self.info.state {
+      ProcedureState::Ok => Color::Green,
+      ProcedureState::Running => Color::DarkYellow,
+      ProcedureState::Unknown => Color::Magenta,
+      ProcedureState::Failed => Color::Red,
+    };
+    let next_run = if let Some(ts) = self.info.next_scheduled_run {
+      Cell::new(
+        format_timetamp(ts)
+          .unwrap_or(String::from("Invalid next ts")),
+      )
+      .add_attribute(Attribute::Bold)
+    } else {
+      Cell::new(String::from("None"))
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      next_run,
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<ActionListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Procedure", "State", "Schedule", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let color = match self.info.state {
+      ActionState::Ok => Color::Green,
+      ActionState::Running => Color::DarkYellow,
+      ActionState::Unknown => Color::Magenta,
+      ActionState::Failed => Color::Red,
+    };
+    let next_run = if let Some(ts) = self.info.next_scheduled_run {
+      Cell::new(
+        format_timetamp(ts)
+          .unwrap_or(String::from("Invalid next ts")),
+      )
+      .add_attribute(Attribute::Bold)
+    } else {
+      Cell::new(String::from("None"))
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      next_run,
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<ResourceSyncListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Sync", "State", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let color = match self.info.state {
+      ResourceSyncState::Ok => Color::Green,
+      ResourceSyncState::Pending | ResourceSyncState::Syncing => {
+        Color::DarkYellow
+      }
+      ResourceSyncState::Unknown => Color::Magenta,
+      ResourceSyncState::Failed => Color::Red,
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<BuilderListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Builder", "Type", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.builder_type),
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for ResourceListItem<AlerterListItemInfo> {
+  fn header() -> &'static [&'static str] {
+    &["Alerter", "Type", "Enabled", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.info.endpoint_type),
+      if self.info.enabled {
+        Cell::new(self.info.enabled.to_string()).fg(Color::Green)
+      } else {
+        Cell::new(self.info.enabled.to_string()).fg(Color::Red)
+      },
       Cell::new(self.tags.join(", ")),
     ]
   }
