@@ -47,13 +47,13 @@ pub struct ContainerListItem {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub network_mode: Option<String>,
   /// The network names attached to container
-  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub networks: Vec<String>,
   /// Port mappings for the container
-  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ports: Vec<Port>,
   /// The volume names attached to container
-  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub volumes: Vec<String>,
   /// The container stats, if they can be retreived.
   #[serde(skip_serializing_if = "Option::is_none")]
