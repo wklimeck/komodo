@@ -144,7 +144,7 @@ const StackServicePageInner = ({
                   </>
                 )}
                 {stack?.info.server_id &&
-                  container?.networks.map((network) => (
+                  container?.networks?.map((network) => (
                     <Fragment key={network}>
                       |
                       <DockerResourceLink
@@ -157,7 +157,7 @@ const StackServicePageInner = ({
                   ))}
                 {stack?.info.server_id &&
                   container &&
-                  container.volumes.map((volume) => (
+                  container.volumes?.map((volume) => (
                     <Fragment key={volume}>
                       |
                       <DockerResourceLink

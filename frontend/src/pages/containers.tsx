@@ -134,16 +134,16 @@ export default function ContainersPage() {
                 <SortableHeader column={column} title="Networks" />
               ),
               cell: ({ row }) =>
-                row.original.networks.length > 0 ? (
+                (row.original.networks?.length ?? 0) > 0 ? (
                   <div className="flex items-center gap-x-2 flex-wrap">
-                    {row.original.networks.map((network, i) => (
+                    {row.original.networks?.map((network, i) => (
                       <Fragment key={network}>
                         <DockerResourceLink
                           type="network"
                           server_id={row.original.server_id!}
                           name={network}
                         />
-                        {i !== row.original.networks.length - 1 && (
+                        {i !== row.original.networks!.length - 1 && (
                           <div className="text-muted-foreground">|</div>
                         )}
                       </Fragment>
@@ -167,7 +167,7 @@ export default function ContainersPage() {
               ),
               cell: ({ row }) => (
                 <ContainerPortsTableView
-                  ports={row.original.ports}
+                  ports={row.original.ports ?? []}
                   server_id={row.original.server_id}
                 />
               ),

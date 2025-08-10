@@ -182,12 +182,12 @@ export var UpdateStatus;
 })(UpdateStatus || (UpdateStatus = {}));
 export var BuildState;
 (function (BuildState) {
+    /** Currently building */
+    BuildState["Building"] = "Building";
     /** Last build successful (or never built) */
     BuildState["Ok"] = "Ok";
     /** Last build failed */
     BuildState["Failed"] = "Failed";
-    /** Currently building */
-    BuildState["Building"] = "Building";
     /** Other case */
     BuildState["Unknown"] = "Unknown";
 })(BuildState || (BuildState = {}));
@@ -350,14 +350,14 @@ export var TagColor;
 })(TagColor || (TagColor = {}));
 export var ContainerStateStatusEnum;
 (function (ContainerStateStatusEnum) {
-    ContainerStateStatusEnum["Empty"] = "";
-    ContainerStateStatusEnum["Created"] = "created";
     ContainerStateStatusEnum["Running"] = "running";
+    ContainerStateStatusEnum["Created"] = "created";
     ContainerStateStatusEnum["Paused"] = "paused";
     ContainerStateStatusEnum["Restarting"] = "restarting";
     ContainerStateStatusEnum["Exited"] = "exited";
     ContainerStateStatusEnum["Removing"] = "removing";
     ContainerStateStatusEnum["Dead"] = "dead";
+    ContainerStateStatusEnum["Empty"] = "";
 })(ContainerStateStatusEnum || (ContainerStateStatusEnum = {}));
 export var HealthStatusEnum;
 (function (HealthStatusEnum) {
@@ -452,12 +452,12 @@ export var PortTypeEnum;
 })(PortTypeEnum || (PortTypeEnum = {}));
 export var ProcedureState;
 (function (ProcedureState) {
+    /** Currently running */
+    ProcedureState["Running"] = "Running";
     /** Last run successful */
     ProcedureState["Ok"] = "Ok";
     /** Last run failed */
     ProcedureState["Failed"] = "Failed";
-    /** Currently running */
-    ProcedureState["Running"] = "Running";
     /** Other case (never run) */
     ProcedureState["Unknown"] = "Unknown";
 })(ProcedureState || (ProcedureState = {}));
@@ -478,23 +478,23 @@ export var RepoState;
 })(RepoState || (RepoState = {}));
 export var ResourceSyncState;
 (function (ResourceSyncState) {
-    /** Last sync successful (or never synced). No Changes pending */
-    ResourceSyncState["Ok"] = "Ok";
-    /** Last sync failed */
-    ResourceSyncState["Failed"] = "Failed";
     /** Currently syncing */
     ResourceSyncState["Syncing"] = "Syncing";
     /** Updates pending */
     ResourceSyncState["Pending"] = "Pending";
+    /** Last sync successful (or never synced). No Changes pending */
+    ResourceSyncState["Ok"] = "Ok";
+    /** Last sync failed */
+    ResourceSyncState["Failed"] = "Failed";
     /** Other case */
     ResourceSyncState["Unknown"] = "Unknown";
 })(ResourceSyncState || (ResourceSyncState = {}));
 export var ServerState;
 (function (ServerState) {
-    /** Server is unreachable. */
-    ServerState["NotOk"] = "NotOk";
     /** Server health check passing. */
     ServerState["Ok"] = "Ok";
+    /** Server is unreachable. */
+    ServerState["NotOk"] = "NotOk";
     /** Server is disabled. */
     ServerState["Disabled"] = "Disabled";
 })(ServerState || (ServerState = {}));

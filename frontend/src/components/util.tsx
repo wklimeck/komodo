@@ -151,7 +151,10 @@ export const ActionButton = forwardRef<
     <Button
       size={size}
       variant={variant || "secondary"}
-      className={cn("flex flex-1 shrink-0 gap-4 items-center justify-between max-w-[190px]", className)}
+      className={cn(
+        "flex flex-1 shrink-0 gap-4 items-center justify-between max-w-[190px]",
+        className
+      )}
       onClick={onClick}
       onBlur={onBlur}
       disabled={disabled || loading}
@@ -854,16 +857,16 @@ export const DockerContainersSection = ({
                   <SortableHeader column={column} title="Networks" />
                 ),
                 cell: ({ row }) =>
-                  row.original.networks.length > 0 ? (
+                  (row.original.networks?.length ?? 0) > 0 ? (
                     <div className="flex items-center gap-x-2 flex-wrap">
-                      {row.original.networks.map((network, i) => (
+                      {row.original.networks?.map((network, i) => (
                         <Fragment key={network}>
                           <DockerResourceLink
                             type="network"
                             server_id={server_id}
                             name={network}
                           />
-                          {i !== row.original.networks.length - 1 && (
+                          {i !== row.original.networks!.length - 1 && (
                             <div className="text-muted-foreground">|</div>
                           )}
                         </Fragment>
@@ -887,7 +890,7 @@ export const DockerContainersSection = ({
                 ),
                 cell: ({ row }) => (
                   <ContainerPortsTableView
-                    ports={row.original.ports}
+                    ports={row.original.ports ?? []}
                     server_id={row.original.server_id}
                   />
                 ),

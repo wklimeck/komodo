@@ -696,12 +696,12 @@ export interface BuildInfo {
 export type Build = Resource<BuildConfig, BuildInfo>;
 
 export enum BuildState {
+	/** Currently building */
+	Building = "Building",
 	/** Last build successful (or never built) */
 	Ok = "Ok",
 	/** Last build failed */
 	Failed = "Failed",
-	/** Currently building */
-	Building = "Building",
 	/** Other case */
 	Unknown = "Unknown",
 }
@@ -783,17 +783,17 @@ export type BuilderQuery = ResourceQuery<BuilderQuerySpecifics>;
 export type Execution = 
 	/** The "null" execution. Does nothing. */
 	| { type: "None", params: NoData }
-	/** Run the target action. (alias: `action`, `act`) */
+	/** Run the target action. (alias: `action`, `ac`) */
 	| { type: "RunAction", params: RunAction }
 	| { type: "BatchRunAction", params: BatchRunAction }
-	/** Run the target procedure. (alias: `procedure`, `proc`) */
+	/** Run the target procedure. (alias: `procedure`, `pr`) */
 	| { type: "RunProcedure", params: RunProcedure }
 	| { type: "BatchRunProcedure", params: BatchRunProcedure }
-	/** Run the target build. (alias: `build`, `bld`) */
+	/** Run the target build. (alias: `build`, `bd`) */
 	| { type: "RunBuild", params: RunBuild }
 	| { type: "BatchRunBuild", params: BatchRunBuild }
 	| { type: "CancelBuild", params: CancelBuild }
-	/** Deploy the target deployment. (alias: `dep`) */
+	/** Deploy the target deployment. (alias: `dp`) */
 	| { type: "Deploy", params: Deploy }
 	| { type: "BatchDeploy", params: BatchDeploy }
 	| { type: "PullDeployment", params: PullDeployment }
@@ -837,7 +837,7 @@ export type Execution =
 	| { type: "RunSync", params: RunSync }
 	/** Commit a Resource Sync. (alias: `commit`) */
 	| { type: "CommitSync", params: CommitSync }
-	/** Deploy the target stack. (alias: `stack`, `stk`) */
+	/** Deploy the target stack. (alias: `stack`, `st`) */
 	| { type: "DeployStack", params: DeployStack }
 	| { type: "BatchDeployStack", params: BatchDeployStack }
 	| { type: "DeployStackIfChanged", params: DeployStackIfChanged }
@@ -2485,14 +2485,14 @@ export type GetUserResponse = User;
 export type GetVariableResponse = Variable;
 
 export enum ContainerStateStatusEnum {
-	Empty = "",
-	Created = "created",
 	Running = "running",
+	Created = "created",
 	Paused = "paused",
 	Restarting = "restarting",
 	Exited = "exited",
 	Removing = "removing",
 	Dead = "dead",
+	Empty = "",
 }
 
 export enum HealthStatusEnum {
@@ -3337,11 +3337,11 @@ export interface ContainerListItem {
 	/** The network mode */
 	network_mode?: string;
 	/** The network names attached to container */
-	networks: string[];
+	networks?: string[];
 	/** Port mappings for the container */
-	ports: Port[];
+	ports?: Port[];
 	/** The volume names attached to container */
-	volumes: string[];
+	volumes?: string[];
 	/** The container stats, if they can be retreived. */
 	stats?: ContainerStats;
 	/**
@@ -3550,12 +3550,12 @@ export interface Permission {
 export type ListPermissionsResponse = Permission[];
 
 export enum ProcedureState {
+	/** Currently running */
+	Running = "Running",
 	/** Last run successful */
 	Ok = "Ok",
 	/** Last run failed */
 	Failed = "Failed",
-	/** Currently running */
-	Running = "Running",
 	/** Other case (never run) */
 	Unknown = "Unknown",
 }
@@ -3632,14 +3632,14 @@ export type RepoListItem = ResourceListItem<RepoListItemInfo>;
 export type ListReposResponse = RepoListItem[];
 
 export enum ResourceSyncState {
-	/** Last sync successful (or never synced). No Changes pending */
-	Ok = "Ok",
-	/** Last sync failed */
-	Failed = "Failed",
 	/** Currently syncing */
 	Syncing = "Syncing",
 	/** Updates pending */
 	Pending = "Pending",
+	/** Last sync successful (or never synced). No Changes pending */
+	Ok = "Ok",
+	/** Last sync failed */
+	Failed = "Failed",
 	/** Other case */
 	Unknown = "Unknown",
 }
@@ -3709,10 +3709,10 @@ export type ListSchedulesResponse = Schedule[];
 export type ListSecretsResponse = string[];
 
 export enum ServerState {
-	/** Server is unreachable. */
-	NotOk = "NotOk",
 	/** Server health check passing. */
 	Ok = "Ok",
+	/** Server is unreachable. */
+	NotOk = "NotOk",
 	/** Server is disabled. */
 	Disabled = "Disabled",
 }

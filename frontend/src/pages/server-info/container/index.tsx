@@ -122,7 +122,7 @@ const ContainerPageInner = ({
                     />
                   </>
                 )}
-                {list_container?.networks.map((network) => (
+                {list_container?.networks?.map((network) => (
                   <Fragment key={network}>
                     |
                     <DockerResourceLink
@@ -133,7 +133,7 @@ const ContainerPageInner = ({
                     />
                   </Fragment>
                 ))}
-                {list_container?.volumes.map((volume) => (
+                {list_container?.volumes?.map((volume) => (
                   <Fragment key={volume}>
                     |
                     <DockerResourceLink

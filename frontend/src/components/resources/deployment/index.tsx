@@ -331,7 +331,7 @@ export const DeploymentComponents: RequiredResourceComponents = {
       if (!container) return null;
       return (
         <ContainerPortsTableView
-          ports={container?.ports}
+          ports={container?.ports ?? []}
           server_id={deployment?.info.server_id}
         />
       );
