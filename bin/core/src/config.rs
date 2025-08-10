@@ -2,6 +2,7 @@ use std::{path::PathBuf, sync::OnceLock};
 
 use anyhow::Context;
 use colored::Colorize;
+use config::ConfigLoader;
 use environment_file::{
   maybe_read_item_from_file, maybe_read_list_from_file,
 };
@@ -42,17 +43,17 @@ pub fn core_config() -> &'static CoreConfig {
         "INFO".green(),
         "Config File Keywords".dimmed(),
       );
-      config::parse_config_paths::<CoreConfig>(
-        &env.komodo_config_paths
+      (ConfigLoader {
+        paths: &env.komodo_config_paths
           .iter()
           .map(PathBuf::as_path)
           .collect::<Vec<_>>(),
-        &config_keywords,
-        ".kcoreignore",
-        env.komodo_merge_nested_config,
-        env.komodo_extend_config_arrays,
-        env.komodo_config_debug,
-      )
+        match_wildcards: &config_keywords,
+        include_file_name: ".kcoreinclude",
+        merge_nested: env.komodo_merge_nested_config,
+        extend_array: env.komodo_extend_config_arrays,
+        debug_print: env.komodo_config_debug,
+      }).load::<CoreConfig>()
       .expect("Failed at parsing config from paths")
     };
 

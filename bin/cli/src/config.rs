@@ -20,24 +20,33 @@ pub fn cli_args() -> &'static CliArgs {
   CLI_ARGS.get_or_init(CliArgs::parse)
 }
 
-pub fn cli_config() -> &'static CliConfig {
-  static CLI_CONFIG: OnceLock<CliConfig> = OnceLock::new();
-  CLI_CONFIG.get_or_init(|| {
-    let env: Env = match envy::from_env()
+pub fn cli_env() -> &'static Env {
+  static CLI_ARGS: OnceLock<Env> = OnceLock::new();
+  CLI_ARGS.get_or_init(|| {
+    match envy::from_env()
       .context("Failed to parse Komodo CLI environment")
     {
       Ok(env) => env,
       Err(e) => {
         panic!("{e:?}");
       }
-    };
+    }
+  })
+}
+
+pub fn cli_config() -> &'static CliConfig {
+  static CLI_CONFIG: OnceLock<CliConfig> = OnceLock::new();
+  CLI_CONFIG.get_or_init(|| {
     let args = cli_args();
+    let env = cli_env().clone();
     let config_paths = args
       .config_path
       .clone()
       .unwrap_or(env.komodo_cli_config_paths);
+    let debug_startup =
+      args.debug_startup.unwrap_or(env.komodo_cli_debug_startup);
 
-    if env.komodo_cli_debug_startup {
+    if debug_startup {
       println!(
         "{}: Komodo CLI version: {}",
         "DEBUG".cyan(),
@@ -58,26 +67,25 @@ pub fn cli_config() -> &'static CliConfig {
       .iter()
       .map(String::as_str)
       .collect::<Vec<_>>();
-    if env.komodo_cli_debug_startup {
+    if debug_startup {
       println!(
         "{}: {}: {config_keywords:?}",
         "DEBUG".cyan(),
         "Config File Keywords".dimmed(),
       );
     }
-    let mut unparsed_config = config::parse_config_paths::<
-      serde_json::Map<String, serde_json::Value>,
-    >(
-      &config_paths
+    let mut unparsed_config = (config::ConfigLoader {
+      paths: &config_paths
         .iter()
         .map(PathBuf::as_path)
         .collect::<Vec<_>>(),
-      &config_keywords,
-      ".kmignore",
-      env.komodo_cli_merge_nested_config,
-      env.komodo_cli_extend_config_arrays,
-      env.komodo_cli_debug_startup,
-    )
+      match_wildcards: &config_keywords,
+      include_file_name: ".kminclude",
+      merge_nested: env.komodo_cli_merge_nested_config,
+      extend_array: env.komodo_cli_extend_config_arrays,
+      debug_print: debug_startup,
+    })
+    .load::<serde_json::Map<String, serde_json::Value>>()
     .expect("failed at parsing config from paths");
     let init_parsed_config = serde_json::from_value::<CliConfig>(
       serde_json::Value::Object(unparsed_config.clone()),
@@ -174,7 +182,7 @@ pub fn cli_config() -> &'static CliConfig {
     .context("Failed to parse final config")
     .unwrap();
     let config_profile = if config.config_profile.is_empty() {
-      String::from("Default")
+      String::from("None")
     } else {
       config.config_profile
     };

@@ -2,6 +2,7 @@ use std::{path::PathBuf, sync::OnceLock};
 
 use clap::Parser;
 use colored::Colorize;
+use config::ConfigLoader;
 use environment_file::maybe_read_list_from_file;
 use komodo_client::entities::{
   config::periphery::{CliArgs, Env, PeripheryConfig},
@@ -25,32 +26,33 @@ pub fn periphery_config() -> &'static PeripheryConfig {
       );
       PeripheryConfig::default()
     } else {
-      config::parse_config_paths::<PeripheryConfig>(
-        &config_paths
+      (ConfigLoader {
+        paths: &config_paths
           .iter()
           .map(PathBuf::as_path)
           .collect::<Vec<_>>(),
-        &args
+        match_wildcards: &args
           .config_keyword
           .unwrap_or(env.periphery_config_keywords)
           .iter()
           .map(String::as_str)
           .collect::<Vec<_>>(),
-        ".peripheryignore",
-        args
+        include_file_name: ".peripheryignore",
+        merge_nested: args
           .merge_nested_config
           .unwrap_or(env.periphery_merge_nested_config),
-        args
+        extend_array: args
           .extend_config_arrays
           .unwrap_or(env.periphery_extend_config_arrays),
-        args
+        debug_print: args
           .log_level
           .map(|level| {
             level == tracing::Level::DEBUG
               || level == tracing::Level::TRACE
           })
           .unwrap_or_default(),
-      )
+      })
+      .load()
       .expect("failed at parsing config from paths")
     };
 

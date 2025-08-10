@@ -12,11 +12,14 @@ mod config;
 async fn app() -> anyhow::Result<()> {
   dotenvy::dotenv().ok();
   logger::init(&config::cli_config().cli_logging)?;
+  let args = config::cli_args();
+  let env = config::cli_env();
+  let debug_load =
+    args.debug_startup.unwrap_or(env.komodo_cli_debug_startup);
 
-  match &config::cli_args().command {
+  match &args.command {
     args::Command::Config {
       all_profiles,
-      debug,
       unsanitized,
     } => {
       let mut config = if *unsanitized {
@@ -27,7 +30,7 @@ async fn app() -> anyhow::Result<()> {
       if !*all_profiles {
         config.profile = Default::default();
       }
-      if *debug {
+      if debug_load {
         println!("\n{config:#?}");
       } else {
         println!(

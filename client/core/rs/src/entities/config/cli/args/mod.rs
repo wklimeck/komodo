@@ -30,6 +30,10 @@ pub struct CliArgs {
   /// Can use multiple times to match multiple patterns independently.
   #[arg(long, short = 'm')]
   pub config_keyword: Option<Vec<String>>,
+
+  /// Whether to debug print on configuration load (on startup)
+  #[arg(action, alias = "debug", short = 'd')]
+  pub debug_startup: Option<bool>,
 }
 
 #[derive(Debug, Clone, clap::Subcommand)]
@@ -40,9 +44,7 @@ pub enum Command {
     /// Whether to print the additional profiles picked up
     #[arg(long, short = 'a', default_value_t = false)]
     all_profiles: bool,
-    /// Whether to debug print the config
-    #[arg(long, short = 'd', default_value_t = false)]
-    debug: bool,
+
     /// Whether to print unsanitized config,
     /// including sensitive credentials.
     #[arg(long, action)]
