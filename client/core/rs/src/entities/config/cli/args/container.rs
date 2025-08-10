@@ -15,6 +15,7 @@ pub struct Container {
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
   /// Filter containers by a particular server.
+  /// Supports wildcard syntax.
   /// Can be specified multiple times. (alias `s`)
   #[arg(name = "server", long, short = 's')]
   pub servers: Vec<String>,
@@ -36,4 +37,14 @@ pub struct Container {
 }
 
 #[derive(Debug, Clone, clap::Subcommand)]
-pub enum ContainerCommand {}
+pub enum ContainerCommand {
+  #[clap(alias = "i")]
+  Inspect {
+    /// The container name. If it matches multiple containers and no server is specified,
+    /// each container's inspect info will be logged.
+    container: String,
+    /// Select the particular server container is on (alias `s`)
+    #[arg(name = "server", long, short = 's')]
+    servers: Vec<String>,
+  },
+}

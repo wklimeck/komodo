@@ -1,15 +1,20 @@
 use std::collections::{HashMap, HashSet};
 
+use anyhow::Context;
+use colored::Colorize;
 use comfy_table::{Attribute, Cell, Color};
-use futures_util::FutureExt;
+use futures_util::{
+  FutureExt, TryStreamExt, stream::FuturesUnordered,
+};
 use komodo_client::{
-  api::read::{ListAllDockerContainers, ListServers},
+  api::read::{
+    InspectDockerContainer, ListAllDockerContainers, ListServers,
+  },
   entities::{
-    config::cli::args::container::Container,
+    config::cli::args::container::{Container, ContainerCommand},
     docker::container::{
       ContainerListItem, ContainerStateStatusEnum,
     },
-    resource::ResourceQuery,
   },
 };
 
@@ -18,9 +23,11 @@ use crate::command::{
 };
 
 pub async fn handle(container: &Container) -> anyhow::Result<()> {
-  match container.command {
+  match &container.command {
     None => list_containers(container).await,
-    Some(_) => Ok(()),
+    Some(ContainerCommand::Inspect { container, servers }) => {
+      inspect_container(container, servers).await
+    }
   }
 }
 
@@ -38,23 +45,31 @@ async fn list_containers(
   }: &Container,
 ) -> anyhow::Result<()> {
   let client = super::komodo_client().await?;
-  let (servers, containers) = tokio::try_join!(
+  let (server_map, mut containers) = tokio::try_join!(
     client
-      .read(ListServers {
-        query: ResourceQuery::builder()
-          .names(servers.clone())
-          .build()
-      })
+      .read(ListServers::default())
       .map(|res| res.map(|res| res
         .into_iter()
         .map(|s| (s.id.clone(), s))
         .collect::<HashMap<_, _>>())),
     client.read(ListAllDockerContainers {
-      servers: servers.clone()
+      servers: Default::default()
     }),
   )?;
 
+  containers.iter_mut().for_each(|c| {
+    let Some(server_id) = c.server_id.as_ref() else {
+      return;
+    };
+    let Some(server) = server_map.get(server_id) else {
+      c.server_id = Some(String::from("Unknown"));
+      return;
+    };
+    c.server_id = Some(server.name.clone());
+  });
+
   let names = parse_wildcards(names);
+  let servers = parse_wildcards(servers);
   let images = parse_wildcards(images);
   let networks = parse_wildcards(networks);
 
@@ -82,20 +97,16 @@ async fn list_containers(
         && network_check
         && matches_wildcards(&names, &[c.name.as_str()])
         && matches_wildcards(
+          &servers,
+          &c.server_id
+            .as_deref()
+            .map(|i| vec![i])
+            .unwrap_or_default(),
+        )
+        && matches_wildcards(
           &images,
           &c.image.as_deref().map(|i| vec![i]).unwrap_or_default(),
         )
-    })
-    .map(|mut c| {
-      let Some(server_id) = c.server_id.as_ref() else {
-        return c;
-      };
-      let Some(server) = servers.get(server_id) else {
-        c.server_id = Some(String::from("Unknown"));
-        return c;
-      };
-      c.server_id = Some(server.name.clone());
-      c
     })
     .collect::<Vec<_>>();
   containers.sort_by(|a, b| {
@@ -157,4 +168,89 @@ impl PrintTable for ContainerListItem {
       Cell::new(self.image.unwrap_or(String::from("Unknown"))),
     ]
   }
+}
+
+async fn inspect_container(
+  container: &str,
+  servers: &[String],
+) -> anyhow::Result<()> {
+  let client = super::komodo_client().await?;
+  let (server_map, mut containers) = tokio::try_join!(
+    client
+      .read(ListServers::default())
+      .map(|res| res.map(|res| res
+        .into_iter()
+        .map(|s| (s.id.clone(), s))
+        .collect::<HashMap<_, _>>())),
+    client.read(ListAllDockerContainers {
+      servers: Default::default()
+    }),
+  )?;
+
+  containers.iter_mut().for_each(|c| {
+    let Some(server_id) = c.server_id.as_ref() else {
+      return;
+    };
+    let Some(server) = server_map.get(server_id) else {
+      c.server_id = Some(String::from("Unknown"));
+      return;
+    };
+    c.server_id = Some(server.name.clone());
+  });
+
+  let names = [container.to_string()];
+  let names = parse_wildcards(&names);
+  let servers = parse_wildcards(servers);
+
+  let mut containers = containers
+    .into_iter()
+    .filter(|c| {
+      matches_wildcards(&names, &[c.name.as_str()])
+        && matches_wildcards(
+          &servers,
+          &c.server_id
+            .as_deref()
+            .map(|i| vec![i])
+            .unwrap_or_default(),
+        )
+    })
+    .map(|c| async move {
+      client
+        .read(InspectDockerContainer {
+          container: c.name,
+          server: c.server_id.context("No server...")?,
+        })
+        .await
+    })
+    .collect::<FuturesUnordered<_>>()
+    .try_collect::<Vec<_>>()
+    .await?;
+
+  containers.sort_by(|a, b| a.name.cmp(&b.name));
+
+  match containers.len() {
+    0 => {
+      println!(
+        "{}: Did not find any containers matching '{}'",
+        "INFO".green(),
+        container.bold()
+      );
+    }
+    1 => {
+      println!(
+        "{}",
+        serde_json::to_string_pretty(&containers[0])
+          .context("Failed to serialize items to JSON")?
+      );
+    }
+    _ => {
+      println!(
+        "{}",
+        serde_json::to_string_pretty(&containers)
+          .context("Failed to serialize items to JSON")?
+      );
+    }
+  }
+
+  Ok(())
 }

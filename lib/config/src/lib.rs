@@ -79,11 +79,13 @@ pub fn parse_config_paths<T: DeserializeOwned>(
       all_files.insert(path);
     }
   }
-  println!(
-    "{}: {}: {all_files:?}",
-    "INFO".green(),
-    "Found Files".dimmed()
-  );
+  if debug_print {
+    println!(
+      "{}: {}: {all_files:?}",
+      "DEBUG".cyan(),
+      "Found Files".dimmed()
+    );
+  }
   parse_config_files(
     &all_files.into_iter().collect::<Vec<_>>(),
     merge_nested,

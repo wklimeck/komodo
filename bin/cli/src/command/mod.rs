@@ -145,7 +145,7 @@ fn format_timetamp(ts: i64) -> anyhow::Result<String> {
     .timestamp_millis_opt(ts)
     .single()
     .context("Invalid ts")?
-    .format("%Y%m%d-%H%M%S")
+    .format("%m/%d %H:%M:%S")
     .to_string();
   Ok(ts)
 }

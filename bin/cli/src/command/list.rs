@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 use comfy_table::{Attribute, Cell, Color};
 use futures_util::{FutureExt, try_join};
@@ -473,6 +473,12 @@ impl ListResources for ProcedureListItem {
       })
       .collect::<Vec<_>>();
     procedures.sort_by(|a, b| {
+      match (a.info.next_scheduled_run, b.info.next_scheduled_run) {
+        (Some(_), None) => return Ordering::Less,
+        (None, Some(_)) => return Ordering::Greater,
+        (Some(a), Some(b)) => return a.cmp(&b),
+        (None, None) => {}
+      }
       a.name.cmp(&b.name).then(a.info.state.cmp(&b.info.state))
     });
     Ok(procedures)
@@ -500,6 +506,12 @@ impl ListResources for ActionListItem {
       })
       .collect::<Vec<_>>();
     actions.sort_by(|a, b| {
+      match (a.info.next_scheduled_run, b.info.next_scheduled_run) {
+        (Some(_), None) => return Ordering::Less,
+        (None, Some(_)) => return Ordering::Greater,
+        (Some(a), Some(b)) => return a.cmp(&b),
+        (None, None) => {}
+      }
       a.name.cmp(&b.name).then(a.info.state.cmp(&b.info.state))
     });
     Ok(actions)
@@ -706,7 +718,7 @@ impl PrintTable for ResourceListItem<RepoListItemInfo> {
 
 impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Procedure", "State", "Schedule", "Tags"]
+    &["Procedure", "State", "Next Run", "Tags"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -737,7 +749,7 @@ impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
 
 impl PrintTable for ResourceListItem<ActionListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Procedure", "State", "Schedule", "Tags"]
+    &["Action", "State", "Next Run", "Tags"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {

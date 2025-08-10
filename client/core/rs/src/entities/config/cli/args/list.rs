@@ -66,8 +66,8 @@ pub enum ListCommand {
   /// List Repos (alias: `repo`)
   #[clap(alias = "repo")]
   Repos(ResourceFilters),
-  /// List Procedures (aliases: `procedure`, `proc`)
-  #[clap(alias = "procedure", alias = "proc")]
+  /// List Procedures (aliases: `procedure`, `pr`)
+  #[clap(alias = "procedure", alias = "pr")]
   Procedures(ResourceFilters),
   /// List Actions (aliases: `action`, `act`)
   #[clap(alias = "action", alias = "act")]

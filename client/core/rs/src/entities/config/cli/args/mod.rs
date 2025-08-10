@@ -53,8 +53,8 @@ pub enum Command {
   #[clap(alias = "ls", alias = "resources")]
   List(list::List),
 
-  /// Container info (aliases: `ps`, `containers`)
-  #[clap(alias = "ps", alias = "containers")]
+  /// Container info (aliases: `ps`, `con`, `containers`)
+  #[clap(alias = "ps", alias = "con", alias = "containers")]
   Container(container::Container),
 
   /// Run Komodo executions. (aliases: `x`, `run`, `deploy`, `dep`)
