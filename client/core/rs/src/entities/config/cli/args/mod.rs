@@ -49,13 +49,17 @@ pub enum Command {
     unsanitized: bool,
   },
 
-  /// List Komodo resources (aliases: `ls`, `resources`)
-  #[clap(alias = "ls", alias = "resources")]
-  List(list::List),
-
   /// Container info (aliases: `ps`, `con`, `containers`)
   #[clap(alias = "ps", alias = "con", alias = "containers")]
   Container(container::Container),
+
+  /// Inspect containers (alias: `i`)
+  #[clap(alias = "i")]
+  Inspect(container::InspectContainer),
+
+  /// List Komodo resources (aliases: `ls`, `resources`)
+  #[clap(alias = "ls", alias = "resources")]
+  List(list::List),
 
   /// Run Komodo executions. (aliases: `x`, `run`, `deploy`, `dep`)
   #[clap(alias = "x", alias = "run", alias = "deploy", alias = "dep")]

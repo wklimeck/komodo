@@ -11,7 +11,9 @@ use komodo_client::{
     InspectDockerContainer, ListAllDockerContainers, ListServers,
   },
   entities::{
-    config::cli::args::container::{Container, ContainerCommand},
+    config::cli::args::container::{
+      Container, ContainerCommand, InspectContainer,
+    },
     docker::container::{
       ContainerListItem, ContainerStateStatusEnum,
     },
@@ -25,8 +27,8 @@ use crate::command::{
 pub async fn handle(container: &Container) -> anyhow::Result<()> {
   match &container.command {
     None => list_containers(container).await,
-    Some(ContainerCommand::Inspect { container, servers }) => {
-      inspect_container(container, servers).await
+    Some(ContainerCommand::Inspect(inspect)) => {
+      inspect_container(inspect).await
     }
   }
 }
@@ -170,9 +172,8 @@ impl PrintTable for ContainerListItem {
   }
 }
 
-async fn inspect_container(
-  container: &str,
-  servers: &[String],
+pub async fn inspect_container(
+  inspect: &InspectContainer,
 ) -> anyhow::Result<()> {
   let client = super::komodo_client().await?;
   let (server_map, mut containers) = tokio::try_join!(
@@ -198,9 +199,9 @@ async fn inspect_container(
     c.server_id = Some(server.name.clone());
   });
 
-  let names = [container.to_string()];
+  let names = [inspect.container.to_string()];
   let names = parse_wildcards(&names);
-  let servers = parse_wildcards(servers);
+  let servers = parse_wildcards(&inspect.servers);
 
   let mut containers = containers
     .into_iter()
@@ -233,7 +234,7 @@ async fn inspect_container(
       println!(
         "{}: Did not find any containers matching '{}'",
         "INFO".green(),
-        container.bold()
+        inspect.container.bold()
       );
     }
     1 => {

@@ -38,13 +38,17 @@ pub struct Container {
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum ContainerCommand {
+  /// Inspect containers
   #[clap(alias = "i")]
-  Inspect {
-    /// The container name. If it matches multiple containers and no server is specified,
-    /// each container's inspect info will be logged.
-    container: String,
-    /// Select the particular server container is on (alias `s`)
-    #[arg(name = "server", long, short = 's')]
-    servers: Vec<String>,
-  },
+  Inspect(InspectContainer),
+}
+
+#[derive(Debug, Clone, clap::Parser)]
+pub struct InspectContainer {
+  /// The container name. If it matches multiple containers and no server is specified,
+  /// each container's inspect info will be logged.
+  pub container: String,
+  /// Select the particular server container is on (alias `s`)
+  #[arg(name = "server", long, short = 's')]
+  pub servers: Vec<String>,
 }

@@ -38,10 +38,13 @@ async fn app() -> anyhow::Result<()> {
       }
       Ok(())
     }
-    args::Command::List(list) => command::list::handle(list).await,
     args::Command::Container(container) => {
       command::container::handle(container).await
     }
+    args::Command::Inspect(inspect) => {
+      command::container::inspect_container(inspect).await
+    }
+    args::Command::List(list) => command::list::handle(list).await,
     args::Command::Execute(args) => {
       command::execute::handle(&args.execution, args.yes).await
     }
