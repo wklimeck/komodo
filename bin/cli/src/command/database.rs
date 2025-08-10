@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::Context;
 use colored::Colorize;
 use komodo_client::entities::{
-  config::cli::DatabaseCommand, optional_string,
+  config::cli::args::database::DatabaseCommand, optional_string,
 };
 
 use crate::{command::sanitize_uri, config::cli_config};

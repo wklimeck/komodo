@@ -2,7 +2,7 @@
 extern crate tracing;
 
 use anyhow::Context;
-use komodo_client::entities::config::cli;
+use komodo_client::entities::config::cli::args;
 
 use crate::config::cli_config;
 
@@ -14,7 +14,7 @@ async fn app() -> anyhow::Result<()> {
   logger::init(&config::cli_config().cli_logging)?;
 
   match &config::cli_args().command {
-    cli::Command::Config {
+    args::Command::Config {
       all_profiles,
       debug,
       unsanitized,
@@ -38,14 +38,17 @@ async fn app() -> anyhow::Result<()> {
       }
       Ok(())
     }
-    cli::Command::List(list) => command::list::handle(list).await,
-    cli::Command::Execute { execution, yes, .. } => {
-      command::execute::handle(execution, *yes).await
+    args::Command::List(list) => command::list::handle(list).await,
+    args::Command::Container(container) => {
+      command::container::handle(container).await
     }
-    cli::Command::Update { command } => {
+    args::Command::Execute(args) => {
+      command::execute::handle(&args.execution, args.yes).await
+    }
+    args::Command::Update { command } => {
       command::update::handle(command).await
     }
-    cli::Command::Database { command } => {
+    args::Command::Database { command } => {
       command::database::handle(command).await
     }
   }

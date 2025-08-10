@@ -120,6 +120,8 @@ pub struct StackServiceWithUpdate {
   Default,
   PartialEq,
   Eq,
+  PartialOrd,
+  Ord,
   Serialize,
   Deserialize,
   Display,
@@ -129,10 +131,10 @@ pub struct StackServiceWithUpdate {
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum StackState {
-  /// The stack is currently re/deploying
-  Deploying,
   /// All containers are running.
   Running,
+  /// The stack is currently re/deploying
+  Deploying,
   /// All containers are paused
   Paused,
   /// All contianers are stopped

@@ -3,7 +3,7 @@ use colored::Colorize;
 use database::mungos::mongodb::bson::doc;
 use komodo_client::entities::{
   config::{
-    cli::{CliEnabled, UpdateUserCommand},
+    cli::args::{CliEnabled, update::UpdateUserCommand},
     empty_or_redacted,
   },
   optional_string,

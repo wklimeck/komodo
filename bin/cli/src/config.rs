@@ -7,9 +7,12 @@ use environment_file::maybe_read_item_from_file;
 use komodo_client::entities::{
   config::{
     DatabaseConfig,
-    cli::{CliArgs, CliConfig, Command, DatabaseCommand, Env},
+    cli::{
+      CliConfig, Env,
+      args::{CliArgs, Command, Execute, database::DatabaseCommand},
+    },
   },
-  logger::{LogConfig, LogLevel},
+  logger::LogConfig,
 };
 
 pub fn cli_args() -> &'static CliArgs {
@@ -33,21 +36,8 @@ pub fn cli_config() -> &'static CliConfig {
       .config_path
       .clone()
       .unwrap_or(env.komodo_cli_config_paths);
-    let debug = args
-      .log_level
-      .map(|level| {
-        level == tracing::Level::DEBUG
-          || level == tracing::Level::TRACE
-      })
-      .unwrap_or_default();
-    let merge_nested_config = args
-      .merge_nested_config
-      .unwrap_or(env.komodo_cli_merge_nested_config);
-    let extend_config_arrays = args
-      .extend_config_arrays
-      .unwrap_or(env.komodo_cli_extend_config_arrays);
 
-    if debug {
+    if env.komodo_cli_debug_startup {
       println!(
         "{}: Komodo CLI version: {}",
         "DEBUG".cyan(),
@@ -68,7 +58,7 @@ pub fn cli_config() -> &'static CliConfig {
       .iter()
       .map(String::as_str)
       .collect::<Vec<_>>();
-    if debug {
+    if env.komodo_cli_debug_startup {
       println!(
         "{}: {}: {config_keywords:?}",
         "DEBUG".cyan(),
@@ -84,9 +74,9 @@ pub fn cli_config() -> &'static CliConfig {
         .collect::<Vec<_>>(),
       &config_keywords,
       ".kmignore",
-      merge_nested_config,
-      extend_config_arrays,
-      debug,
+      env.komodo_cli_merge_nested_config,
+      env.komodo_cli_extend_config_arrays,
+      env.komodo_cli_debug_startup,
     )
     .expect("failed at parsing config from paths");
     let init_parsed_config = serde_json::from_value::<CliConfig>(
@@ -96,9 +86,9 @@ pub fn cli_config() -> &'static CliConfig {
     .unwrap();
 
     let (host, key, secret) = match &args.command {
-      Command::Execute {
+      Command::Execute(Execute {
         host, key, secret, ..
-      } => (host.clone(), key.clone(), secret.clone()),
+      }) => (host.clone(), key.clone(), secret.clone()),
       _ => (None, None, None),
     };
 
@@ -171,8 +161,8 @@ pub fn cli_config() -> &'static CliConfig {
       config::merge_config(
         unparsed_config,
         profile_config.clone(),
-        merge_nested_config,
-        extend_config_arrays,
+        env.komodo_cli_merge_nested_config,
+        env.komodo_cli_extend_config_arrays,
       )
       .unwrap_or(profile_config)
     } else {
@@ -250,10 +240,8 @@ pub fn cli_config() -> &'static CliConfig {
         app_name: config.database.app_name,
       },
       cli_logging: LogConfig {
-        level: args
-          .log_level
-          .map(LogLevel::from)
-          .or(env.komodo_cli_logging_level)
+        level: env
+          .komodo_cli_logging_level
           .unwrap_or(config.cli_logging.level),
         stdio: env
           .komodo_cli_logging_stdio

@@ -2,11 +2,17 @@ use std::io::Read;
 
 use anyhow::{Context, anyhow};
 use colored::Colorize;
-use komodo_client::KomodoClient;
+use comfy_table::{Cell, Table};
+use komodo_client::{
+  KomodoClient, entities::config::cli::args::CliFormat,
+};
+use serde::Serialize;
 use tokio::sync::OnceCell;
+use wildcard::Wildcard;
 
 use crate::config::cli_config;
 
+pub mod container;
 pub mod database;
 pub mod execute;
 pub mod list;
@@ -79,4 +85,56 @@ fn sanitize_uri(uri: &str) -> String {
       format!("{protocol}://*****@{address}")
     }
   }
+}
+
+fn print_items<T: PrintTable + Serialize>(
+  items: Vec<T>,
+  format: CliFormat,
+) -> anyhow::Result<()> {
+  match format {
+    CliFormat::Table => {
+      let mut table = Table::new();
+      table.set_header(T::header());
+      for item in items {
+        table.add_row(item.row());
+      }
+      println!("{table}");
+    }
+    CliFormat::Json => {
+      println!(
+        "{}",
+        serde_json::to_string_pretty(&items)
+          .context("Failed to serialize items to JSON")?
+      );
+    }
+  }
+  Ok(())
+}
+
+trait PrintTable {
+  fn header() -> &'static [&'static str];
+  fn row(self) -> Vec<Cell>;
+}
+
+fn parse_wildcards(items: &[String]) -> Vec<Wildcard<'_>> {
+  items
+    .iter()
+    .flat_map(|i| {
+      Wildcard::new(i.as_bytes()).inspect_err(|e| {
+        warn!("Failed to parse wildcard: {i} | {e:?}")
+      })
+    })
+    .collect::<Vec<_>>()
+}
+
+fn matches_wildcards(
+  wildcards: &[Wildcard<'_>],
+  items: &[&str],
+) -> bool {
+  if wildcards.is_empty() {
+    return true;
+  }
+  items.iter().any(|item| {
+    wildcards.iter().any(|wc| wc.is_match(item.as_bytes()))
+  })
 }

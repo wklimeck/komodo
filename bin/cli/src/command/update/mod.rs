@@ -1,5 +1,6 @@
 use komodo_client::entities::{
-  build::PartialBuildConfig, config::cli::UpdateCommand,
+  build::PartialBuildConfig,
+  config::cli::args::update::UpdateCommand,
   deployment::PartialDeploymentConfig, repo::PartialRepoConfig,
   server::PartialServerConfig, stack::PartialStackConfig,
   sync::PartialResourceSyncConfig,
@@ -11,40 +12,23 @@ mod variable;
 
 pub async fn handle(command: &UpdateCommand) -> anyhow::Result<()> {
   match command {
-    UpdateCommand::Build { build, update, yes } => {
-      resource::update::<PartialBuildConfig>(build, update, *yes)
-        .await
+    UpdateCommand::Build(update) => {
+      resource::update::<PartialBuildConfig>(update).await
     }
-    UpdateCommand::Deployment {
-      deployment,
-      update,
-      yes,
-    } => {
-      resource::update::<PartialDeploymentConfig>(
-        deployment, update, *yes,
-      )
-      .await
+    UpdateCommand::Deployment(update) => {
+      resource::update::<PartialDeploymentConfig>(update).await
     }
-    UpdateCommand::Repo { repo, update, yes } => {
-      resource::update::<PartialRepoConfig>(repo, update, *yes).await
+    UpdateCommand::Repo(update) => {
+      resource::update::<PartialRepoConfig>(update).await
     }
-    UpdateCommand::Server {
-      server,
-      update,
-      yes,
-    } => {
-      resource::update::<PartialServerConfig>(server, update, *yes)
-        .await
+    UpdateCommand::Server(update) => {
+      resource::update::<PartialServerConfig>(update).await
     }
-    UpdateCommand::Stack { stack, update, yes } => {
-      resource::update::<PartialStackConfig>(stack, update, *yes)
-        .await
+    UpdateCommand::Stack(update) => {
+      resource::update::<PartialStackConfig>(update).await
     }
-    UpdateCommand::Sync { sync, update, yes } => {
-      resource::update::<PartialResourceSyncConfig>(
-        sync, update, *yes,
-      )
-      .await
+    UpdateCommand::Sync(update) => {
+      resource::update::<PartialResourceSyncConfig>(update).await
     }
     UpdateCommand::Variable {
       name,

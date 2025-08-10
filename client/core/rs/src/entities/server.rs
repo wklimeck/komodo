@@ -3,6 +3,7 @@ use std::{collections::HashMap, path::PathBuf};
 use derive_builder::Builder;
 use partial_derive2::Partial;
 use serde::{Deserialize, Serialize};
+use strum::Display;
 use typeshare::typeshare;
 
 use crate::{
@@ -25,7 +26,7 @@ pub type Server = Resource<ServerConfig, ()>;
 pub type ServerListItem = ResourceListItem<ServerListItemInfo>;
 
 #[typeshare]
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerListItemInfo {
   /// The server's state.
   pub state: ServerState,
@@ -336,22 +337,26 @@ pub struct ServerActionState {
 
 #[typeshare]
 #[derive(
-  Serialize,
-  Deserialize,
   Debug,
-  PartialEq,
-  Hash,
-  Eq,
   Clone,
   Copy,
+  PartialEq,
+  Eq,
+  Hash,
+  PartialOrd,
+  Ord,
   Default,
+  Display,
+  Serialize,
+  Deserialize,
 )]
+#[strum(serialize_all = "kebab-case")]
 pub enum ServerState {
+  /// Server health check passing.
+  Ok,
   /// Server is unreachable.
   #[default]
   NotOk,
-  /// Server health check passing.
-  Ok,
   /// Server is disabled.
   Disabled,
 }

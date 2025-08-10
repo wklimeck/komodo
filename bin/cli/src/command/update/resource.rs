@@ -6,9 +6,11 @@ use komodo_client::{
     UpdateServer, UpdateStack,
   },
   entities::{
-    build::PartialBuildConfig, deployment::PartialDeploymentConfig,
-    repo::PartialRepoConfig, server::PartialServerConfig,
-    stack::PartialStackConfig, sync::PartialResourceSyncConfig,
+    build::PartialBuildConfig,
+    config::cli::args::update::UpdateResource,
+    deployment::PartialDeploymentConfig, repo::PartialRepoConfig,
+    server::PartialServerConfig, stack::PartialStackConfig,
+    sync::PartialResourceSyncConfig,
   },
 };
 use serde::{Serialize, de::DeserializeOwned};
@@ -16,9 +18,11 @@ use serde::{Serialize, de::DeserializeOwned};
 pub async fn update<
   T: std::fmt::Debug + Serialize + DeserializeOwned + ResourceUpdate,
 >(
-  resource: &str,
-  update: &str,
-  yes: bool,
+  UpdateResource {
+    resource,
+    update,
+    yes,
+  }: &UpdateResource,
 ) -> anyhow::Result<()> {
   println!("\n{}: Update {}\n", "Mode".dimmed(), T::resource_type());
   println!(" - {}: {resource}", "Name".dimmed());
@@ -35,7 +39,7 @@ pub async fn update<
     }
   }
 
-  crate::command::wait_for_enter("update resource", yes)?;
+  crate::command::wait_for_enter("update resource", *yes)?;
 
   config.apply(resource).await
 }
