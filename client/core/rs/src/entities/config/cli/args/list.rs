@@ -51,30 +51,33 @@ impl From<List> for ResourceFilters {
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum ListCommand {
-  /// List Servers (aliases: `server`, `srv`)
-  #[clap(alias = "server", alias = "srv")]
+  /// List Servers (aliases: `server`, `sv`)
+  #[clap(alias = "server", alias = "sv")]
   Servers(ResourceFilters),
-  /// List Stacks (aliases: `stack`, `stk`)
-  #[clap(alias = "stack", alias = "stk")]
+  /// List Stacks (aliases: `stack`, `sk`)
+  #[clap(alias = "stack", alias = "sk")]
   Stacks(ResourceFilters),
-  /// List Deployments (aliases: `deployment`, `dep`)
-  #[clap(alias = "deployment", alias = "dep")]
+  /// List Deployments (aliases: `deployment`, `dp`)
+  #[clap(alias = "deployment", alias = "dp")]
   Deployments(ResourceFilters),
-  /// List Builds (aliases: `build`, `bld`)
-  #[clap(alias = "build", alias = "bld")]
+  /// List Builds (aliases: `build`, `bd`)
+  #[clap(alias = "build", alias = "bd")]
   Builds(ResourceFilters),
-  /// List Repos (alias: `repo`)
-  #[clap(alias = "repo")]
+  /// List Repos (aliases: `repo`, `rp`)
+  #[clap(alias = "repo", alias = "rp")]
   Repos(ResourceFilters),
   /// List Procedures (aliases: `procedure`, `pr`)
   #[clap(alias = "procedure", alias = "pr")]
   Procedures(ResourceFilters),
-  /// List Actions (aliases: `action`, `act`)
-  #[clap(alias = "action", alias = "act")]
+  /// List Actions (aliases: `action`, `ac`)
+  #[clap(alias = "action", alias = "ac")]
   Actions(ResourceFilters),
-  /// List Syncs (alias: `sync`)
-  #[clap(alias = "sync")]
+  /// List Syncs (aliases: `sync`, `sn`)
+  #[clap(alias = "sync", alias = "sn")]
   Syncs(ResourceFilters),
+  /// List scheduled Procedures / Actions (aliases: `sched`, `sc`)
+  #[clap(alias = "sched", alias = "sc")]
+  Schedules(ResourceFilters),
   /// List Builders (aliases: `builder`, `bldr`)
   #[clap(alias = "builder", alias = "bldr")]
   Builders(ResourceFilters),

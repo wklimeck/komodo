@@ -7,7 +7,7 @@ use komodo_client::{
   api::read::{
     ListActions, ListAlerters, ListBuilders, ListBuilds,
     ListDeployments, ListProcedures, ListRepos, ListResourceSyncs,
-    ListServers, ListStacks, ListTags,
+    ListSchedules, ListServers, ListStacks, ListTags,
   },
   entities::{
     action::{ActionListItem, ActionListItemInfo, ActionState},
@@ -26,6 +26,7 @@ use komodo_client::{
     },
     repo::{RepoListItem, RepoListItemInfo, RepoState},
     resource::{ResourceListItem, ResourceQuery},
+    schedule::Schedule,
     server::{ServerListItem, ServerListItemInfo, ServerState},
     stack::{StackListItem, StackListItemInfo, StackState},
     sync::{
@@ -67,6 +68,9 @@ pub async fn handle(list: &args::list::List) -> anyhow::Result<()> {
     }
     Some(ListCommand::Syncs(filters)) => {
       list_resources::<ResourceSyncListItem>(filters).await
+    }
+    Some(ListCommand::Schedules(filters)) => {
+      list_schedules(filters).await
     }
     Some(ListCommand::Builders(filters)) => {
       list_resources::<BuilderListItem>(filters).await
@@ -175,6 +179,49 @@ where
   fix_tags(&mut resources, &tags);
   if !resources.is_empty() {
     print_items(resources, filters.format)?;
+  }
+  Ok(())
+}
+
+async fn list_schedules(
+  filters: &ResourceFilters,
+) -> anyhow::Result<()> {
+  let client = crate::command::komodo_client().await?;
+  let (mut schedules, tags) = tokio::try_join!(
+    client
+      .read(ListSchedules {
+        tags: filters.tags.clone(),
+        tag_behavior: Default::default(),
+      })
+      .map(|res| res.map(|res| res
+        .into_iter()
+        .filter(|s| s.next_scheduled_run.is_some())
+        .collect::<Vec<_>>())),
+    client.read(ListTags::default()).map(|res| res.map(|res| res
+      .into_iter()
+      .map(|t| (t.id, t.name))
+      .collect::<HashMap<_, _>>()))
+  )?;
+  schedules.iter_mut().for_each(|resource| {
+    resource.tags.iter_mut().for_each(|id| {
+      let Some(name) = tags.get(id) else {
+        *id = String::new();
+        return;
+      };
+      id.clone_from(name);
+    });
+  });
+  schedules.sort_by(|a, b| {
+    match (a.next_scheduled_run, b.next_scheduled_run) {
+      (Some(_), None) => return Ordering::Less,
+      (None, Some(_)) => return Ordering::Greater,
+      (Some(a), Some(b)) => return a.cmp(&b),
+      (None, None) => {}
+    }
+    a.name.cmp(&b.name).then(a.enabled.cmp(&b.enabled))
+  });
+  if !schedules.is_empty() {
+    print_items(schedules, filters.format)?;
   }
   Ok(())
 }
@@ -827,6 +874,29 @@ impl PrintTable for ResourceListItem<AlerterListItemInfo> {
       } else {
         Cell::new(self.info.enabled.to_string()).fg(Color::Red)
       },
+      Cell::new(self.tags.join(", ")),
+    ]
+  }
+}
+
+impl PrintTable for Schedule {
+  fn header() -> &'static [&'static str] {
+    &["Name", "Type", "Next Run", "Tags"]
+  }
+  fn row(self) -> Vec<comfy_table::Cell> {
+    let next_run = if let Some(ts) = self.next_scheduled_run {
+      Cell::new(
+        format_timetamp(ts)
+          .unwrap_or(String::from("Invalid next ts")),
+      )
+      .add_attribute(Attribute::Bold)
+    } else {
+      Cell::new(String::from("None"))
+    };
+    vec![
+      Cell::new(self.name).add_attribute(Attribute::Bold),
+      Cell::new(self.target.extract_variant_id().0),
+      next_run,
       Cell::new(self.tags.join(", ")),
     ]
   }

@@ -60,27 +60,27 @@ pub enum Execution {
   None(NoData),
 
   // ACTION
-  /// Run the target action. (alias: `action`, `act`)
-  #[clap(alias = "action", alias = "act")]
+  /// Run the target action. (alias: `action`, `ac`)
+  #[clap(alias = "action", alias = "ac")]
   RunAction(RunAction),
   BatchRunAction(BatchRunAction),
 
   // PROCEDURE
-  /// Run the target procedure. (alias: `procedure`, `proc`)
-  #[clap(alias = "procedure", alias = "proc")]
+  /// Run the target procedure. (alias: `procedure`, `pr`)
+  #[clap(alias = "procedure", alias = "pr")]
   RunProcedure(RunProcedure),
   BatchRunProcedure(BatchRunProcedure),
 
   // BUILD
-  /// Run the target build. (alias: `build`, `bld`)
-  #[clap(alias = "build", alias = "bld")]
+  /// Run the target build. (alias: `build`, `bd`)
+  #[clap(alias = "build", alias = "bd")]
   RunBuild(RunBuild),
   BatchRunBuild(BatchRunBuild),
   CancelBuild(CancelBuild),
 
   // DEPLOYMENT
-  /// Deploy the target deployment. (alias: `dep`)
-  #[clap(alias = "dep")]
+  /// Deploy the target deployment. (alias: `dp`)
+  #[clap(alias = "dp")]
   Deploy(Deploy),
   BatchDeploy(BatchDeploy),
   PullDeployment(PullDeployment),
@@ -137,8 +137,8 @@ pub enum Execution {
   CommitSync(CommitSync), // This is a special case, its actually a write operation.
 
   // STACK
-  /// Deploy the target stack. (alias: `stack`, `stk`)
-  #[clap(alias = "stack", alias = "stk")]
+  /// Deploy the target stack. (alias: `stack`, `sk`)
+  #[clap(alias = "stack", alias = "sk")]
   DeployStack(DeployStack),
   BatchDeployStack(BatchDeployStack),
   DeployStackIfChanged(DeployStackIfChanged),
