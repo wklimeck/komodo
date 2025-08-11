@@ -54,6 +54,20 @@ When run, CLI will scan the **current working directory** in addition to `${HOME
 parse them into a general representation, and then merge them together. Files which are detected later are merged later,
 meaning they will override on conflicting fields. By default, files in `${HOME}/.config/komodo` come first
 in the merge ordering, meaning they are **lower priority** than those detected in the current working directory.
+You can also override these default paths by passing `km -c /path/to/1/base.config.yaml -c ./overrides ...`.
+
+If you want `km` to find configuration files in another directory,
+you can use make `.kminclude` file inside one of the configured directories.
+
+```
+# Supports comments
+
+./.komodo    # relative to directory containing `kmignore`
+
+/etc/komodo/komodo.cli.toml
+```
+
+Note that wildcards in these paths are **not supported**.
 
 #### Profiles
 
