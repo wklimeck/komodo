@@ -51,8 +51,8 @@ pub enum Command {
     unsanitized: bool,
   },
 
-  /// Container info (aliases: `ps`, `con`, `containers`)
-  #[clap(alias = "ps", alias = "con", alias = "containers")]
+  /// Container info (aliases: `ps`, `cn`, `containers`)
+  #[clap(alias = "ps", alias = "cn", alias = "containers")]
   Container(container::Container),
 
   /// Inspect containers (alias: `i`)
