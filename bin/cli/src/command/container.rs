@@ -23,7 +23,6 @@ use komodo_client::{
 use crate::{
   command::{
     PrintTable, matches_wildcards, parse_wildcards, print_items,
-    text_link,
   },
   config::cli_config,
 };
@@ -218,7 +217,15 @@ pub async fn inspect_container(
 // (Option<Server Name>, Container)
 impl PrintTable for (Option<&'_ str>, ContainerListItem) {
   fn header() -> &'static [&'static str] {
-    &["Container", "State", "Server", "Ports", "Networks", "Image"]
+    &[
+      "Container",
+      "State",
+      "Server",
+      "Ports",
+      "Networks",
+      "Image",
+      "Link",
+    ]
   }
   fn row(self) -> Vec<Cell> {
     let color = match self.1.state {
@@ -250,20 +257,17 @@ impl PrintTable for (Option<&'_ str>, ContainerListItem) {
     } else {
       Cell::new(format!(":{}", ports.join(", :")))
     };
-    let name = if let Some(server_id) = self.1.server_id {
-      text_link(
-        &format!(
-          "{}/servers/{server_id}/container/{}",
-          cli_config().host,
-          self.1.name
-        ),
-        &self.1.name,
+    let link = if let Some(server_id) = self.1.server_id {
+      format!(
+        "{}/servers/{server_id}/container/{}",
+        cli_config().host,
+        self.1.name
       )
     } else {
-      self.1.name
+      String::new()
     };
     vec![
-      Cell::new(name).add_attribute(Attribute::Bold),
+      Cell::new(self.1.name).add_attribute(Attribute::Bold),
       Cell::new(self.1.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
@@ -271,6 +275,7 @@ impl PrintTable for (Option<&'_ str>, ContainerListItem) {
       ports,
       Cell::new(networks.join(", ")),
       Cell::new(self.1.image.as_deref().unwrap_or("Unknown")),
+      Cell::new(link),
     ]
   }
 }

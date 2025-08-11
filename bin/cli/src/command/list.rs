@@ -42,7 +42,7 @@ use serde::Serialize;
 use crate::{
   command::{
     PrintTable, format_timetamp, matches_wildcards, parse_wildcards,
-    print_items, text_link,
+    print_items,
   },
   config::cli_config,
 };
@@ -657,7 +657,7 @@ impl ListResources for AlerterListItem {
 
 impl PrintTable for ResourceListItem<ServerListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Server", "State", "Address", "Tags"]
+    &["Server", "State", "Address", "Tags", "Link"]
   }
   fn row(self) -> Vec<Cell> {
     let color = match self.info.state {
@@ -666,24 +666,24 @@ impl PrintTable for ResourceListItem<ServerListItemInfo> {
       ServerState::Disabled => Color::Blue,
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Server,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.address),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Server,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<StackListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Stack", "State", "Server", "Source", "Tags"]
+    &["Stack", "State", "Server", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -693,33 +693,33 @@ impl PrintTable for ResourceListItem<StackListItemInfo> {
       StackState::Unknown => Color::Magenta,
       _ => Color::Red,
     };
-    let source = if self.info.files_on_host {
-      "On Host"
-    } else if !self.info.repo.is_empty() {
-      self.info.repo_link.as_str()
-    } else {
-      "UI Defined"
-    };
+    // let source = if self.info.files_on_host {
+    //   "On Host"
+    // } else if !self.info.repo.is_empty() {
+    //   self.info.repo_link.as_str()
+    // } else {
+    //   "UI Defined"
+    // };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Stack,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.server_id),
-      Cell::new(source),
+      // Cell::new(source),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Stack,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<DeploymentListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Deployment", "State", "Server", "Tags"]
+    &["Deployment", "State", "Server", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -730,24 +730,24 @@ impl PrintTable for ResourceListItem<DeploymentListItemInfo> {
       _ => Color::Red,
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Deployment,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.server_id),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Deployment,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<BuildListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Build", "State", "Builder", "Tags"]
+    &["Build", "State", "Builder", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -757,24 +757,24 @@ impl PrintTable for ResourceListItem<BuildListItemInfo> {
       BuildState::Failed => Color::Red,
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Build,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.builder_id),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Build,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<RepoListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Repo", "State", "Link", "Tags"]
+    &["Repo", "State", "Link", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -786,24 +786,24 @@ impl PrintTable for ResourceListItem<RepoListItemInfo> {
       RepoState::Failed => Color::Red,
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Repo,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.repo_link),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Repo,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Procedure", "State", "Next Run", "Tags"]
+    &["Procedure", "State", "Next Run", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -822,24 +822,24 @@ impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
       Cell::new(String::from("None"))
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Procedure,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       next_run,
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Procedure,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<ActionListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Action", "State", "Next Run", "Tags"]
+    &["Action", "State", "Next Run", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -858,24 +858,24 @@ impl PrintTable for ResourceListItem<ActionListItemInfo> {
       Cell::new(String::from("None"))
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Action,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       next_run,
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Action,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<ResourceSyncListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Sync", "State", "Tags"]
+    &["Sync", "State", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
@@ -887,50 +887,45 @@ impl PrintTable for ResourceListItem<ResourceSyncListItemInfo> {
       ResourceSyncState::Failed => Color::Red,
     };
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::ResourceSync,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::ResourceSync,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<BuilderListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Builder", "Type", "Tags"]
+    &["Builder", "Type", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Builder,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.builder_type),
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Builder,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for ResourceListItem<AlerterListItemInfo> {
   fn header() -> &'static [&'static str] {
-    &["Alerter", "Type", "Enabled", "Tags"]
+    &["Alerter", "Type", "Enabled", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     vec![
-      Cell::new(name_link(
-        ResourceTargetVariant::Alerter,
-        &self.id,
-        &self.name,
-      ))
-      .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.endpoint_type),
       if self.info.enabled {
         Cell::new(self.info.enabled.to_string()).fg(Color::Green)
@@ -938,13 +933,18 @@ impl PrintTable for ResourceListItem<AlerterListItemInfo> {
         Cell::new(self.info.enabled.to_string()).fg(Color::Red)
       },
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(
+        &cli_config().host,
+        ResourceTargetVariant::Alerter,
+        &self.id,
+      )),
     ]
   }
 }
 
 impl PrintTable for Schedule {
   fn header() -> &'static [&'static str] {
-    &["Name", "Type", "Next Run", "Tags"]
+    &["Name", "Type", "Next Run", "Tags", "Link"]
   }
   fn row(self) -> Vec<comfy_table::Cell> {
     let next_run = if let Some(ts) = self.next_scheduled_run {
@@ -958,22 +958,11 @@ impl PrintTable for Schedule {
     };
     let (resource_type, id) = self.target.extract_variant_id();
     vec![
-      Cell::new(name_link(resource_type, id, &self.name))
-        .add_attribute(Attribute::Bold),
+      Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.target.extract_variant_id().0),
       next_run,
       Cell::new(self.tags.join(", ")),
+      Cell::new(resource_link(&cli_config().host, resource_type, id)),
     ]
   }
-}
-
-fn name_link(
-  resource_type: ResourceTargetVariant,
-  id: &str,
-  name: &str,
-) -> String {
-  text_link(
-    &resource_link(&cli_config().host, resource_type, id),
-    name,
-  )
 }

@@ -3,7 +3,7 @@ use std::io::Read;
 use anyhow::{Context, anyhow};
 use chrono::TimeZone;
 use colored::Colorize;
-use comfy_table::{Cell, Table};
+use comfy_table::{Attribute, Cell, Table};
 use komodo_client::{
   KomodoClient, entities::config::cli::args::CliFormat,
 };
@@ -95,7 +95,13 @@ fn print_items<T: PrintTable + Serialize>(
   match format {
     CliFormat::Table => {
       let mut table = Table::new();
-      table.set_header(T::header());
+      table
+        .load_preset(comfy_table::presets::UTF8_FULL)
+        .set_header(
+          T::header()
+            .into_iter()
+            .map(|h| Cell::new(h).add_attribute(Attribute::Bold)),
+        );
       for item in items {
         table.add_row(item.row());
       }
@@ -150,6 +156,6 @@ fn format_timetamp(ts: i64) -> anyhow::Result<String> {
   Ok(ts)
 }
 
-fn text_link(link: &str, text: &str) -> String {
-  format!("\x1b]8;;{link}\x07{text}\x1b]8;;\x07")
-}
+// fn text_link(link: &str, text: &str) -> String {
+//   format!("\x1b]8;;{link}\x07{text}\x1b]8;;\x07")
+// }
