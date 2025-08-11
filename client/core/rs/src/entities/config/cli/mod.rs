@@ -64,8 +64,8 @@ pub struct Env {
   pub komodo_cli_key: Option<String>,
   /// Override `cli_secret`
   pub komodo_cli_secret: Option<String>,
-  /// Override `table_format`
-  pub komodo_cli_table_format: Option<CliTableFormat>,
+  /// Override `table_borders`
+  pub komodo_cli_table_borders: Option<CliTableBorders>,
   /// Override `backups_folder`
   pub komodo_cli_backups_folder: Option<PathBuf>,
   /// Override `max_backups`
@@ -192,7 +192,7 @@ pub struct CliConfig {
   pub cli_secret: Option<String>,
   /// The format for the tables.
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub table_format: Option<CliTableFormat>,
+  pub table_borders: Option<CliTableBorders>,
   /// The root backups folder.
   ///
   /// Default: `/backups`.
@@ -276,7 +276,7 @@ impl Default for CliConfig {
       cli_key: Default::default(),
       cli_secret: Default::default(),
       cli_logging: default_log_config(),
-      table_format: Default::default(),
+      table_borders: Default::default(),
       backups_folder: default_backups_folder(),
       max_backups: default_max_backups(),
       database: default_database_config(),
@@ -302,7 +302,7 @@ impl CliConfig {
         .as_ref()
         .map(|cli_secret| empty_or_redacted(cli_secret)),
       cli_logging: self.cli_logging.clone(),
-      table_format: self.table_format,
+      table_borders: self.table_borders,
       backups_folder: self.backups_folder.clone(),
       max_backups: self.max_backups,
       database_target: self.database_target.sanitized(),
@@ -318,16 +318,16 @@ impl CliConfig {
 }
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
-pub enum CliTableFormat {
+pub enum CliTableBorders {
   /// Only horizontal borders. Default.
   #[default]
-  HorizontalOnly,
+  Horizontal,
   /// Only vertical borders.
-  VerticalOnly,
+  Vertical,
   /// Only borders around the outside of the table.
-  OutsideOnly,
+  Outside,
   /// Only borders horizontally / vertically between the rows / columns.
-  InsideOnly,
+  Inside,
   /// All borders
-  AllBorders,
+  All,
 }

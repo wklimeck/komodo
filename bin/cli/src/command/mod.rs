@@ -6,7 +6,7 @@ use colored::Colorize;
 use comfy_table::{Attribute, Cell, Table};
 use komodo_client::{
   KomodoClient,
-  entities::config::cli::{CliTableFormat, args::CliFormat},
+  entities::config::cli::{CliTableBorders, args::CliFormat},
 };
 use serde::Serialize;
 use tokio::sync::OnceCell;
@@ -99,14 +99,14 @@ fn print_items<T: PrintTable + Serialize>(
       let mut table = Table::new();
       let preset = {
         use comfy_table::presets::*;
-        match cli_config().table_format {
-          None | Some(CliTableFormat::HorizontalOnly) => {
+        match cli_config().table_borders {
+          None | Some(CliTableBorders::Horizontal) => {
             UTF8_HORIZONTAL_ONLY
           }
-          Some(CliTableFormat::VerticalOnly) => UTF8_FULL_CONDENSED,
-          Some(CliTableFormat::InsideOnly) => UTF8_NO_BORDERS,
-          Some(CliTableFormat::OutsideOnly) => UTF8_BORDERS_ONLY,
-          Some(CliTableFormat::AllBorders) => UTF8_FULL,
+          Some(CliTableBorders::Vertical) => UTF8_FULL_CONDENSED,
+          Some(CliTableBorders::Inside) => UTF8_NO_BORDERS,
+          Some(CliTableBorders::Outside) => UTF8_BORDERS_ONLY,
+          Some(CliTableBorders::All) => UTF8_FULL,
         }
       };
       table.load_preset(preset).set_header(

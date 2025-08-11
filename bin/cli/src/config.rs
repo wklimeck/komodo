@@ -191,9 +191,9 @@ pub fn cli_config() -> &'static CliConfig {
       config_profile,
       config_aliases: config.config_aliases,
       default_profile: config.default_profile,
-      table_format: env
-        .komodo_cli_table_format
-        .or(config.table_format),
+      table_borders: env
+        .komodo_cli_table_borders
+        .or(config.table_borders),
       host: host
         .or(env.komodo_cli_host)
         .or(env.komodo_host)
