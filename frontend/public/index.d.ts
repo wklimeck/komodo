@@ -758,7 +758,7 @@ declare global {
   var KomodoClient: typeof Client;
   /** All Komodo Types */
   export import Types = KomodoTypes;
-  /** The incoming Action 'ARGS' */
+  /** The incoming arguments */
   var ARGS: {
     WEBHOOK_BRANCH?: string;
     WEBHOOK_BODY?: any;
