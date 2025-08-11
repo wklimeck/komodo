@@ -760,8 +760,8 @@ declare global {
   export import Types = KomodoTypes;
   /** The incoming Action 'ARGS' */
   var ARGS: {
-    WEBHOOK_BRANCH: string;
-    WEBHOOK_BODY: any;
+    WEBHOOK_BRANCH?: string;
+    WEBHOOK_BODY?: any;
   } & Record<string, any>;
   /** YAML parsing utilities */
   var YAML: {
