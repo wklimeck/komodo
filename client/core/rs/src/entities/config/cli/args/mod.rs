@@ -38,8 +38,8 @@ pub struct CliArgs {
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
-  /// Print the CLI config being used. (alias: `cfg`)
-  #[clap(alias = "cfg")]
+  /// Print the CLI config being used. (aliases: `cfg`, `cf`)
+  #[clap(alias = "cfg", alias = "cf")]
   Config {
     /// Whether to print the additional profiles picked up
     #[arg(long, short = 'a', default_value_t = false)]
