@@ -506,7 +506,7 @@ pub async fn handle_action_webhook<B: super::ExtractBranch>(
 
   let req = ExecuteRequest::RunAction(RunAction {
     action: action.id,
-    args,
+    args: args.into(),
   });
   let update = init_execution_update(&req, &user).await?;
   let ExecuteRequest::RunAction(req) = req else {

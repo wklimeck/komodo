@@ -105,8 +105,13 @@ impl Resolve<ExecuteArgs> for RunAction {
     )
     .context("Failed to parse default Action arguments")?;
 
-    let args = merge_objects(default_args, self.args, true, true)
-      .context("Failed to merge request args with default args")?;
+    let args = merge_objects(
+      default_args,
+      self.args.unwrap_or_default(),
+      true,
+      true,
+    )
+    .context("Failed to merge request args with default args")?;
 
     let args = serde_json::to_string(&args)
       .context("Failed to serialize action run arguments")?;

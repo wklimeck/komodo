@@ -28,11 +28,12 @@ pub struct RunAction {
   /// Id or name
   pub action: String,
 
-  /// Custom arguments which can override the defaults.
+  /// Custom arguments which are merged on top of the default arguments.
+  /// CLI Format: `"VAR1=val1&VAR2=val2"`
+  /// 
   /// Webhook-triggered actions use this to pass WEBHOOK_BRANCH and WEBHOOK_BODY.
-  #[serde(default)]
-  #[arg(long, short = 'a', value_parser = args_parser)]
-  pub args: JsonObject,
+  #[clap(value_parser = args_parser)]
+  pub args: Option<JsonObject>,
 }
 
 fn args_parser(args: &str) -> anyhow::Result<JsonObject> {
