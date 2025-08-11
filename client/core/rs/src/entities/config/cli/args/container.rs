@@ -14,6 +14,9 @@ pub struct Container {
   /// List only non-running containers.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
+  /// Include links. Makes the table very large.
+  #[arg(long, short = 'l', default_value_t = false)]
+  pub links: bool,
   /// Filter containers by a particular server.
   /// Supports wildcard syntax.
   /// Can be specified multiple times. (alias `s`)

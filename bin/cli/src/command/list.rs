@@ -117,49 +117,49 @@ async fn list_all(list: &args::list::List) -> anyhow::Result<()> {
 
   if !servers.is_empty() {
     fix_tags(&mut servers, &tags);
-    print_items(servers, filters.format)?;
+    print_items(servers, filters.format, list.links)?;
     println!();
   }
 
   if !stacks.is_empty() {
     fix_tags(&mut stacks, &tags);
-    print_items(stacks, filters.format)?;
+    print_items(stacks, filters.format, list.links)?;
     println!();
   }
 
   if !deployments.is_empty() {
     fix_tags(&mut deployments, &tags);
-    print_items(deployments, filters.format)?;
+    print_items(deployments, filters.format, list.links)?;
     println!();
   }
 
   if !builds.is_empty() {
     fix_tags(&mut builds, &tags);
-    print_items(builds, filters.format)?;
+    print_items(builds, filters.format, list.links)?;
     println!();
   }
 
   if !repos.is_empty() {
     fix_tags(&mut repos, &tags);
-    print_items(repos, filters.format)?;
+    print_items(repos, filters.format, list.links)?;
     println!();
   }
 
   if !procedures.is_empty() {
     fix_tags(&mut procedures, &tags);
-    print_items(procedures, filters.format)?;
+    print_items(procedures, filters.format, list.links)?;
     println!();
   }
 
   if !actions.is_empty() {
     fix_tags(&mut actions, &tags);
-    print_items(actions, filters.format)?;
+    print_items(actions, filters.format, list.links)?;
     println!();
   }
 
   if !syncs.is_empty() {
     fix_tags(&mut syncs, &tags);
-    print_items(syncs, filters.format)?;
+    print_items(syncs, filters.format, list.links)?;
     println!();
   }
 
@@ -183,7 +183,7 @@ where
   )?;
   fix_tags(&mut resources, &tags);
   if !resources.is_empty() {
-    print_items(resources, filters.format)?;
+    print_items(resources, filters.format, filters.links)?;
   }
   Ok(())
 }
@@ -226,7 +226,7 @@ async fn list_schedules(
     a.name.cmp(&b.name).then(a.enabled.cmp(&b.enabled))
   });
   if !schedules.is_empty() {
-    print_items(schedules, filters.format)?;
+    print_items(schedules, filters.format, filters.links)?;
   }
   Ok(())
 }
@@ -656,36 +656,47 @@ impl ListResources for AlerterListItem {
 // TABLE
 
 impl PrintTable for ResourceListItem<ServerListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Server", "State", "Address", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Server", "State", "Address", "Tags", "Link"]
+    } else {
+      &["Server", "State", "Address", "Tags"]
+    }
   }
-  fn row(self) -> Vec<Cell> {
+  fn row(self, links: bool) -> Vec<Cell> {
     let color = match self.info.state {
       ServerState::Ok => Color::Green,
       ServerState::NotOk => Color::Red,
       ServerState::Disabled => Color::Blue,
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.address),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Server,
         &self.id,
-      )),
-    ]
+      )))
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<StackListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Stack", "State", "Server", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Stack", "State", "Server", "Tags", "Link"]
+    } else {
+      &["Stack", "State", "Server", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       StackState::Down => Color::Blue,
       StackState::Running => Color::Green,
@@ -700,7 +711,7 @@ impl PrintTable for ResourceListItem<StackListItemInfo> {
     // } else {
     //   "UI Defined"
     // };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
@@ -708,20 +719,27 @@ impl PrintTable for ResourceListItem<StackListItemInfo> {
       Cell::new(self.info.server_id),
       // Cell::new(source),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Stack,
         &self.id,
-      )),
-    ]
+      )))
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<DeploymentListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Deployment", "State", "Server", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Deployment", "State", "Server", "Tags", "Link"]
+    } else {
+      &["Deployment", "State", "Server", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       DeploymentState::NotDeployed => Color::Blue,
       DeploymentState::Running => Color::Green,
@@ -729,54 +747,68 @@ impl PrintTable for ResourceListItem<DeploymentListItemInfo> {
       DeploymentState::Unknown => Color::Magenta,
       _ => Color::Red,
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.server_id),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Deployment,
         &self.id,
-      )),
-    ]
+      )))
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<BuildListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Build", "State", "Builder", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Build", "State", "Builder", "Tags", "Link"]
+    } else {
+      &["Build", "State", "Builder", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       BuildState::Ok => Color::Green,
       BuildState::Building => Color::DarkYellow,
       BuildState::Unknown => Color::Magenta,
       BuildState::Failed => Color::Red,
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.builder_id),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Build,
         &self.id,
-      )),
-    ]
+      )));
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<RepoListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Repo", "State", "Link", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Repo", "State", "Link", "Tags", "Link"]
+    } else {
+      &["Repo", "State", "Link", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       RepoState::Ok => Color::Green,
       RepoState::Building
@@ -785,27 +817,34 @@ impl PrintTable for ResourceListItem<RepoListItemInfo> {
       RepoState::Unknown => Color::Magenta,
       RepoState::Failed => Color::Red,
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.info.repo_link),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Repo,
         &self.id,
-      )),
-    ]
+      )))
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Procedure", "State", "Next Run", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Procedure", "State", "Next Run", "Tags", "Link"]
+    } else {
+      &["Procedure", "State", "Next Run", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       ProcedureState::Ok => Color::Green,
       ProcedureState::Running => Color::DarkYellow,
@@ -821,27 +860,34 @@ impl PrintTable for ResourceListItem<ProcedureListItemInfo> {
     } else {
       Cell::new(String::from("None"))
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       next_run,
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Procedure,
         &self.id,
-      )),
-    ]
+      )))
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<ActionListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Action", "State", "Next Run", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Action", "State", "Next Run", "Tags", "Link"]
+    } else {
+      &["Action", "State", "Next Run", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       ActionState::Ok => Color::Green,
       ActionState::Running => Color::DarkYellow,
@@ -857,27 +903,34 @@ impl PrintTable for ResourceListItem<ActionListItemInfo> {
     } else {
       Cell::new(String::from("None"))
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       next_run,
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Action,
         &self.id,
-      )),
-    ]
+      )));
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<ResourceSyncListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Sync", "State", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Sync", "State", "Tags", "Link"]
+    } else {
+      &["Sync", "State", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let color = match self.info.state {
       ResourceSyncState::Ok => Color::Green,
       ResourceSyncState::Pending | ResourceSyncState::Syncing => {
@@ -886,45 +939,59 @@ impl PrintTable for ResourceListItem<ResourceSyncListItemInfo> {
       ResourceSyncState::Unknown => Color::Magenta,
       ResourceSyncState::Failed => Color::Red,
     };
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.state.to_string())
         .fg(color)
         .add_attribute(Attribute::Bold),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::ResourceSync,
         &self.id,
-      )),
-    ]
+      )))
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<BuilderListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Builder", "Type", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Builder", "Type", "Tags", "Link"]
+    } else {
+      &["Builder", "Type", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
-    vec![
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.builder_type),
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Builder,
         &self.id,
-      )),
-    ]
+      )));
+    }
+    res
   }
 }
 
 impl PrintTable for ResourceListItem<AlerterListItemInfo> {
-  fn header() -> &'static [&'static str] {
-    &["Alerter", "Type", "Enabled", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Alerter", "Type", "Enabled", "Tags", "Link"]
+    } else {
+      &["Alerter", "Type", "Enabled", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
-    vec![
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
+    let mut row = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.info.endpoint_type),
       if self.info.enabled {
@@ -933,20 +1000,27 @@ impl PrintTable for ResourceListItem<AlerterListItemInfo> {
         Cell::new(self.info.enabled.to_string()).fg(Color::Red)
       },
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(
+    ];
+    if links {
+      row.push(Cell::new(resource_link(
         &cli_config().host,
         ResourceTargetVariant::Alerter,
         &self.id,
-      )),
-    ]
+      )));
+    }
+    row
   }
 }
 
 impl PrintTable for Schedule {
-  fn header() -> &'static [&'static str] {
-    &["Name", "Type", "Next Run", "Tags", "Link"]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &["Name", "Type", "Next Run", "Tags", "Link"]
+    } else {
+      &["Name", "Type", "Next Run", "Tags"]
+    }
   }
-  fn row(self) -> Vec<comfy_table::Cell> {
+  fn row(self, links: bool) -> Vec<comfy_table::Cell> {
     let next_run = if let Some(ts) = self.next_scheduled_run {
       Cell::new(
         format_timetamp(ts)
@@ -957,12 +1031,19 @@ impl PrintTable for Schedule {
       Cell::new(String::from("None"))
     };
     let (resource_type, id) = self.target.extract_variant_id();
-    vec![
+    let mut res = vec![
       Cell::new(self.name).add_attribute(Attribute::Bold),
       Cell::new(self.target.extract_variant_id().0),
       next_run,
       Cell::new(self.tags.join(", ")),
-      Cell::new(resource_link(&cli_config().host, resource_type, id)),
-    ]
+    ];
+    if links {
+      res.push(Cell::new(resource_link(
+        &cli_config().host,
+        resource_type,
+        id,
+      )));
+    }
+    res
   }
 }

@@ -64,6 +64,8 @@ pub struct Env {
   pub komodo_cli_key: Option<String>,
   /// Override `cli_secret`
   pub komodo_cli_secret: Option<String>,
+  /// Override `table_format`
+  pub komodo_cli_table_format: Option<CliTableFormat>,
   /// Override `backups_folder`
   pub komodo_cli_backups_folder: Option<PathBuf>,
   /// Override `max_backups`
@@ -188,6 +190,9 @@ pub struct CliConfig {
   /// The api secret for the CLI to use
   #[serde(alias = "secret", skip_serializing_if = "Option::is_none")]
   pub cli_secret: Option<String>,
+  /// The format for the tables.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub table_format: Option<CliTableFormat>,
   /// The root backups folder.
   ///
   /// Default: `/backups`.
@@ -271,6 +276,7 @@ impl Default for CliConfig {
       cli_key: Default::default(),
       cli_secret: Default::default(),
       cli_logging: default_log_config(),
+      table_format: Default::default(),
       backups_folder: default_backups_folder(),
       max_backups: default_max_backups(),
       database: default_database_config(),
@@ -296,6 +302,7 @@ impl CliConfig {
         .as_ref()
         .map(|cli_secret| empty_or_redacted(cli_secret)),
       cli_logging: self.cli_logging.clone(),
+      table_format: self.table_format,
       backups_folder: self.backups_folder.clone(),
       max_backups: self.max_backups,
       database_target: self.database_target.sanitized(),
@@ -308,4 +315,19 @@ impl CliConfig {
         .collect(),
     }
   }
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+pub enum CliTableFormat {
+  /// Only horizontal borders. Default.
+  #[default]
+  HorizontalOnly,
+  /// Only vertical borders.
+  VerticalOnly,
+  /// Only borders around the outside of the table.
+  OutsideOnly,
+  /// Only borders horizontally / vertically between the rows / columns.
+  InsideOnly,
+  /// All borders
+  AllBorders,
 }

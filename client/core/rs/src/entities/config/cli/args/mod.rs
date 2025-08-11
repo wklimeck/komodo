@@ -32,7 +32,7 @@ pub struct CliArgs {
   pub config_keyword: Option<Vec<String>>,
 
   /// Whether to debug print on configuration load (on startup)
-  #[arg(action, alias = "debug", short = 'd')]
+  #[arg(alias = "debug", long, short = 'd')]
   pub debug_startup: Option<bool>,
 }
 

@@ -18,7 +18,12 @@ default_profile = "Default"
 # default_profile = "Alt"
 
 # Set base values if they aren't defined in profile
+# Default: 14
 max_backups = 7
+
+# Options: HorizontalOnly, VeriticalOnly, OutsideOnly, InsideOnly, AllBorders
+# Default: HorizontalOnly
+table_format = "HorizontalOnly"
 
 [[profile]]
 name = "Default"

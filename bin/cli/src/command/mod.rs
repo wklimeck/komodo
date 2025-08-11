@@ -5,7 +5,8 @@ use chrono::TimeZone;
 use colored::Colorize;
 use comfy_table::{Attribute, Cell, Table};
 use komodo_client::{
-  KomodoClient, entities::config::cli::args::CliFormat,
+  KomodoClient,
+  entities::config::cli::{CliTableFormat, args::CliFormat},
 };
 use serde::Serialize;
 use tokio::sync::OnceCell;
@@ -91,19 +92,30 @@ fn sanitize_uri(uri: &str) -> String {
 fn print_items<T: PrintTable + Serialize>(
   items: Vec<T>,
   format: CliFormat,
+  links: bool,
 ) -> anyhow::Result<()> {
   match format {
     CliFormat::Table => {
       let mut table = Table::new();
-      table
-        .load_preset(comfy_table::presets::UTF8_FULL)
-        .set_header(
-          T::header()
-            .into_iter()
-            .map(|h| Cell::new(h).add_attribute(Attribute::Bold)),
-        );
+      let preset = {
+        use comfy_table::presets::*;
+        match cli_config().table_format {
+          None | Some(CliTableFormat::HorizontalOnly) => {
+            UTF8_HORIZONTAL_ONLY
+          }
+          Some(CliTableFormat::VerticalOnly) => UTF8_FULL_CONDENSED,
+          Some(CliTableFormat::InsideOnly) => UTF8_NO_BORDERS,
+          Some(CliTableFormat::OutsideOnly) => UTF8_BORDERS_ONLY,
+          Some(CliTableFormat::AllBorders) => UTF8_FULL,
+        }
+      };
+      table.load_preset(preset).set_header(
+        T::header(links)
+          .into_iter()
+          .map(|h| Cell::new(h).add_attribute(Attribute::Bold)),
+      );
       for item in items {
-        table.add_row(item.row());
+        table.add_row(item.row(links));
       }
       println!("{table}");
     }
@@ -119,8 +131,8 @@ fn print_items<T: PrintTable + Serialize>(
 }
 
 trait PrintTable {
-  fn header() -> &'static [&'static str];
-  fn row(self) -> Vec<Cell>;
+  fn header(links: bool) -> &'static [&'static str];
+  fn row(self, links: bool) -> Vec<Cell>;
 }
 
 fn parse_wildcards(items: &[String]) -> Vec<Wildcard<'_>> {
@@ -154,6 +166,14 @@ fn format_timetamp(ts: i64) -> anyhow::Result<String> {
     .format("%m/%d %H:%M:%S")
     .to_string();
   Ok(ts)
+}
+
+fn clamp_sha(maybe_sha: &str) -> String {
+  if maybe_sha.starts_with("sha256:") {
+    maybe_sha[0..20].to_string() + "..."
+  } else {
+    maybe_sha.to_string()
+  }
 }
 
 // fn text_link(link: &str, text: &str) -> String {

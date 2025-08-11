@@ -30,7 +30,7 @@ pub struct RunAction {
 
   /// Custom arguments which are merged on top of the default arguments.
   /// CLI Format: `"VAR1=val1&VAR2=val2"`
-  /// 
+  ///
   /// Webhook-triggered actions use this to pass WEBHOOK_BRANCH and WEBHOOK_BODY.
   #[clap(value_parser = args_parser)]
   pub args: Option<JsonObject>,

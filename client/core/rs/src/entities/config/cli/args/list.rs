@@ -13,6 +13,9 @@ pub struct List {
   /// List only non-running / non-ok resources.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
+  /// Include links. Makes the table very large.
+  #[arg(long, short = 'l', default_value_t = false)]
+  pub links: bool,
   /// Filter by a particular name. Supports wildcard.
   /// Can be specified multiple times. (alias `n`)
   #[arg(name = "name", long, short = 'n')]
@@ -40,6 +43,7 @@ impl From<List> for ResourceFilters {
       all: value.all,
       reverse: value.reverse,
       down: value.down,
+      links: value.links,
       names: value.names,
       tags: value.tags,
       servers: value.servers,
@@ -98,6 +102,9 @@ pub struct ResourceFilters {
   /// List only non-running / non-ok resources.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
+  /// Include links. Makes the table very large.
+  #[arg(long, short = 'l', default_value_t = false)]
+  pub links: bool,
   /// Filter by a particular name. Supports wildcard.
   /// Can be specified multiple times. (alias `n`)
   #[arg(name = "name", long, short = 'n')]

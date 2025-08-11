@@ -22,7 +22,8 @@ use komodo_client::{
 
 use crate::{
   command::{
-    PrintTable, matches_wildcards, parse_wildcards, print_items,
+    PrintTable, clamp_sha, matches_wildcards, parse_wildcards,
+    print_items,
   },
   config::cli_config,
 };
@@ -40,6 +41,7 @@ async fn list_containers(
   Container {
     all,
     down,
+    links,
     reverse,
     containers: names,
     images,
@@ -126,7 +128,7 @@ async fn list_containers(
   if *reverse {
     containers.reverse();
   }
-  print_items(containers, *format)?;
+  print_items(containers, *format, *links)?;
   Ok(())
 }
 
@@ -216,18 +218,22 @@ pub async fn inspect_container(
 
 // (Option<Server Name>, Container)
 impl PrintTable for (Option<&'_ str>, ContainerListItem) {
-  fn header() -> &'static [&'static str] {
-    &[
-      "Container",
-      "State",
-      "Server",
-      "Ports",
-      "Networks",
-      "Image",
-      "Link",
-    ]
+  fn header(links: bool) -> &'static [&'static str] {
+    if links {
+      &[
+        "Container",
+        "State",
+        "Server",
+        "Ports",
+        "Networks",
+        "Image",
+        "Link",
+      ]
+    } else {
+      &["Container", "State", "Server", "Ports", "Networks", "Image"]
+    }
   }
-  fn row(self) -> Vec<Cell> {
+  fn row(self, links: bool) -> Vec<Cell> {
     let color = match self.1.state {
       ContainerStateStatusEnum::Running => Color::Green,
       ContainerStateStatusEnum::Paused => Color::DarkYellow,
@@ -257,6 +263,21 @@ impl PrintTable for (Option<&'_ str>, ContainerListItem) {
     } else {
       Cell::new(format!(":{}", ports.join(", :")))
     };
+
+    let image = self.1.image.as_deref().unwrap_or("Unknown");
+    let mut res = vec![
+      Cell::new(self.1.name.clone()).add_attribute(Attribute::Bold),
+      Cell::new(self.1.state.to_string())
+        .fg(color)
+        .add_attribute(Attribute::Bold),
+      Cell::new(self.0.unwrap_or("Unknown")),
+      ports,
+      Cell::new(networks.join(", ")),
+      Cell::new(clamp_sha(&image)),
+    ];
+    if !links {
+      return res;
+    }
     let link = if let Some(server_id) = self.1.server_id {
       format!(
         "{}/servers/{server_id}/container/{}",
@@ -266,16 +287,7 @@ impl PrintTable for (Option<&'_ str>, ContainerListItem) {
     } else {
       String::new()
     };
-    vec![
-      Cell::new(self.1.name).add_attribute(Attribute::Bold),
-      Cell::new(self.1.state.to_string())
-        .fg(color)
-        .add_attribute(Attribute::Bold),
-      Cell::new(self.0.unwrap_or("Unknown")),
-      ports,
-      Cell::new(networks.join(", ")),
-      Cell::new(self.1.image.as_deref().unwrap_or("Unknown")),
-      Cell::new(link),
-    ]
+    res.push(Cell::new(link));
+    res
   }
 }
