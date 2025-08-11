@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@ui/select";
 import { TimezoneSelector } from "@components/util";
+import { snake_case_to_upper_space_case } from "@lib/formatting";
 
 const ACTION_GIT_PROVIDER = "Action";
 
@@ -117,7 +118,7 @@ export const ActionConfig = ({ id }: { id: string }) => {
                   Types.FileFormat.KeyValue;
                 return (
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                       <SecretsSearch />
                       <Select
                         value={format}
@@ -125,18 +126,23 @@ export const ActionConfig = ({ id }: { id: string }) => {
                           set({ arguments_format })
                         }
                       >
-                        <SelectTrigger>
-                          <SelectValue />
+                        <SelectTrigger className="w-fit">
+                          <div className="flex gap-2 items-center mr-2">
+                            <div className="text-muted-foreground">Format:</div>
+                            <SelectValue />
+                          </div>
                         </SelectTrigger>
                         <SelectContent>
                           {Object.values(Types.FileFormat).map((format) => (
-                            <SelectItem value={format}>{format}</SelectItem>
+                            <SelectItem value={format}>
+                              {snake_case_to_upper_space_case(format)}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <MonacoEditor
-                      value={args}
+                      value={args || default_arguments(format)}
                       onValueChange={(args) => set({ arguments: args })}
                       language={
                         update.arguments_format ??
@@ -145,12 +151,12 @@ export const ActionConfig = ({ id }: { id: string }) => {
                       }
                       readOnly={disabled}
                     />
-                    <ActionInfo id={id} />
                   </div>
                 );
               },
             },
           },
+
           {
             label: "Alert",
             labelHidden: true,
@@ -333,4 +339,17 @@ export const ActionConfig = ({ id }: { id: string }) => {
       }}
     />
   );
+};
+
+const default_arguments = (format: Types.FileFormat) => {
+  switch (format) {
+    case Types.FileFormat.KeyValue:
+      return "  # ARG_NAME = value\n";
+    case Types.FileFormat.Toml:
+      return '# ARG_NAME = "value"\n';
+    case Types.FileFormat.Yaml:
+      return "# ARG_NAME: value\n";
+    case Types.FileFormat.Json:
+      return "{}\n";
+  }
 };

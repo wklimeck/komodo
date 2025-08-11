@@ -222,4 +222,7 @@ async fn get_action_state_from_db(id: &str) -> ActionState {
 const DEFAULT_ACTION_FILE_CONTENTS: &str =
   "// Run actions using the pre initialized 'komodo' client.
 const version: Types.GetVersionResponse = await komodo.read('GetVersion', {});
-console.log('🦎 Komodo version:', version.version, '🦎\\n');";
+console.log('🦎 Komodo version:', version.version, '🦎\\n');
+
+// Access arguments using the 'ARGS' object.
+console.log(ARGS);";
