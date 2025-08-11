@@ -344,7 +344,7 @@ export const ActionConfig = ({ id }: { id: string }) => {
 const default_arguments = (format: Types.FileFormat) => {
   switch (format) {
     case Types.FileFormat.KeyValue:
-      return "  # ARG_NAME = value\n";
+      return "# ARG_NAME = value\n";
     case Types.FileFormat.Toml:
       return '# ARG_NAME = "value"\n';
     case Types.FileFormat.Yaml:
