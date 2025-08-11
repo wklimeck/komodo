@@ -64,6 +64,7 @@ pub fn spawn_schedule_executor() {
                   let request =
                     ExecuteRequest::RunAction(RunAction {
                       action: id.clone(),
+                      args: Default::default(),
                     });
                   let update = match init_execution_update(
                     &request,

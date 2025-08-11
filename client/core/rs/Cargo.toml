@@ -33,6 +33,7 @@ tokio-util.workspace = true
 thiserror.workspace = true
 typeshare.workspace = true
 indexmap.workspace = true
+serde_qs.workspace = true
 futures.workspace = true
 reqwest.workspace = true
 tracing.workspace = true

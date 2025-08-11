@@ -62,32 +62,39 @@ pub async fn run_startup_actions() {
     };
 
   for action in startup_actions {
-    let id = action.id.clone();
-    let user = action_user();
-
+    let name = action.name;
+    let id = action.id;
     let update = match init_execution_update(
-      &ExecuteRequest::RunAction(RunAction { action: id.clone() }),
-      user,
+      &ExecuteRequest::RunAction(RunAction {
+        action: name.clone(),
+        args: Default::default(),
+      }),
+      action_user(),
     )
     .await
     {
       Ok(update) => update,
       Err(e) => {
         error!(
-          "Failed to initialize update for action {id} | {e:#?}"
+          "Failed to initialize update for action {name} ({id}) | {e:#?}"
         );
         continue;
       }
     };
 
-    if let Err(e) = (RunAction { action: id.clone() })
-      .resolve(&ExecuteArgs {
-        user: user.clone(),
-        update,
-      })
-      .await
+    if let Err(e) = (RunAction {
+      action: name.clone(),
+      args: Default::default(),
+    })
+    .resolve(&ExecuteArgs {
+      user: action_user().to_owned(),
+      update,
+    })
+    .await
     {
-      error!("Failed to execute startup action {id} | {e:#?}");
+      error!(
+        "Failed to execute startup action {name} ({id}) | {e:#?}"
+      );
     }
   }
 }

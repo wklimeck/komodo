@@ -1232,7 +1232,10 @@ impl ExtendBatch for BatchRunProcedure {
 impl ExtendBatch for BatchRunAction {
   type Resource = Action;
   fn single_execution(action: String) -> Execution {
-    Execution::RunAction(RunAction { action })
+    Execution::RunAction(RunAction {
+      action,
+      args: Default::default(),
+    })
   }
 }
 

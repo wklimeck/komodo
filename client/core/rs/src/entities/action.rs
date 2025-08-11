@@ -73,6 +73,12 @@ pub type _PartialActionConfig = PartialActionConfig;
 #[partial_derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[partial(skip_serializing_none, from, diff)]
 pub struct ActionConfig {
+  /// Whether this action should run at startup.
+  #[serde(default = "default_run_at_startup")]
+  #[builder(default = "default_run_at_startup()")]
+  #[partial_default(default_run_at_startup())]
+  pub run_at_startup: bool,
+
   /// Choose whether to specify schedule as regular CRON, or using the english to CRON parser.
   #[serde(default)]
   #[builder(default)]
@@ -117,12 +123,6 @@ pub struct ActionConfig {
   #[partial_default(default_schedule_alert())]
   pub schedule_alert: bool,
 
-  /// Whether this action should run at startup.
-  #[serde(default = "default_run_at_startup")]
-  #[builder(default = "default_run_at_startup()")]
-  #[partial_default(default_run_at_startup())]
-  pub run_at_startup: bool,
-
   /// Whether to send alerts when this action fails.
   #[serde(default = "default_failure_alert")]
   #[builder(default = "default_failure_alert()")]
@@ -146,6 +146,15 @@ pub struct ActionConfig {
   #[serde(default)]
   #[builder(default)]
   pub reload_deno_deps: bool,
+
+  #[serde(default)]
+  #[builder(default)]
+  pub arguments_format: ActionArgumentsFormat,
+
+  /// Default arguments to give to the Action for use in the script at `ARGS`.
+  #[serde(default)]
+  #[builder(default)]
+  pub arguments: String,
 
   /// Typescript file contents using pre-initialized `komodo` client.
   /// Supports variable / secret interpolation.
@@ -191,15 +200,29 @@ impl Default for ActionConfig {
       schedule: Default::default(),
       schedule_enabled: default_schedule_enabled(),
       schedule_timezone: Default::default(),
+      run_at_startup: default_run_at_startup(),
       schedule_alert: default_schedule_alert(),
       failure_alert: default_failure_alert(),
       webhook_enabled: default_webhook_enabled(),
       webhook_secret: Default::default(),
       reload_deno_deps: Default::default(),
+      arguments_format: Default::default(),
+      arguments: Default::default(),
       file_contents: Default::default(),
-      run_at_startup: default_run_at_startup(),
     }
   }
+}
+
+#[typeshare]
+#[derive(
+  Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize,
+)]
+pub enum ActionArgumentsFormat {
+  #[default]
+  KeyValue,
+  Toml,
+  Yaml,
+  Json,
 }
 
 #[typeshare]

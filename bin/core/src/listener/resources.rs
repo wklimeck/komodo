@@ -1,5 +1,6 @@
-use std::sync::OnceLock;
+use std::{str::FromStr, sync::OnceLock};
 
+use anyhow::{Context, anyhow};
 use komodo_client::{
   api::{
     execute::*,
@@ -12,6 +13,7 @@ use komodo_client::{
 };
 use resolver_api::Resolve;
 use serde::Deserialize;
+use serde_json::json;
 
 use crate::{
   api::{
@@ -38,7 +40,7 @@ fn build_locks() -> &'static ListenerLockCache {
   BUILD_LOCKS.get_or_init(Default::default)
 }
 
-pub async fn handle_build_webhook<B: super::VerifyBranch>(
+pub async fn handle_build_webhook<B: super::ExtractBranch>(
   build: Build,
   body: String,
 ) -> anyhow::Result<()> {
@@ -154,7 +156,7 @@ pub enum RepoWebhookOption {
   Build,
 }
 
-pub async fn handle_repo_webhook<B: super::VerifyBranch>(
+pub async fn handle_repo_webhook<B: super::ExtractBranch>(
   option: RepoWebhookOption,
   repo: Repo,
   body: String,
@@ -173,7 +175,7 @@ pub async fn handle_repo_webhook<B: super::VerifyBranch>(
 }
 
 async fn handle_repo_webhook_inner<
-  B: super::VerifyBranch,
+  B: super::ExtractBranch,
   E: RepoExecution,
 >(
   repo: Repo,
@@ -268,7 +270,7 @@ pub enum StackWebhookOption {
   Deploy,
 }
 
-pub async fn handle_stack_webhook<B: super::VerifyBranch>(
+pub async fn handle_stack_webhook<B: super::ExtractBranch>(
   option: StackWebhookOption,
   stack: Stack,
   body: String,
@@ -285,7 +287,7 @@ pub async fn handle_stack_webhook<B: super::VerifyBranch>(
 }
 
 pub async fn handle_stack_webhook_inner<
-  B: super::VerifyBranch,
+  B: super::ExtractBranch,
   E: StackExecution,
 >(
   stack: Stack,
@@ -364,7 +366,7 @@ pub enum SyncWebhookOption {
   Sync,
 }
 
-pub async fn handle_sync_webhook<B: super::VerifyBranch>(
+pub async fn handle_sync_webhook<B: super::ExtractBranch>(
   option: SyncWebhookOption,
   sync: ResourceSync,
   body: String,
@@ -383,7 +385,7 @@ pub async fn handle_sync_webhook<B: super::VerifyBranch>(
 }
 
 async fn handle_sync_webhook_inner<
-  B: super::VerifyBranch,
+  B: super::ExtractBranch,
   E: SyncExecution,
 >(
   sync: ResourceSync,
@@ -420,7 +422,7 @@ fn procedure_locks() -> &'static ListenerLockCache {
   PROCEDURE_LOCKS.get_or_init(Default::default)
 }
 
-pub async fn handle_procedure_webhook<B: super::VerifyBranch>(
+pub async fn handle_procedure_webhook<B: super::ExtractBranch>(
   procedure: Procedure,
   target_branch: &str,
   body: String,
@@ -470,7 +472,7 @@ fn action_locks() -> &'static ListenerLockCache {
   ACTION_LOCKS.get_or_init(Default::default)
 }
 
-pub async fn handle_action_webhook<B: super::VerifyBranch>(
+pub async fn handle_action_webhook<B: super::ExtractBranch>(
   action: Action,
   target_branch: &str,
   body: String,
@@ -485,13 +487,27 @@ pub async fn handle_action_webhook<B: super::VerifyBranch>(
   let lock = action_locks().get_or_insert_default(&action.id).await;
   let _lock = lock.lock().await;
 
-  if target_branch != ANY_BRANCH {
-    B::verify_branch(&body, target_branch)?;
+  let branch = B::extract_branch(&body)?;
+
+  if target_branch != ANY_BRANCH && branch != target_branch {
+    return Err(anyhow!("request branch does not match expected"));
   }
 
   let user = git_webhook_user().to_owned();
-  let req =
-    ExecuteRequest::RunAction(RunAction { action: action.id });
+
+  let body = serde_json::Value::from_str(&body)
+    .context("Failed to deserialize webhook body")?;
+  let serde_json::Value::Object(args) = json!({
+    "WEBHOOK_BRANCH": branch,
+    "WEBHOOK_BODY": body,
+  }) else {
+    return Err(anyhow!("Something is wrong with serde_json..."));
+  };
+
+  let req = ExecuteRequest::RunAction(RunAction {
+    action: action.id,
+    args,
+  });
   let update = init_execution_update(&req, &user).await?;
   let ExecuteRequest::RunAction(req) = req else {
     unreachable!()

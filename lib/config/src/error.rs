@@ -7,7 +7,7 @@ pub enum Error {
   )]
   ObjectFieldTypeMismatch {
     key: String,
-    value: Box<dyn std::fmt::Debug>,
+    value: serde_json::Value,
   },
 
   #[error(
@@ -15,7 +15,7 @@ pub enum Error {
   )]
   ArrayFieldTypeMismatch {
     key: String,
-    value: Box<dyn std::fmt::Debug>,
+    value: serde_json::Value,
   },
 
   #[error("Failed to open file at {path} | {e:?}")]

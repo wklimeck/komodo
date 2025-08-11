@@ -63,7 +63,16 @@ export enum ScheduleFormat {
 	Cron = "Cron",
 }
 
+export enum ActionArgumentsFormat {
+	KeyValue = "KeyValue",
+	Toml = "Toml",
+	Yaml = "Yaml",
+	Json = "Json",
+}
+
 export interface ActionConfig {
+	/** Whether this action should run at startup. */
+	run_at_startup: boolean;
 	/** Choose whether to specify schedule as regular CRON, or using the english to CRON parser. */
 	schedule_format?: ScheduleFormat;
 	/**
@@ -97,8 +106,6 @@ export interface ActionConfig {
 	schedule_timezone?: string;
 	/** Whether to send alerts when the schedule was run. */
 	schedule_alert: boolean;
-	/** Whether this action should run at startup. */
-	run_at_startup: boolean;
 	/** Whether to send alerts when this action fails. */
 	failure_alert: boolean;
 	/** Whether incoming webhooks actually trigger action. */
@@ -113,6 +120,9 @@ export interface ActionConfig {
 	 * this can usually be kept false outside of development.
 	 */
 	reload_deno_deps?: boolean;
+	arguments_format?: ActionArgumentsFormat;
+	/** Default arguments to give to the Action for use in the script at `ARGS`. */
+	arguments?: string;
 	/**
 	 * Typescript file contents using pre-initialized `komodo` client.
 	 * Supports variable / secret interpolation.
@@ -3287,6 +3297,8 @@ export interface Volume {
 export type InspectDockerVolumeResponse = Volume;
 
 export type InspectStackContainerResponse = Container;
+
+export type JsonObject = any;
 
 export type JsonValue = any;
 
@@ -7506,6 +7518,11 @@ export interface RestartStack {
 export interface RunAction {
 	/** Id or name */
 	action: string;
+	/**
+	 * Custom arguments which can override the defaults.
+	 * Webhook-triggered actions use this to pass WEBHOOK_BRANCH and WEBHOOK_BODY.
+	 */
+	args?: JsonObject;
 }
 
 /**

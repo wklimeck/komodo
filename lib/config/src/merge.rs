@@ -39,7 +39,7 @@ pub fn merge_objects(
           _ => {
             return Err(Error::ObjectFieldTypeMismatch {
               key,
-              value: Box::new(value),
+              value,
             });
           }
         }
@@ -55,10 +55,7 @@ pub fn merge_objects(
             target.insert(key, serde_json::Value::Array(target_arr));
           }
           _ => {
-            return Err(Error::ArrayFieldTypeMismatch {
-              key,
-              value: Box::new(value),
-            });
+            return Err(Error::ArrayFieldTypeMismatch { key, value });
           }
         }
       }

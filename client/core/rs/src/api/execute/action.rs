@@ -1,10 +1,11 @@
+use anyhow::Context;
 use clap::Parser;
 use derive_empty_traits::EmptyTraits;
 use resolver_api::Resolve;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::entities::update::Update;
+use crate::entities::{JsonObject, update::Update};
 
 use super::{BatchExecutionResponse, KomodoExecuteRequest};
 
@@ -26,6 +27,16 @@ use super::{BatchExecutionResponse, KomodoExecuteRequest};
 pub struct RunAction {
   /// Id or name
   pub action: String,
+
+  /// Custom arguments which can override the defaults.
+  /// Webhook-triggered actions use this to pass WEBHOOK_BRANCH and WEBHOOK_BODY.
+  #[serde(default)]
+  #[arg(long, short = 'a', value_parser = args_parser)]
+  pub args: JsonObject,
+}
+
+fn args_parser(args: &str) -> anyhow::Result<JsonObject> {
+  serde_qs::from_str(args).context("Failed to parse args")
 }
 
 /// Runs multiple Actions in parallel that match pattern. Response: [BatchExecutionResponse]
