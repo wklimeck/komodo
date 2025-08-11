@@ -10,7 +10,7 @@ use crate::{
   deserializers::{
     file_contents_deserializer, option_file_contents_deserializer,
   },
-  entities::{I64, NoData},
+  entities::{FileFormat, I64, NoData},
 };
 
 use super::{
@@ -147,15 +147,6 @@ pub struct ActionConfig {
   #[builder(default)]
   pub reload_deno_deps: bool,
 
-  #[serde(default)]
-  #[builder(default)]
-  pub arguments_format: ActionArgumentsFormat,
-
-  /// Default arguments to give to the Action for use in the script at `ARGS`.
-  #[serde(default)]
-  #[builder(default)]
-  pub arguments: String,
-
   /// Typescript file contents using pre-initialized `komodo` client.
   /// Supports variable / secret interpolation.
   #[serde(default, deserialize_with = "file_contents_deserializer")]
@@ -165,6 +156,17 @@ pub struct ActionConfig {
   ))]
   #[builder(default)]
   pub file_contents: String,
+
+  /// Specify the format in which the arguments are defined.
+  /// Default: `key_value` (like environment)
+  #[serde(default)]
+  #[builder(default)]
+  pub arguments_format: FileFormat,
+
+  /// Default arguments to give to the Action for use in the script at `ARGS`.
+  #[serde(default)]
+  #[builder(default)]
+  pub arguments: String,
 }
 
 fn default_schedule_enabled() -> bool {
@@ -207,22 +209,10 @@ impl Default for ActionConfig {
       webhook_secret: Default::default(),
       reload_deno_deps: Default::default(),
       arguments_format: Default::default(),
-      arguments: Default::default(),
       file_contents: Default::default(),
+      arguments: Default::default(),
     }
   }
-}
-
-#[typeshare]
-#[derive(
-  Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize,
-)]
-pub enum ActionArgumentsFormat {
-  #[default]
-  KeyValue,
-  Toml,
-  Yaml,
-  Json,
 }
 
 #[typeshare]

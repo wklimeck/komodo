@@ -52,11 +52,11 @@ export declare enum ScheduleFormat {
     English = "English",
     Cron = "Cron"
 }
-export declare enum ActionArgumentsFormat {
-    KeyValue = "KeyValue",
-    Toml = "Toml",
-    Yaml = "Yaml",
-    Json = "Json"
+export declare enum FileFormat {
+    KeyValue = "key_value",
+    Toml = "toml",
+    Yaml = "yaml",
+    Json = "json"
 }
 export interface ActionConfig {
     /** Whether this action should run at startup. */
@@ -108,14 +108,18 @@ export interface ActionConfig {
      * this can usually be kept false outside of development.
      */
     reload_deno_deps?: boolean;
-    arguments_format?: ActionArgumentsFormat;
-    /** Default arguments to give to the Action for use in the script at `ARGS`. */
-    arguments?: string;
     /**
      * Typescript file contents using pre-initialized `komodo` client.
      * Supports variable / secret interpolation.
      */
     file_contents?: string;
+    /**
+     * Specify the format in which the arguments are defined.
+     * Default: `key_value` (like environment)
+     */
+    arguments_format?: FileFormat;
+    /** Default arguments to give to the Action for use in the script at `ARGS`. */
+    arguments?: string;
 }
 /** Represents an empty json object: `{}` */
 export interface NoData {

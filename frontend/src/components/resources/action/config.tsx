@@ -107,6 +107,51 @@ export const ActionConfig = ({ id }: { id: string }) => {
             },
           },
           {
+            label: "Arguments",
+            description: "Manage the action file default arguments.",
+            components: {
+              arguments: (args, set) => {
+                const format =
+                  update.arguments_format ??
+                  config.arguments_format ??
+                  Types.FileFormat.KeyValue;
+                return (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <SecretsSearch />
+                      <Select
+                        value={format}
+                        onValueChange={(arguments_format: Types.FileFormat) =>
+                          set({ arguments_format })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(Types.FileFormat).map((format) => (
+                            <SelectItem value={format}>{format}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <MonacoEditor
+                      value={args}
+                      onValueChange={(args) => set({ arguments: args })}
+                      language={
+                        update.arguments_format ??
+                        config.arguments_format ??
+                        Types.FileFormat.KeyValue
+                      }
+                      readOnly={disabled}
+                    />
+                    <ActionInfo id={id} />
+                  </div>
+                );
+              },
+            },
+          },
+          {
             label: "Alert",
             labelHidden: true,
             components: {
@@ -217,7 +262,8 @@ export const ActionConfig = ({ id }: { id: string }) => {
             components: {
               run_at_startup: {
                 label: "Run on Startup",
-                description: "Run this action on completion of startup of Komodo Core",
+                description:
+                  "Run this action on completion of startup of Komodo Core",
               },
             },
           },

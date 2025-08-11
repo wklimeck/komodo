@@ -18,8 +18,8 @@ use komodo_client::{
     user::{CreateApiKey, CreateApiKeyResponse, DeleteApiKey},
   },
   entities::{
-    JsonObject,
-    action::{Action, ActionArgumentsFormat},
+    FileFormat, JsonObject,
+    action::Action,
     alert::{Alert, AlertData, SeverityLevel},
     config::core::CoreConfig,
     komodo_timestamp,
@@ -397,10 +397,10 @@ fn delete_file(
 
 fn parse_action_arguments(
   args: &str,
-  format: ActionArgumentsFormat,
+  format: FileFormat,
 ) -> anyhow::Result<JsonObject> {
   match format {
-    ActionArgumentsFormat::KeyValue => {
+    FileFormat::KeyValue => {
       let args = parse_key_value_list(args)
         .context("Failed to parse args as key value list")?
         .into_iter()
@@ -408,11 +408,11 @@ fn parse_action_arguments(
         .collect();
       Ok(args)
     }
-    ActionArgumentsFormat::Toml => toml::from_str(args)
+    FileFormat::Toml => toml::from_str(args)
       .context("Failed to parse Toml to Action args"),
-    ActionArgumentsFormat::Yaml => serde_yaml_ng::from_str(args)
+    FileFormat::Yaml => serde_yaml_ng::from_str(args)
       .context("Failed to parse Yaml to action args"),
-    ActionArgumentsFormat::Json => serde_json::from_str(args)
+    FileFormat::Json => serde_json::from_str(args)
       .context("Failed to parse Json to action args"),
   }
 }

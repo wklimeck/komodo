@@ -18,13 +18,13 @@ export var ScheduleFormat;
     ScheduleFormat["English"] = "English";
     ScheduleFormat["Cron"] = "Cron";
 })(ScheduleFormat || (ScheduleFormat = {}));
-export var ActionArgumentsFormat;
-(function (ActionArgumentsFormat) {
-    ActionArgumentsFormat["KeyValue"] = "KeyValue";
-    ActionArgumentsFormat["Toml"] = "Toml";
-    ActionArgumentsFormat["Yaml"] = "Yaml";
-    ActionArgumentsFormat["Json"] = "Json";
-})(ActionArgumentsFormat || (ActionArgumentsFormat = {}));
+export var FileFormat;
+(function (FileFormat) {
+    FileFormat["KeyValue"] = "key_value";
+    FileFormat["Toml"] = "toml";
+    FileFormat["Yaml"] = "yaml";
+    FileFormat["Json"] = "json";
+})(FileFormat || (FileFormat = {}));
 export var ActionState;
 (function (ActionState) {
     /** Unknown case */

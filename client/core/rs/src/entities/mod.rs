@@ -1410,6 +1410,19 @@ pub enum ScheduleFormat {
   Cron,
 }
 
+#[typeshare]
+#[derive(
+  Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum FileFormat {
+  #[default]
+  KeyValue,
+  Toml,
+  Yaml,
+  Json,
+}
+
 /// Used with ExecuteTerminal to capture the exit code
 pub const KOMODO_EXIT_CODE: &str = "__KOMODO_EXIT_CODE:";
 
