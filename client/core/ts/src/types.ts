@@ -7523,7 +7523,9 @@ export interface RunAction {
 	/** Id or name */
 	action: string;
 	/**
-	 * Custom arguments which can override the defaults.
+	 * Custom arguments which are merged on top of the default arguments.
+	 * CLI Format: `"VAR1=val1&VAR2=val2"`
+	 * 
 	 * Webhook-triggered actions use this to pass WEBHOOK_BRANCH and WEBHOOK_BODY.
 	 */
 	args?: JsonObject;
