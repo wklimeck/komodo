@@ -51,37 +51,37 @@ pub async fn handle(list: &args::list::List) -> anyhow::Result<()> {
   match &list.command {
     None => list_all(list).await,
     Some(ListCommand::Servers(filters)) => {
-      list_resources::<ServerListItem>(filters).await
+      list_resources::<ServerListItem>(filters, false).await
     }
     Some(ListCommand::Stacks(filters)) => {
-      list_resources::<StackListItem>(filters).await
+      list_resources::<StackListItem>(filters, false).await
     }
     Some(ListCommand::Deployments(filters)) => {
-      list_resources::<DeploymentListItem>(filters).await
+      list_resources::<DeploymentListItem>(filters, false).await
     }
     Some(ListCommand::Builds(filters)) => {
-      list_resources::<BuildListItem>(filters).await
+      list_resources::<BuildListItem>(filters, false).await
     }
     Some(ListCommand::Repos(filters)) => {
-      list_resources::<RepoListItem>(filters).await
+      list_resources::<RepoListItem>(filters, false).await
     }
     Some(ListCommand::Procedures(filters)) => {
-      list_resources::<ProcedureListItem>(filters).await
+      list_resources::<ProcedureListItem>(filters, false).await
     }
     Some(ListCommand::Actions(filters)) => {
-      list_resources::<ActionListItem>(filters).await
+      list_resources::<ActionListItem>(filters, false).await
     }
     Some(ListCommand::Syncs(filters)) => {
-      list_resources::<ResourceSyncListItem>(filters).await
+      list_resources::<ResourceSyncListItem>(filters, false).await
+    }
+    Some(ListCommand::Builders(filters)) => {
+      list_resources::<BuilderListItem>(filters, false).await
+    }
+    Some(ListCommand::Alerters(filters)) => {
+      list_resources::<AlerterListItem>(filters, false).await
     }
     Some(ListCommand::Schedules(filters)) => {
       list_schedules(filters).await
-    }
-    Some(ListCommand::Builders(filters)) => {
-      list_resources::<BuilderListItem>(filters).await
-    }
-    Some(ListCommand::Alerters(filters)) => {
-      list_resources::<AlerterListItem>(filters).await
     }
   }
 }
@@ -105,14 +105,14 @@ async fn list_all(list: &args::list::List) -> anyhow::Result<()> {
       .into_iter()
       .map(|t| (t.id, t.name))
       .collect::<HashMap<_, _>>())),
-    ServerListItem::list(client, &filters),
-    StackListItem::list(client, &filters),
-    DeploymentListItem::list(client, &filters),
-    BuildListItem::list(client, &filters),
-    RepoListItem::list(client, &filters),
-    ProcedureListItem::list(client, &filters),
-    ActionListItem::list(client, &filters),
-    ResourceSyncListItem::list(client, &filters),
+    ServerListItem::list(client, &filters, true),
+    StackListItem::list(client, &filters, true),
+    DeploymentListItem::list(client, &filters, true),
+    BuildListItem::list(client, &filters, true),
+    RepoListItem::list(client, &filters, true),
+    ProcedureListItem::list(client, &filters, true),
+    ActionListItem::list(client, &filters, true),
+    ResourceSyncListItem::list(client, &filters, true),
   )?;
 
   if !servers.is_empty() {
@@ -168,6 +168,7 @@ async fn list_all(list: &args::list::List) -> anyhow::Result<()> {
 
 async fn list_resources<T>(
   filters: &ResourceFilters,
+  minimal: bool,
 ) -> anyhow::Result<()>
 where
   T: ListResources,
@@ -175,7 +176,7 @@ where
 {
   let client = crate::command::komodo_client().await?;
   let (mut resources, tags) = tokio::try_join!(
-    T::list(client, filters),
+    T::list(client, filters, minimal),
     client.read(ListTags::default()).map(|res| res.map(|res| res
       .into_iter()
       .map(|t| (t.id, t.name))
@@ -254,6 +255,8 @@ where
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    // For use with root `km ls`
+    minimal: bool,
   ) -> anyhow::Result<Vec<ResourceListItem<Self::Info>>>;
 }
 
@@ -264,6 +267,7 @@ impl ListResources for ServerListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    _minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let servers = client
       .read(ListServers {
@@ -282,6 +286,8 @@ impl ListResources for ServerListItem {
           true
         } else if filters.down {
           !matches!(server.info.state, ServerState::Ok)
+        } else if filters.in_progress {
+          false
         } else {
           matches!(server.info.state, ServerState::Ok)
         };
@@ -303,6 +309,7 @@ impl ListResources for StackListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    _minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let (servers, mut stacks) = tokio::try_join!(
       client
@@ -337,9 +344,17 @@ impl ListResources for StackListItem {
         let state_check = if filters.all {
           true
         } else if filters.down {
-          !matches!(stack.info.state, StackState::Running)
+          !matches!(
+            stack.info.state,
+            StackState::Running | StackState::Deploying
+          )
+        } else if filters.in_progress {
+          matches!(stack.info.state, StackState::Deploying)
         } else {
-          matches!(stack.info.state, StackState::Running)
+          matches!(
+            stack.info.state,
+            StackState::Running | StackState::Deploying
+          )
         };
         state_check
           && matches_wildcards(&names, &[stack.name.as_str()])
@@ -365,6 +380,7 @@ impl ListResources for DeploymentListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    _minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let (servers, mut deployments) = tokio::try_join!(
       client
@@ -400,9 +416,17 @@ impl ListResources for DeploymentListItem {
         let state_check = if filters.all {
           true
         } else if filters.down {
-          !matches!(deployment.info.state, DeploymentState::Running)
+          !matches!(
+            deployment.info.state,
+            DeploymentState::Running | DeploymentState::Deploying
+          )
+        } else if filters.in_progress {
+          matches!(deployment.info.state, DeploymentState::Deploying)
         } else {
-          matches!(deployment.info.state, DeploymentState::Running)
+          matches!(
+            deployment.info.state,
+            DeploymentState::Running | DeploymentState::Deploying
+          )
         };
         state_check
           && matches_wildcards(&names, &[deployment.name.as_str()])
@@ -428,6 +452,7 @@ impl ListResources for BuildListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let (builders, mut builds) = tokio::try_join!(
       client
@@ -459,7 +484,20 @@ impl ListResources for BuildListItem {
     let mut builds = builds
       .into_iter()
       .filter(|build| {
-        matches_wildcards(&names, &[build.name.as_str()])
+        let state_check = if filters.all {
+          true
+        } else if filters.down {
+          matches!(
+            build.info.state,
+            BuildState::Failed | BuildState::Unknown
+          )
+        } else if minimal || filters.in_progress {
+          matches!(build.info.state, BuildState::Building)
+        } else {
+          true
+        };
+        state_check
+          && matches_wildcards(&names, &[build.name.as_str()])
           && matches_wildcards(
             &builders,
             &[build.info.builder_id.as_str()],
@@ -481,6 +519,7 @@ impl ListResources for RepoListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let names = parse_wildcards(&filters.names);
     let mut repos = client
@@ -492,7 +531,25 @@ impl ListResources for RepoListItem {
       })
       .await?
       .into_iter()
-      .filter(|repo| matches_wildcards(&names, &[repo.name.as_str()]))
+      .filter(|repo| {
+        let state_check = if filters.all {
+          true
+        } else if filters.down {
+          matches!(
+            repo.info.state,
+            RepoState::Failed | RepoState::Unknown
+          )
+        } else if minimal || filters.in_progress {
+          matches!(
+            repo.info.state,
+            RepoState::Building | RepoState::Cloning
+          )
+        } else {
+          true
+        };
+        state_check
+          && matches_wildcards(&names, &[repo.name.as_str()])
+      })
       .collect::<Vec<_>>();
     repos.sort_by(|a, b| {
       a.name
@@ -509,6 +566,7 @@ impl ListResources for ProcedureListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let names = parse_wildcards(&filters.names);
     let mut procedures = client
@@ -521,7 +579,20 @@ impl ListResources for ProcedureListItem {
       .await?
       .into_iter()
       .filter(|procedure| {
-        matches_wildcards(&names, &[procedure.name.as_str()])
+        let state_check = if filters.all {
+          true
+        } else if filters.down {
+          matches!(
+            procedure.info.state,
+            ProcedureState::Failed | ProcedureState::Unknown
+          )
+        } else if minimal || filters.in_progress {
+          matches!(procedure.info.state, ProcedureState::Running)
+        } else {
+          true
+        };
+        state_check
+          && matches_wildcards(&names, &[procedure.name.as_str()])
       })
       .collect::<Vec<_>>();
     procedures.sort_by(|a, b| {
@@ -542,6 +613,7 @@ impl ListResources for ActionListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let names = parse_wildcards(&filters.names);
     let mut actions = client
@@ -554,7 +626,20 @@ impl ListResources for ActionListItem {
       .await?
       .into_iter()
       .filter(|action| {
-        matches_wildcards(&names, &[action.name.as_str()])
+        let state_check = if filters.all {
+          true
+        } else if filters.down {
+          matches!(
+            action.info.state,
+            ActionState::Failed | ActionState::Unknown
+          )
+        } else if minimal || filters.in_progress {
+          matches!(action.info.state, ActionState::Running)
+        } else {
+          true
+        };
+        state_check
+          && matches_wildcards(&names, &[action.name.as_str()])
       })
       .collect::<Vec<_>>();
     actions.sort_by(|a, b| {
@@ -575,6 +660,7 @@ impl ListResources for ResourceSyncListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let names = parse_wildcards(&filters.names);
     let mut syncs = client
@@ -586,7 +672,25 @@ impl ListResources for ResourceSyncListItem {
       })
       .await?
       .into_iter()
-      .filter(|sync| matches_wildcards(&names, &[sync.name.as_str()]))
+      .filter(|sync| {
+        let state_check = if filters.all {
+          true
+        } else if filters.down {
+          matches!(
+            sync.info.state,
+            ResourceSyncState::Failed | ResourceSyncState::Unknown
+          )
+        } else if minimal || filters.in_progress {
+          matches!(
+            sync.info.state,
+            ResourceSyncState::Syncing | ResourceSyncState::Pending
+          )
+        } else {
+          true
+        };
+        state_check
+          && matches_wildcards(&names, &[sync.name.as_str()])
+      })
       .collect::<Vec<_>>();
     syncs.sort_by(|a, b| {
       a.name.cmp(&b.name).then(a.info.state.cmp(&b.info.state))
@@ -600,6 +704,7 @@ impl ListResources for BuilderListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let names = parse_wildcards(&filters.names);
     let mut builders = client
@@ -612,7 +717,8 @@ impl ListResources for BuilderListItem {
       .await?
       .into_iter()
       .filter(|builder| {
-        matches_wildcards(&names, &[builder.name.as_str()])
+        (!minimal || filters.all)
+          && matches_wildcards(&names, &[builder.name.as_str()])
       })
       .collect::<Vec<_>>();
     builders.sort_by(|a, b| {
@@ -629,6 +735,7 @@ impl ListResources for AlerterListItem {
   async fn list(
     client: &KomodoClient,
     filters: &ResourceFilters,
+    minimal: bool,
   ) -> anyhow::Result<Vec<Self>> {
     let names = parse_wildcards(&filters.names);
     let mut syncs = client
@@ -640,7 +747,10 @@ impl ListResources for AlerterListItem {
       })
       .await?
       .into_iter()
-      .filter(|sync| matches_wildcards(&names, &[sync.name.as_str()]))
+      .filter(|sync| {
+        (!minimal || filters.all)
+          && matches_wildcards(&names, &[sync.name.as_str()])
+      })
       .collect::<Vec<_>>();
     syncs.sort_by(|a, b| {
       a.info

@@ -51,7 +51,22 @@ pub struct InspectContainer {
   /// The container name. If it matches multiple containers and no server is specified,
   /// each container's inspect info will be logged.
   pub container: String,
-  /// Select the particular server container is on (alias `s`)
+  /// Select the particular server that container is on.
   #[arg(name = "server", long, short = 's')]
   pub servers: Vec<String>,
+  /// Only show the .State part of the inspect response.
+  #[arg(long, short = 'u')]
+  pub state: bool,
+  /// Only show the .Mounts part of the inspect response.
+  #[arg(long, short = 'm')]
+  pub mounts: bool,
+  /// Only show the .HostConfig part of the inspect response.
+  #[arg(long, short = 'f')]
+  pub host_config: bool,
+  /// Only show the .Config part of the inspect response.
+  #[arg(long, short = 'c')]
+  pub config: bool,
+  /// Only show the .NetworkSettings part of the inspect response.
+  #[arg(long, short = 'n')]
+  pub network_settings: bool,
 }

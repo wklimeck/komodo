@@ -14,8 +14,9 @@ use komodo_client::{
     config::cli::args::container::{
       Container, ContainerCommand, InspectContainer,
     },
-    docker::container::{
-      ContainerListItem, ContainerStateStatusEnum,
+    docker::{
+      self,
+      container::{ContainerListItem, ContainerStateStatusEnum},
     },
   },
 };
@@ -198,22 +199,40 @@ pub async fn inspect_container(
       );
     }
     1 => {
-      println!(
-        "{}",
-        serde_json::to_string_pretty(&containers[0])
-          .context("Failed to serialize items to JSON")?
-      );
+      println!("{}", serialize_container(inspect, &containers[0])?);
     }
     _ => {
-      println!(
-        "{}",
-        serde_json::to_string_pretty(&containers)
-          .context("Failed to serialize items to JSON")?
-      );
+      let containers = containers
+        .iter()
+        .map(|c| serialize_container(inspect, c))
+        .collect::<anyhow::Result<Vec<_>>>()?
+        .join("\n");
+      println!("{containers}");
     }
   }
 
   Ok(())
+}
+
+fn serialize_container(
+  inspect: &InspectContainer,
+  container: &docker::container::Container,
+) -> anyhow::Result<String> {
+  let res = if inspect.state {
+    serde_json::to_string_pretty(&container.state)
+  } else if inspect.mounts {
+    serde_json::to_string_pretty(&container.mounts)
+  } else if inspect.host_config {
+    serde_json::to_string_pretty(&container.host_config)
+  } else if inspect.config {
+    serde_json::to_string_pretty(&container.config)
+  } else if inspect.network_settings {
+    serde_json::to_string_pretty(&container.network_settings)
+  } else {
+    serde_json::to_string_pretty(container)
+  }
+  .context("Failed to serialize items to JSON")?;
+  Ok(res)
 }
 
 // (Option<Server Name>, Container)

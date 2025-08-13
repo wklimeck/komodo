@@ -13,6 +13,9 @@ pub struct List {
   /// List only non-running / non-ok resources.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
+  /// List only "in progress" resources, like Actions / Procedures that are running
+  #[arg(long, short = 'i', default_value_t = false)]
+  pub in_progress: bool,
   /// Include links. Makes the table very large.
   #[arg(long, short = 'l', default_value_t = false)]
   pub links: bool,
@@ -43,6 +46,7 @@ impl From<List> for ResourceFilters {
       all: value.all,
       reverse: value.reverse,
       down: value.down,
+      in_progress: value.in_progress,
       links: value.links,
       names: value.names,
       tags: value.tags,
@@ -102,6 +106,9 @@ pub struct ResourceFilters {
   /// List only non-running / non-ok resources.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
+  /// List only "in progress" resources, like Actions / Procedures that are running
+  #[arg(long, short = 'i', default_value_t = false)]
+  pub in_progress: bool,
   /// Include links. Makes the table very large.
   #[arg(long, short = 'l', default_value_t = false)]
   pub links: bool,
