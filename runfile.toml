@@ -14,7 +14,8 @@ cmd = "PERIPHERY_CONFIG_PATH=.dev/periphery.config.toml cargo run -p komodo_peri
 description = "downloads latest javacript dependencies for client and frontend"
 cmd = """
 cd frontend && yarn && \
-cd ../client/core/ts && yarn
+cd ../docsite && yarn && \
+cd ../client/core/ts && yarn && \
 """
 
 [gen-client]
