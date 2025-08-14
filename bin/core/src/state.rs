@@ -134,11 +134,13 @@ pub fn action_states() -> &'static ActionStates {
   ACTION_STATES.get_or_init(ActionStates::default)
 }
 
+/// Cache of ids to status
 pub type DeploymentStatusCache = Cache<
   String,
   Arc<History<CachedDeploymentStatus, DeploymentState>>,
 >;
 
+/// Cache of ids to status
 pub fn deployment_status_cache() -> &'static DeploymentStatusCache {
   static DEPLOYMENT_STATUS_CACHE: OnceLock<DeploymentStatusCache> =
     OnceLock::new();

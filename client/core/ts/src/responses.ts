@@ -411,4 +411,5 @@ export type ExecuteResponses = {
   // ==== MAINTENANCE ====
   ClearRepoCache: Types.Update;
   BackupCoreDatabase: Types.Update;
+  GlobalAutoUpdate: Types.Update;
 };

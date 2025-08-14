@@ -671,6 +671,7 @@ impl ResourceSyncTrait for Procedure {
           }
           Execution::ClearRepoCache(_) => {}
           Execution::BackupCoreDatabase(_) => {}
+          Execution::GlobalAutoUpdate(_) => {}
           Execution::Sleep(_) => {}
         }
       }

@@ -739,6 +739,13 @@ async fn validate_config(
             ));
           }
         }
+        Execution::GlobalAutoUpdate(_params) => {
+          if !user.admin {
+            return Err(anyhow!(
+              "Non admin user cannot trigger global auto update"
+            ));
+          }
+        }
         Execution::Sleep(_) => {}
       }
     }

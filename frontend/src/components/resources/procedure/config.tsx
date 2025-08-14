@@ -1420,6 +1420,10 @@ const TARGET_COMPONENTS: ExecutionConfigs = {
     params: {},
     Component: () => <></>,
   },
+  GlobalAutoUpdate: {
+    params: {},
+    Component: () => <></>,
+  },
 
   Sleep: {
     params: { duration_ms: 0 },

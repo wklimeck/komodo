@@ -168,6 +168,7 @@ export var Operation;
     Operation["RunSync"] = "RunSync";
     Operation["ClearRepoCache"] = "ClearRepoCache";
     Operation["BackupCoreDatabase"] = "BackupCoreDatabase";
+    Operation["GlobalAutoUpdate"] = "GlobalAutoUpdate";
     Operation["CreateVariable"] = "CreateVariable";
     Operation["UpdateVariableValue"] = "UpdateVariableValue";
     Operation["DeleteVariable"] = "DeleteVariable";

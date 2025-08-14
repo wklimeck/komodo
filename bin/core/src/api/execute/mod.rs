@@ -146,6 +146,7 @@ pub enum ExecuteRequest {
   // ==== MAINTENANCE ====
   ClearRepoCache(ClearRepoCache),
   BackupCoreDatabase(BackupCoreDatabase),
+  GlobalAutoUpdate(GlobalAutoUpdate),
 }
 
 pub fn router() -> Router {

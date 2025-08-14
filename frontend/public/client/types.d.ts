@@ -454,6 +454,7 @@ export declare enum Operation {
     RunSync = "RunSync",
     ClearRepoCache = "ClearRepoCache",
     BackupCoreDatabase = "BackupCoreDatabase",
+    GlobalAutoUpdate = "GlobalAutoUpdate",
     CreateVariable = "CreateVariable",
     UpdateVariableValue = "UpdateVariableValue",
     DeleteVariable = "DeleteVariable",
@@ -997,6 +998,9 @@ export type Execution =
 } | {
     type: "BackupCoreDatabase";
     params: BackupCoreDatabase;
+} | {
+    type: "GlobalAutoUpdate";
+    params: GlobalAutoUpdate;
 } | {
     type: "Sleep";
     params: Sleep;
@@ -3988,7 +3992,8 @@ export interface AwsBuilderConfig {
     secrets?: string[];
 }
 /**
- * Backs up the Komodo Core database to compressed jsonl files. Admin only.
+ * Backs up the Komodo Core database to compressed jsonl files.
+ * Admin only. Response: [Update]
  *
  * Mount a folder to `/backups`, and Core will use it to create
  * timestamped database dumps, which can be restored using
@@ -4234,7 +4239,10 @@ export interface CancelRepoBuild {
     /** Can be id or name */
     repo: string;
 }
-/** Clears all repos from the Core repo cache. Admin only. */
+/**
+ * Clears all repos from the Core repo cache. Admin only.
+ * Response: [Update]
+ */
 export interface ClearRepoCache {
 }
 /**
@@ -6123,6 +6131,16 @@ export interface GetVersionResponse {
     version: string;
 }
 /**
+ * Trigger a global poll for image updateson Stacks and Deployments
+ * with `poll_for_updates` or `auto_update` enabled.
+ * Admin only. Response: [Update]
+ *
+ * 1. `docker compose pull` any Stacks / Deployments with `poll_for_updates` or `auto_update` enabled. This will pick up any available updates.
+ * 2. Redeploy Stacks / Deployments that have updates found.
+ */
+export interface GlobalAutoUpdate {
+}
+/**
  * Inspect the docker container associated with the Deployment.
  * Response: [Container].
  */
@@ -8008,6 +8026,9 @@ export type ExecuteRequest = {
 } | {
     type: "BackupCoreDatabase";
     params: BackupCoreDatabase;
+} | {
+    type: "GlobalAutoUpdate";
+    params: GlobalAutoUpdate;
 };
 /**
  * One representative IANA zone for each distinct base UTC offset in the tz database.

@@ -221,6 +221,9 @@ pub async fn handle(
     Execution::BackupCoreDatabase(data) => {
       println!("{}: {data:?}", "Data".dimmed())
     }
+    Execution::GlobalAutoUpdate(data) => {
+      println!("{}: {data:?}", "Data".dimmed())
+    }
     Execution::Sleep(data) => {
       println!("{}: {data:?}", "Data".dimmed())
     }
@@ -470,6 +473,10 @@ pub async fn handle(
       .await
       .map(|u| ExecutionResult::Single(u.into())),
     Execution::BackupCoreDatabase(request) => client
+      .execute(request)
+      .await
+      .map(|u| ExecutionResult::Single(u.into())),
+    Execution::GlobalAutoUpdate(request) => client
       .execute(request)
       .await
       .map(|u| ExecutionResult::Single(u.into())),

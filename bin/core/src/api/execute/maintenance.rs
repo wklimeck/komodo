@@ -2,9 +2,13 @@ use std::sync::OnceLock;
 
 use anyhow::{Context, anyhow};
 use command::run_komodo_command;
+use database::mungos::{find::find_collect, mongodb::bson::doc};
 use formatting::format_serror;
-use komodo_client::api::execute::{
-  BackupCoreDatabase, ClearRepoCache,
+use komodo_client::{
+  api::execute::{
+    BackupCoreDatabase, ClearRepoCache, GlobalAutoUpdate,
+  },
+  entities::server::ServerState,
 };
 use reqwest::StatusCode;
 use resolver_api::Resolve;
@@ -12,14 +16,18 @@ use serror::AddStatusCodeError;
 use tokio::sync::Mutex;
 
 use crate::{
-  api::execute::ExecuteArgs, config::core_config,
+  api::execute::{
+    ExecuteArgs, pull_deployment_inner, pull_stack_inner,
+  },
+  config::core_config,
   helpers::update::update_update,
+  state::{db_client, server_status_cache},
 };
 
 /// Makes sure the method can only be called once at a time
 fn clear_repo_cache_lock() -> &'static Mutex<()> {
-  static CLEAR_REPO_CACHE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-  CLEAR_REPO_CACHE_LOCK.get_or_init(Default::default)
+  static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+  LOCK.get_or_init(Default::default)
 }
 
 impl Resolve<ExecuteArgs> for ClearRepoCache {
@@ -93,8 +101,8 @@ impl Resolve<ExecuteArgs> for ClearRepoCache {
 
 /// Makes sure the method can only be called once at a time
 fn backup_database_lock() -> &'static Mutex<()> {
-  static BACKUP_DATABASE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-  BACKUP_DATABASE_LOCK.get_or_init(Default::default)
+  static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+  LOCK.get_or_init(Default::default)
 }
 
 impl Resolve<ExecuteArgs> for BackupCoreDatabase {
@@ -132,6 +140,128 @@ impl Resolve<ExecuteArgs> for BackupCoreDatabase {
     update.logs.push(res);
     update.finalize();
 
+    update_update(update.clone()).await?;
+
+    Ok(update)
+  }
+}
+
+//
+
+/// Makes sure the method can only be called once at a time
+fn global_update_lock() -> &'static Mutex<()> {
+  static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+  LOCK.get_or_init(Default::default)
+}
+
+impl Resolve<ExecuteArgs> for GlobalAutoUpdate {
+  #[instrument(
+    name = "GlobalAutoUpdate",
+    skip(user, update),
+    fields(user_id = user.id, update_id = update.id)
+  )]
+  async fn resolve(
+    self,
+    ExecuteArgs { user, update }: &ExecuteArgs,
+  ) -> Result<Self::Response, Self::Error> {
+    if !user.admin {
+      return Err(
+        anyhow!("This method is admin only.")
+          .status_code(StatusCode::UNAUTHORIZED),
+      );
+    }
+
+    let _lock = global_update_lock()
+      .try_lock()
+      .context("Global update already in progress...")?;
+
+    let mut update = update.clone();
+
+    update_update(update.clone()).await?;
+
+    // This is all done in sequence because there is no rush,
+    // the pulls / deploys happen spaced out to ease the load on system.
+    let servers = find_collect(&db_client().servers, None, None)
+      .await
+      .context("Failed to query for servers from database")?;
+
+    let query = doc! {
+      "$or": [
+        { "config.poll_for_updates": true },
+        { "config.auto_update": true }
+      ]
+    };
+
+    let (stacks, repos) = tokio::try_join!(
+      find_collect(&db_client().stacks, query.clone(), None),
+      find_collect(&db_client().repos, None, None)
+    )
+    .context("Failed to query for resources from database")?;
+
+    let server_status_cache = server_status_cache();
+
+    for stack in stacks {
+      if let Some(server) =
+        servers.iter().find(|s| s.id == stack.config.server_id)
+        && server_status_cache
+          .get(&server.id)
+          .await
+          .map(|s| matches!(s.state, ServerState::Ok))
+          .unwrap_or_default()
+      {
+        let name = stack.name.clone();
+        let repo = if stack.config.linked_repo.is_empty() {
+          None
+        } else {
+          Some(
+            repos
+              .iter()
+              .find(|r| r.id == stack.config.linked_repo)
+              .with_context(|| {
+                format!(
+                  "Failed to find linked repo for stack {}",
+                  stack.name
+                )
+              })?
+              .clone(),
+          )
+        };
+        if let Err(e) =
+          pull_stack_inner(stack, Vec::new(), server, repo, None)
+            .await
+        {
+          warn!(
+            "Failed to pull latest images for Stack {name} | {e:#}"
+          );
+        }
+      }
+    }
+
+    let deployments =
+      find_collect(&db_client().deployments, query, None)
+        .await
+        .context("Failed to query for deployments from database")?;
+    for deployment in deployments {
+      if let Some(server) =
+        servers.iter().find(|s| s.id == deployment.config.server_id)
+        && server_status_cache
+          .get(&server.id)
+          .await
+          .map(|s| matches!(s.state, ServerState::Ok))
+          .unwrap_or_default()
+      {
+        let name = deployment.name.clone();
+        if let Err(e) =
+          pull_deployment_inner(deployment, server).await
+        {
+          warn!(
+            "Failed to pull latest image for Deployment {name} | {e:#}"
+          );
+        }
+      }
+    }
+
+    update.finalize();
     update_update(update.clone()).await?;
 
     Ok(update)

@@ -1158,6 +1158,23 @@ async fn execute_execution(
       )
       .await?
     }
+    Execution::GlobalAutoUpdate(req) => {
+      let req = ExecuteRequest::GlobalAutoUpdate(req);
+      let update = init_execution_update(&req, &user).await?;
+      let ExecuteRequest::GlobalAutoUpdate(req) = req else {
+        unreachable!()
+      };
+      let update_id = update.id.clone();
+      handle_resolve_result(
+        req
+          .resolve(&ExecuteArgs { user, update })
+          .await
+          .map_err(|e| e.error)
+          .context("Failed at GlobalAutoUpdate"),
+        &update_id,
+      )
+      .await?
+    }
     Execution::Sleep(req) => {
       let duration = Duration::from_millis(req.duration_ms as u64);
       tokio::time::sleep(duration).await;

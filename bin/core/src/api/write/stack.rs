@@ -27,7 +27,6 @@ use periphery_client::api::compose::{
 use resolver_api::Resolve;
 
 use crate::{
-  api::execute::pull_stack_inner,
   config::core_config,
   helpers::{
     periphery_client,
@@ -555,24 +554,6 @@ impl Resolve<WriteArgs> for RefreshStackCache {
       )
       .await
       .context("failed to update stack info on db")?;
-
-    if (stack.config.poll_for_updates || stack.config.auto_update)
-      && !stack.config.server_id.is_empty()
-    {
-      let (server, state) =
-        get_server_with_state(&stack.config.server_id).await?;
-      if state == ServerState::Ok {
-        let name = stack.name.clone();
-        if let Err(e) =
-          pull_stack_inner(stack, Vec::new(), &server, repo, None)
-            .await
-        {
-          warn!(
-            "Failed to pull latest images for Stack {name} | {e:#}",
-          );
-        }
-      }
-    }
 
     Ok(NoData {})
   }

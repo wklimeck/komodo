@@ -507,6 +507,9 @@ pub async fn init_execution_update(
     ExecuteRequest::BackupCoreDatabase(_data) => {
       (Operation::BackupCoreDatabase, ResourceTarget::system())
     }
+    ExecuteRequest::GlobalAutoUpdate(_data) => {
+      (Operation::GlobalAutoUpdate, ResourceTarget::system())
+    }
   };
 
   let mut update = make_update(target, operation, user);

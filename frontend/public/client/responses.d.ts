@@ -310,4 +310,5 @@ export type ExecuteResponses = {
     TestAlerter: Types.Update;
     ClearRepoCache: Types.Update;
     BackupCoreDatabase: Types.Update;
+    GlobalAutoUpdate: Types.Update;
 };

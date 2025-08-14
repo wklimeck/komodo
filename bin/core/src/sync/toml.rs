@@ -789,7 +789,8 @@ impl ToToml for Procedure {
           Execution::None(_)
           | Execution::Sleep(_)
           | Execution::ClearRepoCache(_)
-          | Execution::BackupCoreDatabase(_) => {}
+          | Execution::BackupCoreDatabase(_)
+          | Execution::GlobalAutoUpdate(_) => {}
         }
       }
     }

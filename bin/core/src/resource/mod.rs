@@ -70,7 +70,8 @@ pub use procedure::{
   refresh_procedure_state_cache, spawn_procedure_state_refresh_loop,
 };
 pub use refresh::{
-  refresh_all_resources_cache, spawn_all_resources_refresh_loop,
+  refresh_all_resources_cache,
+  spawn_all_resources_cache_refresh_loop,
   spawn_resource_refresh_loop,
 };
 pub use repo::{

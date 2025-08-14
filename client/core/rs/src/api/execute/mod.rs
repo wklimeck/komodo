@@ -159,6 +159,7 @@ pub enum Execution {
   // MAINTENANCE
   ClearRepoCache(ClearRepoCache),
   BackupCoreDatabase(BackupCoreDatabase),
+  GlobalAutoUpdate(GlobalAutoUpdate),
 
   // SLEEP
   Sleep(Sleep),
