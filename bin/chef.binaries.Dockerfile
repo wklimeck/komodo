@@ -1,7 +1,7 @@
 ## Builds the Komodo Core, Periphery, and Util binaries
 ## for a specific architecture.
 
-## Dependency caching to help speed it up for multiple builds on same host.
+## Uses chef for dependency caching to help speed up back-to-back builds.
 
 FROM lukemathwalker/cargo-chef:latest-rust-1.89.0 AS chef
 WORKDIR /builder
