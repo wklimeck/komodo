@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use anyhow::{Context, anyhow};
 use command::run_komodo_command;
 use database::mungos::{find::find_collect, mongodb::bson::doc};
-use formatting::format_serror;
+use formatting::{bold, format_serror};
 use komodo_client::{
   api::execute::{
     BackupCoreDatabase, ClearRepoCache, GlobalAutoUpdate,
@@ -200,6 +200,9 @@ impl Resolve<ExecuteArgs> for GlobalAutoUpdate {
 
     let server_status_cache = server_status_cache();
 
+    // Will be edited later at update.logs[0]
+    update.push_simple_log("Auto Pull", String::new());
+
     for stack in stacks {
       if let Some(server) =
         servers.iter().find(|s| s.id == stack.config.server_id)
@@ -213,26 +216,35 @@ impl Resolve<ExecuteArgs> for GlobalAutoUpdate {
         let repo = if stack.config.linked_repo.is_empty() {
           None
         } else {
-          Some(
-            repos
-              .iter()
-              .find(|r| r.id == stack.config.linked_repo)
-              .with_context(|| {
-                format!(
-                  "Failed to find linked repo for stack {}",
-                  stack.name
-                )
-              })?
-              .clone(),
-          )
+          let Some(repo) =
+            repos.iter().find(|r| r.id == stack.config.linked_repo)
+          else {
+            update.push_error_log(
+              &format!("Pull Stack {name}"),
+              format!(
+                "Did not find any Repo matching {}",
+                stack.config.linked_repo
+              ),
+            );
+            continue;
+          };
+          Some(repo.clone())
         };
         if let Err(e) =
           pull_stack_inner(stack, Vec::new(), server, repo, None)
             .await
         {
-          warn!(
-            "Failed to pull latest images for Stack {name} | {e:#}"
+          update.push_error_log(
+            &format!("Pull Stack {name}"),
+            format_serror(&e.into()),
           );
+        } else {
+          if !update.logs[0].stdout.is_empty() {
+            update.logs[0].stdout.push('\n');
+          }
+          update.logs[0]
+            .stdout
+            .push_str(&format!("Pulled Stack {} ✅", bold(name)));
         }
       }
     }
@@ -254,9 +266,18 @@ impl Resolve<ExecuteArgs> for GlobalAutoUpdate {
         if let Err(e) =
           pull_deployment_inner(deployment, server).await
         {
-          warn!(
-            "Failed to pull latest image for Deployment {name} | {e:#}"
+          update.push_error_log(
+            &format!("Pull Deployment {name}"),
+            format_serror(&e.into()),
           );
+        } else {
+          if !update.logs[0].stdout.is_empty() {
+            update.logs[0].stdout.push('\n');
+          }
+          update.logs[0].stdout.push_str(&format!(
+            "Pulled Deployment {} ✅",
+            bold(name)
+          ));
         }
       }
     }

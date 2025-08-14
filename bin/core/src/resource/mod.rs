@@ -707,6 +707,7 @@ pub async fn update_meta<T: KomodoResource>(
         Ok(tag) => Ok(tag.id),
         Err(_) => CreateTag {
           name: tag.to_string(),
+          color: None,
         }
         .resolve(args)
         .await

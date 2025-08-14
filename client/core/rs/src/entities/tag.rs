@@ -41,16 +41,21 @@ pub struct Tag {
   #[serde(default)]
   #[builder(default)]
   pub color: TagColor,
-
-  /// This field is not stored on database,
-  /// but rather populated at query time based on results from the other resources.
-  #[serde(default, skip_serializing_if = "is_false")]
-  #[builder(default)]
-  pub unused: bool,
+  // /// This field is not stored on database,
+  // /// but rather populated at query time based on results from the other resources.
+  // #[serde(default, skip_serializing_if = "is_false")]
+  // #[builder(default)]
+  // pub unused: bool,
 }
 
-fn is_false(b: &bool) -> bool {
-  !b
+// fn is_false(b: &bool) -> bool {
+//   !b
+// }
+
+impl Tag {
+  pub fn builder() -> TagBuilder {
+    TagBuilder::default()
+  }
 }
 
 #[typeshare]

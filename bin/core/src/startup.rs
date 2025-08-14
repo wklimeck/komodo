@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use anyhow::Context;
 use database::mungos::{
   find::find_collect,
   mongodb::bson::{Document, doc, oid::ObjectId, to_document},
@@ -7,7 +8,9 @@ use database::mungos::{
 use futures::future::join_all;
 use komodo_client::{
   api::{
-    execute::{BackupCoreDatabase, Execution, RunAction},
+    execute::{
+      BackupCoreDatabase, Execution, GlobalAutoUpdate, RunAction,
+    },
     write::{CreateBuilder, CreateServer},
   },
   entities::{
@@ -20,6 +23,7 @@ use komodo_client::{
     },
     server::{PartialServerConfig, Server},
     sync::ResourceSync,
+    tag::{Tag, TagColor},
     update::Log,
     user::{action_user, system_user},
   },
@@ -257,49 +261,124 @@ async fn ensure_first_server_and_builder() {
 
 async fn ensure_default_procedures() {
   let db = db_client();
-  // Assumes if there are any existing users or procedures,
+  // Assumes if there are any existing users, procedures, or tags,
   // the default procedures do not need to be set up.
-  let Ok((None, None)) = tokio::try_join!(
+  let Ok((None, None, None)) = tokio::try_join!(
     db.users.find_one(Document::new()),
     db.procedures.find_one(Document::new()),
+    db.tags.find_one(Document::new()),
   ).inspect_err(|e| error!("Failed to initialize default procedures | Failed to query db | {e:?}")) else {
     return
   };
-  let Ok(config) = ProcedureConfig::builder()
-    .stages(vec![ProcedureStage { 
-      name: String::from("Stage 1"),
-      enabled: true,
-      executions: vec![
-        EnabledExecution {
-          execution: Execution::BackupCoreDatabase(BackupCoreDatabase {}),
-          enabled: true
-        }
-      ]
-    }])
-    .schedule(String::from("Every day at 01:00"))
+
+  // Create default 'system' tag
+  let Ok(mut system_tag) = Tag::builder()
+    .name(String::from("system"))
+    .color(TagColor::Red)
+    .owner(system_user().id.clone())
     .build()
-    .inspect_err(|e| error!("Failed to initialize default procedures | Failed to build Procedure | {e:?}")) else {
+  else {
+    error!("Failed to build system tag. This shouldn't happen.");
     return;
   };
-  let db_backup = Procedure {
-    id: String::new(),
-    name: String::from("Backup Core Database"),
-    description: String::from(
-      "Triggers the Core database backup at the scheduled time. Feel free to modify this to your needs, it will only be created with a fresh Komodo.",
-    ),
-    updated_at: komodo_timestamp(),
-    config,
-    template: Default::default(),
-    tags: Default::default(),
-    info: Default::default(),
-    base_permission: Default::default(),
+  if let Err(e) = async {
+    system_tag.id = db
+      .tags
+      .insert_one(&system_tag)
+      .await
+      .context("failed to create tag on db")?
+      .inserted_id
+      .as_object_id()
+      .context("inserted_id is not ObjectId")?
+      .to_string();
+    anyhow::Ok(())
+  }
+  .await
+  {
+    warn!("Failed to create default tag | {e:#}");
   };
-  if let Err(e) = db.procedures.insert_one(&db_backup).await {
-    error!("Failed to initialize default database backup Procedure | Failed to build Procedure | {e:?}");
+  let default_tags = if system_tag.id.is_empty() {
+    Vec::new()
+  } else {
+    vec![system_tag.id]
   };
-}
 
-// LEGACY
+  // Backup Core Database
+  async {
+    let Ok(config) = ProcedureConfig::builder()
+      .stages(vec![ProcedureStage {
+        name: String::from("Stage 1"),
+        enabled: true,
+        executions: vec![
+          EnabledExecution {
+            execution: Execution::BackupCoreDatabase(BackupCoreDatabase {}),
+            enabled: true
+          }
+        ]
+      }])
+      .schedule(String::from("Every day at 01:00"))
+      .build()
+      .inspect_err(|e| error!("Failed to initialize backup core database procedure | Failed to build Procedure | {e:?}")) else {
+      return;
+    };
+    let db_backup = Procedure {
+      id: String::new(),
+      name: String::from("Backup Core Database"),
+      description: String::from(
+        "Triggers the Core database backup at the scheduled time. Feel free to modify this to your needs, or move the execution to another Procedure",
+      ),
+      updated_at: komodo_timestamp(),
+      tags: default_tags.clone(),
+      config,
+      template: Default::default(),
+      info: Default::default(),
+      base_permission: Default::default(),
+    };
+    if let Err(e) = db.procedures.insert_one(&db_backup).await {
+      error!(
+        "Failed to initialize default database backup Procedure | Failed to build Procedure | {e:?}"
+      );
+    };
+  }.await;
+
+  // GlobalAutoUpdate
+  async {
+    let Ok(config) = ProcedureConfig::builder()
+      .stages(vec![ProcedureStage {
+        name: String::from("Stage 1"),
+        enabled: true,
+        executions: vec![
+          EnabledExecution {
+            execution: Execution::GlobalAutoUpdate(GlobalAutoUpdate {}),
+            enabled: true
+          }
+        ]
+      }])
+      .schedule(String::from("Every day at 03:00"))
+      .build()
+      .inspect_err(|e| error!("Failed to initialize global auto update procedure | Failed to build Procedure | {e:?}")) else {
+      return;
+    };
+    let auto_update = Procedure {
+      id: String::new(),
+      name: String::from("Global Auto Update"),
+      description: String::from(
+        "Triggers the global auto update for configurated Stacks / Deployments at the scheduled time. Feel free to modify this to your needs, or move the execution to another Procedure.",
+      ),
+      updated_at: komodo_timestamp(),
+      tags: default_tags.clone(),
+      config,
+      template: Default::default(),
+      info: Default::default(),
+      base_permission: Default::default(),
+    };
+    if let Err(e) = db.procedures.insert_one(&auto_update).await {
+      error!(
+        "Failed to initialize default database backup Procedure | Failed to build Procedure | {e:?}"
+      );
+    };
+  }.await;
+}
 
 /// v1.17.5 removes the ServerTemplate resource.
 /// References to this resource type need to be cleaned up
