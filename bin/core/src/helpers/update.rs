@@ -504,6 +504,9 @@ pub async fn init_execution_update(
     ExecuteRequest::ClearRepoCache(_data) => {
       (Operation::ClearRepoCache, ResourceTarget::system())
     }
+    ExecuteRequest::BackupCoreDatabase(_data) => {
+      (Operation::BackupCoreDatabase, ResourceTarget::system())
+    }
   };
 
   let mut update = make_update(target, operation, user);

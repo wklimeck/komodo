@@ -732,6 +732,13 @@ async fn validate_config(
             ));
           }
         }
+        Execution::BackupCoreDatabase(_params) => {
+          if !user.admin {
+            return Err(anyhow!(
+              "Non admin user cannot trigger core database backup"
+            ));
+          }
+        }
         Execution::Sleep(_) => {}
       }
     }

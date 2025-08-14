@@ -156,8 +156,9 @@ pub enum Execution {
   // ALERTER
   TestAlerter(TestAlerter),
 
-  // CORE
+  // MAINTENANCE
   ClearRepoCache(ClearRepoCache),
+  BackupCoreDatabase(BackupCoreDatabase),
 
   // SLEEP
   Sleep(Sleep),

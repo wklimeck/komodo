@@ -670,6 +670,7 @@ impl ResourceSyncTrait for Procedure {
               .unwrap_or_default();
           }
           Execution::ClearRepoCache(_) => {}
+          Execution::BackupCoreDatabase(_) => {}
           Execution::Sleep(_) => {}
         }
       }

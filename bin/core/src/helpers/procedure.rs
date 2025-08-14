@@ -1136,7 +1136,24 @@ async fn execute_execution(
           .resolve(&ExecuteArgs { user, update })
           .await
           .map_err(|e| e.error)
-          .context("Failed at TestAlerter"),
+          .context("Failed at ClearRepoCache"),
+        &update_id,
+      )
+      .await?
+    }
+    Execution::BackupCoreDatabase(req) => {
+      let req = ExecuteRequest::BackupCoreDatabase(req);
+      let update = init_execution_update(&req, &user).await?;
+      let ExecuteRequest::BackupCoreDatabase(req) = req else {
+        unreachable!()
+      };
+      let update_id = update.id.clone();
+      handle_resolve_result(
+        req
+          .resolve(&ExecuteArgs { user, update })
+          .await
+          .map_err(|e| e.error)
+          .context("Failed at BackupCoreDatabase"),
         &update_id,
       )
       .await?

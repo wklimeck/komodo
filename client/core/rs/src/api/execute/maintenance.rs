@@ -25,11 +25,11 @@ use super::KomodoExecuteRequest;
 #[error(serror::Error)]
 pub struct ClearRepoCache {}
 
-/// Backs up the database to compressed jsonl files. Admin only.
+/// Backs up the Komodo Core database to compressed jsonl files. Admin only.
 ///
 /// Mount a folder to `/backups`, and Core will use it to create
 /// timestamped database dumps, which can be restored using
-/// `ghcr.io/moghtech/komodo-util`.
+/// the Komodo CLI.
 ///
 /// TODO: Link to docs
 #[typeshare]
@@ -46,4 +46,4 @@ pub struct ClearRepoCache {}
 #[empty_traits(KomodoExecuteRequest)]
 #[response(Update)]
 #[error(serror::Error)]
-pub struct BackupDatabase {}
+pub struct BackupCoreDatabase {}

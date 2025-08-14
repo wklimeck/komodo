@@ -1165,6 +1165,7 @@ pub enum Operation {
 
   // maintenance
   ClearRepoCache,
+  BackupCoreDatabase,
 
   // variable
   CreateVariable,
