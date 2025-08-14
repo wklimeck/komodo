@@ -325,7 +325,7 @@ async fn ensure_default_procedures() {
       id: String::new(),
       name: String::from("Backup Core Database"),
       description: String::from(
-        "Triggers the Core database backup at the scheduled time. Feel free to modify this to your needs, or move the execution to another Procedure",
+        "Triggers the Core database backup at the scheduled time.",
       ),
       updated_at: komodo_timestamp(),
       tags: default_tags.clone(),
@@ -363,7 +363,7 @@ async fn ensure_default_procedures() {
       id: String::new(),
       name: String::from("Global Auto Update"),
       description: String::from(
-        "Triggers the global auto update for configurated Stacks / Deployments at the scheduled time. Feel free to modify this to your needs, or move the execution to another Procedure.",
+        "Triggers the global auto update for Stacks / Deployments at the scheduled time.",
       ),
       updated_at: komodo_timestamp(),
       tags: default_tags.clone(),

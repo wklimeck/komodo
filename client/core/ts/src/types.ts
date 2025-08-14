@@ -2458,11 +2458,6 @@ export interface Tag {
 	owner?: string;
 	/** Hex color code with alpha for UI display */
 	color?: TagColor;
-	/**
-	 * This field is not stored on database,
-	 * but rather populated at query time based on results from the other resources.
-	 */
-	unused?: boolean;
 }
 
 export type GetTagResponse = Tag;
@@ -5028,6 +5023,8 @@ export interface CreateSyncWebhook {
 export interface CreateTag {
 	/** The name of the tag. */
 	name: string;
+	/** Tag color. Default: Slate. */
+	color?: TagColor;
 }
 
 /**
