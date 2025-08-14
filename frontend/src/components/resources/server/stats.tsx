@@ -2,8 +2,6 @@ import { Section } from "@components/layouts";
 import { Card, CardContent, CardHeader, CardTitle } from "@ui/card";
 import { Progress } from "@ui/progress";
 import {
-  ChevronDown,
-  ChevronUp,
   Cpu,
   Database,
   Loader2,
@@ -26,7 +24,6 @@ import {
 } from "@ui/select";
 import { DockerResourceLink, ShowHideButton } from "@components/util";
 import { filterBySplit } from "@lib/utils";
-import { Button } from "@ui/button";
 
 export const ServerStats = ({
   id,
@@ -144,17 +141,10 @@ export const ServerStats = ({
                   className="pl-8 w-[200px] lg:w-[300px]"
                 />
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowContainers((y) => !y)}
-              >
-                {showContainers ? "Hide" : "Show"}
-                {showContainers ? (
-                  <ChevronUp className="w-4" />
-                ) : (
-                  <ChevronDown className="w-4" />
-                )}
-              </Button>
+              <ShowHideButton
+                show={showContainers}
+                setShow={setShowContainers}
+              />
             </div>
           }
         >
@@ -238,14 +228,7 @@ export const ServerStats = ({
                 <div className="text-muted-foreground">Total:</div>
                 {disk_total?.toFixed(2)} GB
               </div>
-              <Button variant="outline" onClick={() => setShowDisks((y) => !y)}>
-                {showDisks ? "Hide" : "Show"}
-                {showDisks ? (
-                  <ChevronUp className="w-4" />
-                ) : (
-                  <ChevronDown className="w-4" />
-                )}
-              </Button>
+              <ShowHideButton show={showDisks} setShow={setShowDisks} />
             </div>
           }
         >
@@ -307,6 +290,10 @@ export const ServerStats = ({
             />
           )}
         </Section>
+
+        {specific.includes(Types.SpecificPermission.Processes) && (
+          <Processes id={id} />
+        )}
 
         {/* Historical Charts */}
         <Section
@@ -371,10 +358,6 @@ export const ServerStats = ({
             />
           </div>
         </Section>
-
-        {specific.includes(Types.SpecificPermission.Processes) && (
-          <Processes id={id} />
-        )}
       </div>
     </Section>
   );
@@ -387,14 +370,19 @@ const Processes = ({ id }: { id: string }) => {
   return (
     <Section
       title="Processes"
-      titleRight={<ShowHideButton show={show} setShow={setShow} />}
       actions={
-        <Input
-          placeholder="Search Processes"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-[300px]"
-        />
+        <div className="flex gap-4 items-center">
+          <div className="relative">
+            <Search className="w-4 absolute top-[50%] left-3 -translate-y-[50%] text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="search..."
+              className="pl-8 w-[200px] lg:w-[300px]"
+            />
+          </div>
+          <ShowHideButton show={show} setShow={setShow} />
+        </div>
       }
     >
       {show && <ProcessesInner id={id} searchSplit={searchSplit} />}
