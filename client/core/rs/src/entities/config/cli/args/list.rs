@@ -13,8 +13,13 @@ pub struct List {
   /// List only non-running / non-ok resources.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
-  /// List only "in progress" resources, like Actions / Procedures that are running
-  #[arg(long, short = 'i', default_value_t = false)]
+  /// List only "in progress" / "pending" resources, like Actions / Procedures that are running (alias: `pending`)
+  #[arg(
+    long,
+    short = 'p',
+    alias = "pending",
+    default_value_t = false
+  )]
   pub in_progress: bool,
   /// Include links. Makes the table very large.
   #[arg(long, short = 'l', default_value_t = false)]
@@ -106,8 +111,13 @@ pub struct ResourceFilters {
   /// List only non-running / non-ok resources.
   #[arg(long, short = 'd', default_value_t = false)]
   pub down: bool,
-  /// List only "in progress" resources, like Actions / Procedures that are running
-  #[arg(long, short = 'i', default_value_t = false)]
+  /// List only "in progress" / "pending" resources, like Actions / Procedures that are running (alias: `pending`)
+  #[arg(
+    long,
+    short = 'p',
+    alias = "pending",
+    default_value_t = false
+  )]
   pub in_progress: bool,
   /// Include links. Makes the table very large.
   #[arg(long, short = 'l', default_value_t = false)]

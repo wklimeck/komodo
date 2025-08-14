@@ -810,6 +810,7 @@ impl PrintTable for ResourceListItem<StackListItemInfo> {
     let color = match self.info.state {
       StackState::Down => Color::Blue,
       StackState::Running => Color::Green,
+      StackState::Deploying => Color::DarkYellow,
       StackState::Paused => Color::DarkYellow,
       StackState::Unknown => Color::Magenta,
       _ => Color::Red,
@@ -853,6 +854,7 @@ impl PrintTable for ResourceListItem<DeploymentListItemInfo> {
     let color = match self.info.state {
       DeploymentState::NotDeployed => Color::Blue,
       DeploymentState::Running => Color::Green,
+      DeploymentState::Deploying => Color::DarkYellow,
       DeploymentState::Paused => Color::DarkYellow,
       DeploymentState::Unknown => Color::Magenta,
       _ => Color::Red,
