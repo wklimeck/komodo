@@ -18,9 +18,9 @@ RUN cargo chef cook --release --recipe-path recipe.json
 # NOW copy again (this time into builder) and build app
 COPY . .
 RUN \
-  cargo build -p komodo_core --release && \
-  cargo build -p komodo_periphery --release && \
-  cargo build -p komodo_cli --release
+  cargo build --release --bin komodo_core && \
+  cargo build --release --bin komodo_periphery && \
+  cargo build --release --bin komodo_cli
 
 # Copy just the binaries to scratch image
 FROM scratch
