@@ -15,7 +15,8 @@ FROM chef AS builder
 COPY --from=planner /builder/recipe.json recipe.json
 # Build JUST dependencies - cached layer
 RUN cargo chef cook --release --recipe-path recipe.json
-# NOW build app
+# NOW copy again (this time into builder) and build app
+COPY . .
 RUN \
   cargo build -p komodo_core --release && \
   cargo build -p komodo_periphery --release && \
