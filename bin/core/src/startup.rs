@@ -6,13 +6,18 @@ use database::mungos::{
 };
 use futures::future::join_all;
 use komodo_client::{
-  api::execute::RunAction,
-  api::write::{CreateBuilder, CreateServer},
+  api::{
+    execute::{BackupCoreDatabase, Execution, RunAction},
+    write::{CreateBuilder, CreateServer},
+  },
   entities::{
     ResourceTarget,
     action::Action,
     builder::{PartialBuilderConfig, PartialServerBuilderConfig},
     komodo_timestamp,
+    procedure::{
+      EnabledExecution, Procedure, ProcedureConfig, ProcedureStage,
+    },
     server::{PartialServerConfig, Server},
     sync::ResourceSync,
     update::Log,
@@ -31,20 +36,7 @@ use crate::{
   state::db_client,
 };
 
-/// This function should be run on startup,
-/// after the db client has been initialized
-pub async fn on_startup() {
-  // Configure manual network interface if specified
-  network::configure_internet_gateway().await;
-
-  tokio::join!(
-    in_progress_update_cleanup(),
-    open_alert_cleanup(),
-    ensure_first_server_and_builder(),
-    clean_up_server_templates(),
-  );
-}
-
+/// Runs the Actions with `run_at_startup: true`
 pub async fn run_startup_actions() {
   let startup_actions =
     match database::mungos::find::find_collect::<Action>(
@@ -97,6 +89,21 @@ pub async fn run_startup_actions() {
       );
     }
   }
+}
+
+/// This function should be run on startup,
+/// after the db client has been initialized
+pub async fn on_startup() {
+  // Configure manual network interface if specified
+  network::configure_internet_gateway().await;
+
+  tokio::join!(
+    in_progress_update_cleanup(),
+    open_alert_cleanup(),
+    clean_up_server_templates(),
+    ensure_first_server_and_builder(),
+    ensure_default_procedures(),
+  );
 }
 
 async fn in_progress_update_cleanup() {
@@ -247,6 +254,52 @@ async fn ensure_first_server_and_builder() {
     );
   }
 }
+
+async fn ensure_default_procedures() {
+  let db = db_client();
+  // Assumes if there are any existing users or procedures,
+  // the default procedures do not need to be set up.
+  let Ok((None, None)) = tokio::try_join!(
+    db.users.find_one(Document::new()),
+    db.procedures.find_one(Document::new()),
+  ).inspect_err(|e| error!("Failed to initialize default procedures | Failed to query db | {e:?}")) else {
+    return
+  };
+  let Ok(config) = ProcedureConfig::builder()
+    .stages(vec![ProcedureStage { 
+      name: String::from("Backup"),
+      enabled: true,
+      executions: vec![
+        EnabledExecution {
+          execution: Execution::BackupCoreDatabase(BackupCoreDatabase {}),
+          enabled: true
+        }
+      ]
+    }])
+    .schedule(String::from("Every day at 01:00"))
+    .build()
+    .inspect_err(|e| error!("Failed to initialize default procedures | Failed to build Procedure | {e:?}")) else {
+    return;
+  };
+  let db_backup = Procedure {
+    id: String::new(),
+    name: String::from("Backup Core Database"),
+    description: String::from(
+      "Triggers the Core database backup at the scheduled time. Feel free to modify this to your needs, it will only be created with a fresh Komodo.",
+    ),
+    updated_at: komodo_timestamp(),
+    config,
+    template: Default::default(),
+    tags: Default::default(),
+    info: Default::default(),
+    base_permission: Default::default(),
+  };
+  if let Err(e) = db.procedures.insert_one(&db_backup).await {
+    error!("Failed to initialize default database backup Procedure | Failed to build Procedure | {e:?}");
+  };
+}
+
+// LEGACY
 
 /// v1.17.5 removes the ServerTemplate resource.
 /// References to this resource type need to be cleaned up
