@@ -125,7 +125,7 @@ impl Resolve<ExecuteArgs> for BackupCoreDatabase {
     let res = run_komodo_command(
       "Backup Core Database",
       None,
-      "km database backup",
+      "km database backup --yes",
     )
     .await;
 
