@@ -267,7 +267,7 @@ async fn ensure_default_procedures() {
   };
   let Ok(config) = ProcedureConfig::builder()
     .stages(vec![ProcedureStage { 
-      name: String::from("Backup"),
+      name: String::from("Stage 1"),
       enabled: true,
       executions: vec![
         EnabledExecution {

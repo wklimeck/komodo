@@ -1416,6 +1416,10 @@ const TARGET_COMPONENTS: ExecutionConfigs = {
     params: {},
     Component: () => <></>,
   },
+  BackupCoreDatabase: {
+    params: {},
+    Component: () => <></>,
+  },
 
   Sleep: {
     params: { duration_ms: 0 },

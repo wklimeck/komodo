@@ -410,4 +410,5 @@ export type ExecuteResponses = {
 
   // ==== MAINTENANCE ====
   ClearRepoCache: Types.Update;
+  BackupCoreDatabase: Types.Update;
 };

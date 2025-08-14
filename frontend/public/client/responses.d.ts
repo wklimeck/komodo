@@ -309,4 +309,5 @@ export type ExecuteResponses = {
     DestroyStackService: Types.Update;
     TestAlerter: Types.Update;
     ClearRepoCache: Types.Update;
+    BackupCoreDatabase: Types.Update;
 };

@@ -15,7 +15,7 @@ description = "downloads latest javacript dependencies for client and frontend"
 cmd = """
 cd frontend && yarn && \
 cd ../docsite && yarn && \
-cd ../client/core/ts && yarn && \
+cd ../client/core/ts && yarn
 """
 
 [gen-client]

@@ -448,6 +448,7 @@ export enum Operation {
 	CommitSync = "CommitSync",
 	RunSync = "RunSync",
 	ClearRepoCache = "ClearRepoCache",
+	BackupCoreDatabase = "BackupCoreDatabase",
 	CreateVariable = "CreateVariable",
 	UpdateVariableValue = "UpdateVariableValue",
 	DeleteVariable = "DeleteVariable",
@@ -867,6 +868,7 @@ export type Execution =
 	| { type: "BatchDestroyStack", params: BatchDestroyStack }
 	| { type: "TestAlerter", params: TestAlerter }
 	| { type: "ClearRepoCache", params: ClearRepoCache }
+	| { type: "BackupCoreDatabase", params: BackupCoreDatabase }
 	| { type: "Sleep", params: Sleep };
 
 /** Allows to enable / disabled procedures in the sequence / parallel vec on the fly */
@@ -4087,15 +4089,15 @@ export interface AwsBuilderConfig {
 }
 
 /**
- * Backs up the database to compressed jsonl files. Admin only.
+ * Backs up the Komodo Core database to compressed jsonl files. Admin only.
  * 
  * Mount a folder to `/backups`, and Core will use it to create
  * timestamped database dumps, which can be restored using
- * `ghcr.io/moghtech/komodo-util`.
+ * the Komodo CLI.
  * 
  * TODO: Link to docs
  */
-export interface BackupDatabase {
+export interface BackupCoreDatabase {
 }
 
 /** Builds multiple Repos in parallel that match pattern. Response: [BatchExecutionResponse]. */
@@ -8343,7 +8345,8 @@ export type ExecuteRequest =
 	| { type: "BatchRunAction", params: BatchRunAction }
 	| { type: "TestAlerter", params: TestAlerter }
 	| { type: "RunSync", params: RunSync }
-	| { type: "ClearRepoCache", params: ClearRepoCache };
+	| { type: "ClearRepoCache", params: ClearRepoCache }
+	| { type: "BackupCoreDatabase", params: BackupCoreDatabase };
 
 /**
  * One representative IANA zone for each distinct base UTC offset in the tz database.
